@@ -202,6 +202,24 @@ ckpkg pack .\my-sensor --out .\my-sensor-0.1.0.zip
 - [明确延期、不得宣传为已完成的能力](docs/deferred-platform-roadmap.md)
 - [CK 1.0 发布与封闭测试边界](docs/v1-release-readiness.md)
 
+## 作者与署名
+
+CK 支持学习、修改、二次开发和继续开源。项目作者与维护者：
+**jackchen（GitHub：[@ovoVHV](https://github.com/ovoVHV)）**。
+
+如果你的项目复用了 CK 仓库中的源码、设计文档、Schema、构建脚本或具体实现，请：
+
+1. 保留适用的 `LICENSE`、`NOTICE` 和文件内版权声明；
+2. 在项目 README、NOTICE 或“关于”页面明确注明 CK、原仓库和作者；
+3. 不把第三方修改版表述为 CK 官方认证或官方发行版本。
+
+可使用下面的署名：
+
+> 基于 CK 项目的技术与实现，原作者 jackchen（[@ovoVHV](https://github.com/ovoVHV)）。<br>
+> 来源：[github.com/ovoVHV/CK](https://github.com/ovoVHV/CK)
+
+感谢每一位尊重开源许可证、注明技术出处并继续分享改进的开发者。
+
 ## License
 
 CK 源码以 [Apache License 2.0](LICENSE) 发布。第三方 Core、工具和库继续遵循各自许可证；
