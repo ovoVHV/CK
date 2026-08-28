@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "package_id": "ck_example_i2c_sensor_v2",
+  "migrations": [
+    {
+      "id": "legacy-1x-to-2.0.0",
+      "from": ">=1.0.0 <2.0.0",
+      "to": "2.0.0",
+      "operations": [
+        {
+          "op": "renameBlockType",
+          "from": "ck_example_read_temperature",
+          "to": "ck_example_read_temperature_v2"
+        },
+        {
+          "op": "renameField",
+          "block_type": "ck_example_read_temperature_v2",
+          "from": "I2C_ADDRESS",
+          "to": "ADDRESS"
+        },
+        {
+          "op": "mapEnum",
+          "block_type": "ck_example_read_temperature_v2",
+          "field": "ADDRESS",
+          "mappings": [
+            { "from": "72", "to": "0x48" },
+            { "from": "73", "to": "0x49" }
+          ]
+        }
+      ]
+    }
+  ]
+}

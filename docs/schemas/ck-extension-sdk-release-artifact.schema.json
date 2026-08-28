@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-extension-sdk-release-artifact.schema.json",
+  "title": "CK Extension SDK artifact integrity sidecar v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "channel",
+    "sdk_version",
+    "license",
+    "artifact_file",
+    "bytes",
+    "sha256",
+    "public_url",
+    "publication_status",
+    "release_channel_sha256",
+    "integrity_boundary"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "channel": { "const": "stable" },
+    "sdk_version": { "type": "string", "minLength": 1 },
+    "license": { "const": "Apache-2.0" },
+    "artifact_file": { "type": "string", "pattern": "^CK-Extension-SDK-.+\\.zip$" },
+    "bytes": { "type": "integer", "minimum": 1 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "public_url": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "format": "uri", "pattern": "^https://" }
+      ]
+    },
+    "publication_status": { "enum": ["local-artifact-ready", "published"] },
+    "release_channel_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "integrity_boundary": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "publication_status": { "const": "local-artifact-ready" } } },
+      "then": { "properties": { "public_url": { "type": "null" } } },
+      "else": { "properties": { "public_url": { "type": "string", "pattern": "^https://" } } }
+    }
+  ]
+}

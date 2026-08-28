@@ -1,0 +1,14 @@
+{
+  "name": "@ck/extension-sdk-cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local CK extension package validation, testing, real compile-only, and deterministic packaging CLI.",
+  "type": "module",
+  "bin": {
+    "ckpkg": "scripts/ckpkg.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "Apache-2.0"
+}

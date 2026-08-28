@@ -1,0 +1,18 @@
+[
+  {
+    "type": "ck_example_serial_message",
+    "message0": "示例串口消息 %1",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "MESSAGE",
+        "text": "Hello CK"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "#E05263",
+    "tooltip": "以 115200 波特率初始化默认串口，并输出一行消息。",
+    "helpUrl": ""
+  }
+]

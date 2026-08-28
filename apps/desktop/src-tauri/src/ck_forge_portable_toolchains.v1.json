@@ -1,0 +1,421 @@
+{
+  "schemaId": "ck.forge.portable-toolchain-migration",
+  "schemaVersion": 1,
+  "identitySchema": "ck_toolchain_cache_key_v13_portable_inputs",
+  "entries": [
+    {
+      "fqbn": "arduino:avr:LilyPadUSB",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|97e6b2792883afba1c70719ad7bc31b3d8be72f2021d95fceb2676dbc03269cf",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|408f54773b5ca7d4709f26e2bba40d1ab736f2215e86eb990d484485ba60a896"
+    },
+    {
+      "fqbn": "arduino:avr:atmegang:cpu=atmega168",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|2b8779ba0fd4853913d5027aea21f770fa2d3b8439128cd5b0ac1120b318d4fa",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|bbb9e6a8c7a2cf615dfe8be4c6e0670a17603311da4258d30f839abd67a099a6"
+    },
+    {
+      "fqbn": "arduino:avr:atmegang:cpu=atmega8",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|2b8779ba0fd4853913d5027aea21f770fa2d3b8439128cd5b0ac1120b318d4fa",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|bbb9e6a8c7a2cf615dfe8be4c6e0670a17603311da4258d30f839abd67a099a6"
+    },
+    {
+      "fqbn": "arduino:avr:bt:cpu=atmega168",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|8dd53fef787bfb77295ae6d04d96bb8eb6eac3b24d744262fe9dfcffe2fad081",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|5fcaede0a547a3defdf4e6163433c9fc58ae7731d7eec9aae726d51c8c32eb70"
+    },
+    {
+      "fqbn": "arduino:avr:bt:cpu=atmega328",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|8dd53fef787bfb77295ae6d04d96bb8eb6eac3b24d744262fe9dfcffe2fad081",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|5fcaede0a547a3defdf4e6163433c9fc58ae7731d7eec9aae726d51c8c32eb70"
+    },
+    {
+      "fqbn": "arduino:avr:chiwawa",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|b0f8a47f8c416093076b206ba771b2844c8b61f523e573d98c03b597a750056e",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|6af6028c566704b3d15dafb5fdbafb5adc5f3c57916b7c808fa4326425ed11d3"
+    },
+    {
+      "fqbn": "arduino:avr:circuitplay32u4cat",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|dacf03e81809bc153057c67851565a046a78651b3b211952b6cf248ec9eb6df8",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|2f25120d94f989c172c22968231ae2001086837233318410cd4dc4a6dbff4fe2"
+    },
+    {
+      "fqbn": "arduino:avr:diecimila:cpu=atmega168",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|4948580a9799a9e0b7afbec449fdcd077a2ecaed5abac4618616e05d25662387",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|9d0fdb75ba481b4e0c700db06c9b6d462da3c0b01c140c1eb09325a8d9fea29d"
+    },
+    {
+      "fqbn": "arduino:avr:diecimila:cpu=atmega328",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|4948580a9799a9e0b7afbec449fdcd077a2ecaed5abac4618616e05d25662387",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|9d0fdb75ba481b4e0c700db06c9b6d462da3c0b01c140c1eb09325a8d9fea29d"
+    },
+    {
+      "fqbn": "arduino:avr:esplora",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|ebabb570acaaa70c8affdbb95c6c4af0468491ba3ed795bd118716def38731a2",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|366e843fffc20387186d01c14c0e1946e452a13c222afd234340bea11486f8e6"
+    },
+    {
+      "fqbn": "arduino:avr:ethernet",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|f7aeadb25acfa2fc1ac7728b49f489311e8608499ee1919de3dea1adc6063760",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|484fb68f769d10500b772844287fb70766ad39bd5dd4c27855a98a7fa51f29d0"
+    },
+    {
+      "fqbn": "arduino:avr:fio",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|9b25e32b4313544957aa11692f0c835fcd6697da6cbab21ff88dfd324150f454",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|f63a1c93fc640b8853c9e29d145cd44ae2c5dd5e1a0c09313401fdc4a5131aaa"
+    },
+    {
+      "fqbn": "arduino:avr:gemma",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|833e5ac7d654017cdedbf37ebe23d9e9ba767a5ba9de9a2c2a74fc5a03b39721",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|1e788c75298d39ea491d7fe2c7d970cd80bb6d8a2427112d3a5c59a238031c57"
+    },
+    {
+      "fqbn": "arduino:avr:leonardo",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|5a6fc6433d84a3c0e5f611866aaa458a30e627ebe7b65b68e258a9fd6e21be8a",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|475f279c8a184d0f1d82be16d06de22f07a741be7fadf1a02224631603979ec8"
+    },
+    {
+      "fqbn": "arduino:avr:leonardoeth",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|19c5e10233b6d9fe8a15158d16d64b5c41776d719f0b3f6290022eb196502d9b",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|27f28e35e4694bbaba5444f65f6c1382bb76a09df03ae064f66fcf1d0d2cf409"
+    },
+    {
+      "fqbn": "arduino:avr:lilypad:cpu=atmega168",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|58e79e480bc08e4ff034aa9cf52092aab1ba6584000ef781d98afb0a384cb9cb",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|d052b9b9625aba8a88c878843ed6fa4a4679c492e083ebba7537910a315f7939"
+    },
+    {
+      "fqbn": "arduino:avr:lilypad:cpu=atmega328",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|58e79e480bc08e4ff034aa9cf52092aab1ba6584000ef781d98afb0a384cb9cb",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|d052b9b9625aba8a88c878843ed6fa4a4679c492e083ebba7537910a315f7939"
+    },
+    {
+      "fqbn": "arduino:avr:mega:cpu=atmega1280",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|588b7bcb96abc8b9019d5f70208c87db37efcd1bc48c54a64e9eccd64e6b2aba",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|b736c42de0ccfd71486d17b079b0e2f196dad9d3acb1deabb0addabb258fb897"
+    },
+    {
+      "fqbn": "arduino:avr:mega:cpu=atmega2560",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|588b7bcb96abc8b9019d5f70208c87db37efcd1bc48c54a64e9eccd64e6b2aba",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|b736c42de0ccfd71486d17b079b0e2f196dad9d3acb1deabb0addabb258fb897"
+    },
+    {
+      "fqbn": "arduino:avr:mega:cpu=atmega2560",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|588b7bcb96abc8b9019d5f70208c87db37efcd1bc48c54a64e9eccd64e6b2aba",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|b736c42de0ccfd71486d17b079b0e2f196dad9d3acb1deabb0addabb258fb897"
+    },
+    {
+      "fqbn": "arduino:avr:megaADK",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|4ab0ea3f4e2de41ecac4e3f0a37d4914ff3985eb7efe975cd1e8499abeb6ddf9",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|3418a7598e65886dd678d07b1b665146138b16d24d34541d1f3ccac772431fa1"
+    },
+    {
+      "fqbn": "arduino:avr:micro",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|7b4d1fab069c7883d9d923195e2f7bcfb24302658bfd9437525d1fe40b925035",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|117e263934bd85685877f08f4b74970714e7cf074ff4abf23ee6c99cc16872a2"
+    },
+    {
+      "fqbn": "arduino:avr:mini:cpu=atmega168",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|196fde813766d18981b7a76f5e7620246527dd1bf2b4ed8837be15feeab35d61",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|445be791edccae18fb0d47d04c83f48155f8de46ffd505904a9815b888de2fc1"
+    },
+    {
+      "fqbn": "arduino:avr:mini:cpu=atmega328",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|196fde813766d18981b7a76f5e7620246527dd1bf2b4ed8837be15feeab35d61",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|445be791edccae18fb0d47d04c83f48155f8de46ffd505904a9815b888de2fc1"
+    },
+    {
+      "fqbn": "arduino:avr:nano:cpu=atmega168",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|9d46874c02f5719b90a510f1539b9f925752d53fa4baeab78fed22280a6a667f",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|3f1143d8e9c7ec4572c4baacda6f1d26804258537780d68df93b4ee79636caa8"
+    },
+    {
+      "fqbn": "arduino:avr:nano:cpu=atmega328",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|9d46874c02f5719b90a510f1539b9f925752d53fa4baeab78fed22280a6a667f",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|3f1143d8e9c7ec4572c4baacda6f1d26804258537780d68df93b4ee79636caa8"
+    },
+    {
+      "fqbn": "arduino:avr:nano:cpu=atmega328old",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|9d46874c02f5719b90a510f1539b9f925752d53fa4baeab78fed22280a6a667f",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|3f1143d8e9c7ec4572c4baacda6f1d26804258537780d68df93b4ee79636caa8"
+    },
+    {
+      "fqbn": "arduino:avr:one",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|cd61ce32d654809e63397a300dff7992ec27af24e40941c205bb26f009ad12aa",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|d887f83c1e085b80dd2a47ba7420baaf38c9e218f72f6be108a124024e38a419"
+    },
+    {
+      "fqbn": "arduino:avr:pro:cpu=16MHzatmega168",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|aa38a1579707930b180fad0c5eec428b8c831d6a798c6644040b5185b8face00",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|240c6a885f81549f0d04ba356ae76c10338f6775dc133615d31c87f4755ab05f"
+    },
+    {
+      "fqbn": "arduino:avr:pro:cpu=16MHzatmega328",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|aa38a1579707930b180fad0c5eec428b8c831d6a798c6644040b5185b8face00",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|240c6a885f81549f0d04ba356ae76c10338f6775dc133615d31c87f4755ab05f"
+    },
+    {
+      "fqbn": "arduino:avr:pro:cpu=8MHzatmega168",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|aa38a1579707930b180fad0c5eec428b8c831d6a798c6644040b5185b8face00",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|240c6a885f81549f0d04ba356ae76c10338f6775dc133615d31c87f4755ab05f"
+    },
+    {
+      "fqbn": "arduino:avr:pro:cpu=8MHzatmega328",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|aa38a1579707930b180fad0c5eec428b8c831d6a798c6644040b5185b8face00",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|240c6a885f81549f0d04ba356ae76c10338f6775dc133615d31c87f4755ab05f"
+    },
+    {
+      "fqbn": "arduino:avr:robotControl",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|571283bc22f5ea4f53d16bda0d8a9e99de16aa4d6b020ee27e07c60c8d167d17",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|350fb97a4878ef643b6a86217eb046dd59a3d8a4efac76ecd215b2a18a6f0d59"
+    },
+    {
+      "fqbn": "arduino:avr:robotMotor",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|3fd164c8e17849b0fea4f7247ed78fec77e3a1b28ac88a9c89ea7b9d211b8922",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|405e6430339c9ff805efd737b110b1811b29796f75d3b5ad5e7fa5a5e4e5bf18"
+    },
+    {
+      "fqbn": "arduino:avr:uno",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|68a2d8fe7559d1cd827156c4ee9af5ec5334ca3b42af0a23c4397816e2261e90",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|da93097412fa15268d30f2edf13923fb34c189d9c9125da1946c73875d39c3ad"
+    },
+    {
+      "fqbn": "arduino:avr:uno",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|68a2d8fe7559d1cd827156c4ee9af5ec5334ca3b42af0a23c4397816e2261e90",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|da93097412fa15268d30f2edf13923fb34c189d9c9125da1946c73875d39c3ad"
+    },
+    {
+      "fqbn": "arduino:avr:uno",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|68a2d8fe7559d1cd827156c4ee9af5ec5334ca3b42af0a23c4397816e2261e90",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|da93097412fa15268d30f2edf13923fb34c189d9c9125da1946c73875d39c3ad"
+    },
+    {
+      "fqbn": "arduino:avr:uno",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|68a2d8fe7559d1cd827156c4ee9af5ec5334ca3b42af0a23c4397816e2261e90",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|da93097412fa15268d30f2edf13923fb34c189d9c9125da1946c73875d39c3ad"
+    },
+    {
+      "fqbn": "arduino:avr:unomini",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|133dcacd6a399b5f1baeec330389ca644a0cbb0b882520336a6378b7834f35c4",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|90f777db44e1d99f71e8b0a93debd886e0f756ee8feff761f8d6f48569d29171"
+    },
+    {
+      "fqbn": "arduino:avr:unomini",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|133dcacd6a399b5f1baeec330389ca644a0cbb0b882520336a6378b7834f35c4",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|90f777db44e1d99f71e8b0a93debd886e0f756ee8feff761f8d6f48569d29171"
+    },
+    {
+      "fqbn": "arduino:avr:unomini",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|133dcacd6a399b5f1baeec330389ca644a0cbb0b882520336a6378b7834f35c4",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|90f777db44e1d99f71e8b0a93debd886e0f756ee8feff761f8d6f48569d29171"
+    },
+    {
+      "fqbn": "arduino:avr:unowifi",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|0127ce341d853ac554a4b8fde07adb2c3cbc961f34cad1deb0b262aad9adf392",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|21745aee109a2f5f51f6ee499db0e5105c54f74182fbd68769fce9eff89d4242"
+    },
+    {
+      "fqbn": "arduino:avr:yun",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|79dc43256eff3c1e5dfc2e2ee0183a4a645fa22d710d0b6d2f63f6868ba5d6ea",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|35647d457d52923eaf238302d5828fe179a15e9310225e4f3653d143db38e7cd"
+    },
+    {
+      "fqbn": "arduino:avr:yun",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|79dc43256eff3c1e5dfc2e2ee0183a4a645fa22d710d0b6d2f63f6868ba5d6ea",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|35647d457d52923eaf238302d5828fe179a15e9310225e4f3653d143db38e7cd"
+    },
+    {
+      "fqbn": "arduino:avr:yun",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|79dc43256eff3c1e5dfc2e2ee0183a4a645fa22d710d0b6d2f63f6868ba5d6ea",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|35647d457d52923eaf238302d5828fe179a15e9310225e4f3653d143db38e7cd"
+    },
+    {
+      "fqbn": "arduino:avr:yunmini",
+      "coreVersion": "1.8.6",
+      "portableToolchainKey": "arduino|avr|1.8.6|bbc3bee3e079fb16becfa5f8bf2ec77f75074fa205f995457ae6d5798e0681f5",
+      "evidenceToolchainKey": "arduino|avr|1.8.6|39acb0e27bb40fd9672211dd223f91bcd9302c04fca18e6534357dd2e365b1b2"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|2cbb284faa2e9df89e399974e3376b473e265eafcdd4ae096803d6452d68a82e",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|8e6964997ef90fc97132043e5a7221ac85674a29f9f939c524933a60a504800c"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|2cbb284faa2e9df89e399974e3376b473e265eafcdd4ae096803d6452d68a82e",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|8e6964997ef90fc97132043e5a7221ac85674a29f9f939c524933a60a504800c"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|2cbb284faa2e9df89e399974e3376b473e265eafcdd4ae096803d6452d68a82e",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|8e6964997ef90fc97132043e5a7221ac85674a29f9f939c524933a60a504800c"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c3",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|267395cf35a1d3e0bff6156233e0d8d0def7ba94350e7e480e0439429fcdddab",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|187bb6fb5700c5a17b63d0aa25e7be4cb2489c6e4902b0ddc21711f9cb983c23"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c3",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|267395cf35a1d3e0bff6156233e0d8d0def7ba94350e7e480e0439429fcdddab",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|187bb6fb5700c5a17b63d0aa25e7be4cb2489c6e4902b0ddc21711f9cb983c23"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c3",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|267395cf35a1d3e0bff6156233e0d8d0def7ba94350e7e480e0439429fcdddab",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|187bb6fb5700c5a17b63d0aa25e7be4cb2489c6e4902b0ddc21711f9cb983c23"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c5",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|b19add94a12f26a05286cd0a3c3407b2e6802f058b1252eeb5171bc6f08ef82b",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|0c682daf441e0c644b5a30c7cdd21fb0f9340007658155c7fed5246387b78cf0"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c5",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|b19add94a12f26a05286cd0a3c3407b2e6802f058b1252eeb5171bc6f08ef82b",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|0c682daf441e0c644b5a30c7cdd21fb0f9340007658155c7fed5246387b78cf0"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c5",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|b19add94a12f26a05286cd0a3c3407b2e6802f058b1252eeb5171bc6f08ef82b",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|0c682daf441e0c644b5a30c7cdd21fb0f9340007658155c7fed5246387b78cf0"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c6",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|ad898028651d0e9ef7c86a59b0864672b6b469aca965f1cf9e1f7ee2829375c8",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|948495f6e3aea51db703f09bc84f9b8975efec5642385cc4525ba751c5f56a24"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c6",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|ad898028651d0e9ef7c86a59b0864672b6b469aca965f1cf9e1f7ee2829375c8",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|948495f6e3aea51db703f09bc84f9b8975efec5642385cc4525ba751c5f56a24"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c6",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|ad898028651d0e9ef7c86a59b0864672b6b469aca965f1cf9e1f7ee2829375c8",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|948495f6e3aea51db703f09bc84f9b8975efec5642385cc4525ba751c5f56a24"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32c6",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|ad898028651d0e9ef7c86a59b0864672b6b469aca965f1cf9e1f7ee2829375c8",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|948495f6e3aea51db703f09bc84f9b8975efec5642385cc4525ba751c5f56a24"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32h2",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|555ce49617a34ab9cfb81be5944b97e2876fb2c521feb0e90555a8e7df0eb555",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|09299ab64bb1d978e7c0c1d51a61983431dc7f64dd12a2348b082a43fd073e1a"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32h2",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|555ce49617a34ab9cfb81be5944b97e2876fb2c521feb0e90555a8e7df0eb555",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|09299ab64bb1d978e7c0c1d51a61983431dc7f64dd12a2348b082a43fd073e1a"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32h2",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|555ce49617a34ab9cfb81be5944b97e2876fb2c521feb0e90555a8e7df0eb555",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|09299ab64bb1d978e7c0c1d51a61983431dc7f64dd12a2348b082a43fd073e1a"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32p4",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|1f52fececc23139b2f0bea23c68d2eeee00b7fae9f22e87297555c14ca6f7edd",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|e2acf4d5317145471924d15f28bd186317f0498758242741157adb16bbfe927e"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32s2",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|c259fad832a0a620ed6cd8c7293b2df8910ab6e19313b165f0bcb09cbe0ab321",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|ddbd9254c18629b93d98d3d8135c97561d8b02fb66201e39de280cf6cd0cdbd1"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32s2",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|c259fad832a0a620ed6cd8c7293b2df8910ab6e19313b165f0bcb09cbe0ab321",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|ddbd9254c18629b93d98d3d8135c97561d8b02fb66201e39de280cf6cd0cdbd1"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32s2",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|c259fad832a0a620ed6cd8c7293b2df8910ab6e19313b165f0bcb09cbe0ab321",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|ddbd9254c18629b93d98d3d8135c97561d8b02fb66201e39de280cf6cd0cdbd1"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32s3",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|e40db8b80472fc294908906b896c8c5887550edf93d167ae88da730e187f92a6",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|8b91b00873a8b322ddbbcb0b4cf2986abc85121f458a8fbdf768c9888f790b43"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32s3",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|e40db8b80472fc294908906b896c8c5887550edf93d167ae88da730e187f92a6",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|8b91b00873a8b322ddbbcb0b4cf2986abc85121f458a8fbdf768c9888f790b43"
+    },
+    {
+      "fqbn": "esp32:esp32:esp32s3",
+      "coreVersion": "3.3.6",
+      "portableToolchainKey": "esp32|esp32|3.3.6|e40db8b80472fc294908906b896c8c5887550edf93d167ae88da730e187f92a6",
+      "evidenceToolchainKey": "esp32|esp32|3.3.6|8b91b00873a8b322ddbbcb0b4cf2986abc85121f458a8fbdf768c9888f790b43"
+    }
+  ]
+}

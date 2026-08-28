@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "ck_example_serial_blocks",
+  "display_name": "CK 可导入积木示例",
+  "description": "提供一个跨板卡的串口消息积木，演示第三方包的完整机器可读目录。",
+  "keywords": ["example", "serial", "message", "示例", "串口", "消息"],
+  "compatibility": {
+    "boards": ["*"],
+    "architectures": ["*"]
+  },
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.xml"
+  },
+  "blocks": [
+    {
+      "type": "ck_example_serial_message",
+      "display_name": "串口输出示例消息",
+      "description": "以 115200 波特率初始化默认串口，并输出一行可编辑文本。",
+      "category": "可导入示例",
+      "kind": "statement",
+      "keywords": ["serial", "print", "message", "串口", "输出", "消息"],
+      "fields": [
+        {
+          "name": "MESSAGE",
+          "kind": "text",
+          "description": "要输出到默认串口的一行文本。",
+          "required": true,
+          "default": "Hello CK"
+        }
+      ],
+      "inputs": [],
+      "requires": [],
+      "examples": ["输出 Hello CK 到串口监视器"]
+    }
+  ]
+}

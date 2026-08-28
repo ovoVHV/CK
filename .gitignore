@@ -1,0 +1,43 @@
+# Rust
+/target/
+**/target/
+
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.log
+
+# CK runtime data and generated evidence
+/packages/
+/cache/
+/state/
+/artifacts/
+/bin/
+/prebuilt_cores/
+/sketchbook/
+/empty_sketchbook/
+/tmp/
+/tmp_sketch/
+apps/desktop/src-tauri/state/qualifications/*
+!apps/desktop/src-tauri/state/qualifications/.gitkeep
+
+# Arduino indexes and local configuration
+/arduino-cli*.yaml
+/library_index.json*
+/package*_index*.json*
+
+# Editors and OS files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.suo
+*.user
+
+# Packaging output
+*.msi
+*-setup.exe
+

@@ -1,0 +1,14 @@
+{
+  "id": "ck_example_native_deep",
+  "name": "CK 深层原生 Arduino 库示例",
+  "version": "1.0.0",
+  "description": "纯 Arduino C/C++ 库示例，覆盖标准 src 递归布局、公开嵌套头和显式依赖。",
+  "author": "CK Example",
+  "maintainer": "CK Example",
+  "license": "MIT",
+  "architectures": ["*"],
+  "includes": ["CKNativeDeep.h", "driver/CKNativeDriver.h"],
+  "dependencies": {
+    "Wire": "*"
+  }
+}

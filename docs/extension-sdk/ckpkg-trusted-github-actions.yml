@@ -1,0 +1,82 @@
+# TRUSTED VALIDATOR TEMPLATE.
+# The SDK is fetched independently from the pull request and accepted only when
+# it matches a protected SHA-256. This still is not CK certification by itself.
+name: CK extension trusted-validator checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  PACKAGE_DIR: packages/my-sensor
+  # Configure both as protected repository/environment variables. The URL must
+  # identify an immutable owner-approved SDK artifact, not a file in this repo.
+  CK_TRUSTED_SDK_URL: ${{ vars.CK_TRUSTED_SDK_URL }}
+  CK_TRUSTED_SDK_SHA256: ${{ vars.CK_TRUSTED_SDK_SHA256 }}
+
+jobs:
+  quality:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      # Before protected use, pin third-party actions below to reviewed full commit SHAs.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: arduino/setup-arduino-cli@v2
+        with:
+          version: '1.4.1'
+
+      - name: Fetch and verify independent CK Extension SDK
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CK_TRUSTED_SDK_URL)) {
+            throw 'Required protected variable CK_TRUSTED_SDK_URL is missing.'
+          }
+          if ($env:CK_TRUSTED_SDK_SHA256 -notmatch '^[a-fA-F0-9]{64}$') {
+            throw 'Required protected variable CK_TRUSTED_SDK_SHA256 must be a fixed 64-digit SHA-256.'
+          }
+          $download = Join-Path $env:RUNNER_TEMP 'ck-extension-sdk.zip'
+          $extract = Join-Path $env:RUNNER_TEMP 'ck-extension-sdk'
+          Invoke-WebRequest -Uri $env:CK_TRUSTED_SDK_URL -OutFile $download
+          $actual = (Get-FileHash -LiteralPath $download -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -cne $env:CK_TRUSTED_SDK_SHA256.ToLowerInvariant()) {
+            throw "Trusted SDK SHA-256 mismatch: expected=$env:CK_TRUSTED_SDK_SHA256 actual=$actual"
+          }
+          Expand-Archive -LiteralPath $download -DestinationPath $extract
+          $roots = @(Get-ChildItem -LiteralPath $extract -Directory)
+          if ($roots.Count -ne 1) { throw 'Trusted SDK archive must have exactly one root directory.' }
+          $sdk = $roots[0].FullName
+          & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $sdk 'scripts\Verify-ExtensionSdk.ps1') -ArchivePath $download
+          if ($LASTEXITCODE -ne 0) { throw 'Trusted SDK manifest verification failed.' }
+          npm install --global $sdk
+
+      - name: Install ESP32 Core 3.3.6
+        shell: pwsh
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@3.3.6
+
+      - name: Validate package
+        shell: pwsh
+        run: ckpkg validate $env:PACKAGE_DIR --json --output artifacts/ckpkg-validate.json
+      - name: Run declarative contract tests
+        shell: pwsh
+        run: ckpkg test $env:PACKAGE_DIR --json --output artifacts/ckpkg-test.json
+      - name: Compile declared profile with the real toolchain
+        shell: pwsh
+        run: ckpkg compile $env:PACKAGE_DIR esp32-c6 --json --output artifacts/ckpkg-compile.json
+      - name: Build deterministic package
+        shell: pwsh
+        run: ckpkg pack $env:PACKAGE_DIR --out artifacts/my-sensor.zip --json --output artifacts/ckpkg-pack.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ckpkg-trusted-validator-output
+          path: artifacts/

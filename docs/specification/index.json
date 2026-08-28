@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "specification_version": "1.0",
+  "updated_at": "2026-08-25",
+  "contract_governance": "docs/contract-governance.md",
+  "contract_inventory": "docs/specification/contracts.json",
+  "status_definitions": {
+    "normative": "Consumed by production code and validators; incompatible changes require an explicit version and migration or rejection.",
+    "stable-local": "Stable for local CK evidence or containers; not a publisher signature or portable certification service.",
+    "internal": "Implemented but not promised as a third-party authoring contract.",
+    "deferred": "Design only; not a shipped product contract."
+  },
+  "contracts": [
+    {
+      "id": "ck.project",
+      "version": 1,
+      "status": "normative",
+      "document": "docs/ck-project-format-v1.md",
+      "schema": "docs/schemas/ck-project.schema.json",
+      "primary_extension": ".ck"
+    },
+    {
+      "id": "ck.project-submission",
+      "version": 1,
+      "status": "stable-local",
+      "document": "docs/project-submission-format.md",
+      "schema": "docs/schemas/ck-project-package.schema.json",
+      "primary_extension": ".ckpkg"
+    },
+    {
+      "id": "ck.project-checkpoints",
+      "version": 1,
+      "status": "internal",
+      "document": "docs/current-feature-inventory.md"
+    },
+    {
+      "id": "ck.recovery-drafts",
+      "version": 1,
+      "status": "internal",
+      "document": "docs/recovery-drafts-v1.md"
+    },
+    {
+      "id": "ck.board-package",
+      "version": 1,
+      "status": "normative",
+      "document": "docs/third-party-board-passport.md",
+      "schema": "docs/schemas/ck-board.schema.json"
+    },
+    {
+      "id": "ck.board-lock",
+      "version": 1,
+      "status": "stable-local",
+      "document": "docs/third-party-board-passport.md",
+      "schema": "docs/schemas/ck-board-lock.schema.json"
+    },
+    {
+      "id": "ck.block-contract",
+      "version": 2,
+      "status": "normative",
+      "document": "docs/blockly-library-package-standard.md",
+      "schema": "docs/schemas/ck-blocks-v2.schema.json"
+    },
+    {
+      "id": "ck.declarative-generator",
+      "version": 1,
+      "status": "normative",
+      "schema": "docs/schemas/ck-generator.schema.json"
+    },
+    {
+      "id": "ck.package-migration",
+      "version": 1,
+      "status": "normative",
+      "document": "docs/block-package-migration-v1.md",
+      "schema": "docs/schemas/ck-migrations.schema.json"
+    },
+    {
+      "id": "ck.package-quality-report",
+      "version": 2,
+      "status": "stable-local",
+      "document": "docs/package-quality-gates.md",
+      "schema": "docs/schemas/ck-package-quality-report.schema.json"
+    },
+    {
+      "id": "ck.block-evidence-passport",
+      "version": 1,
+      "status": "stable-local",
+      "document": "docs/block-package-evidence-passport.md"
+    },
+    {
+      "id": "ckpkg",
+      "version": "1.0.0",
+      "status": "normative",
+      "document": "docs/extension-sdk/ckpkg.md"
+    },
+    {
+      "id": "ck.extension-sdk",
+      "version": "1.0.0",
+      "status": "stable-local",
+      "document": "docs/extension-sdk/README.md",
+      "schema": "docs/schemas/ck-extension-sdk-release-channel.schema.json",
+      "license": "Apache-2.0",
+      "release_channel": "docs/extension-sdk/release-channel.json"
+    },
+    {
+      "id": "ck.forge-regression",
+      "version": 1,
+      "status": "stable-local",
+      "engine_identity": "ck-forge/v1",
+      "fast_build_contract_id": "ck-fast-build-contract-v9:command-scoped-ccache-native-file-paths-O1-final-g0-no-lto-expanded-ccdb-core-deps-portable-response-guard",
+      "toolchain_identity_schema": "ck_toolchain_cache_key_v13_portable_inputs",
+      "qualified_arduino_cli_version": "1.4.1",
+      "qualification_scope": "complete-canonical-fqbn-core-cli-toolchain-contract",
+      "builtin_toolchain_evidence_os": "windows",
+      "unqualified_route": "native-release-with-authenticated-identical-artifact-exact-replay",
+      "local_qualification_runtime": "read-only-connected-fail-closed-runtime-executable-bound-certificates-only",
+      "current_fast_status_entrypoint": "scripts/Report-CKForgeFastQualifications.cjs",
+      "document": "docs/ck-forge-v1.md",
+      "schema": "docs/schemas/ck-forge-regression-report.schema.json",
+      "qualification_manifest": "apps/desktop/src-tauri/src/ck_forge_qualified_targets.v1.json",
+      "qualification_manifest_schema": "docs/schemas/ck-forge-qualification-manifest.schema.json",
+      "qualification_manifest_grants_fast": false,
+      "entrypoint": "scripts/Run-CKForgeRegression.cjs",
+      "report_schema_id": "ck.cross-board-compile-only-matrix",
+      "report_schema_version": 2
+    },
+    {
+      "id": "ck.forge-flfe-portable-lane",
+      "version": 1,
+      "status": "stable-local",
+      "engine_identity": "ck-forge/v1",
+      "product_name": "FLFE",
+      "product_expansion": "Fast Link For Ever",
+      "portable_profile": "portable-fast-historical-experiment-only",
+      "portable_profile_default_enabled": false,
+      "portable_profile_performance_status": "regressed-versus-native-in-single-run-diagnostics",
+      "specialized_profiles": ["quick-fast", "shared-fast"],
+      "unqualified_profile": "release",
+      "document": "docs/ck-forge-flfe-portable-lane.md",
+      "scope": "qualified-fast-or-native-release-for-real-compilation; authenticated Exact replay is independent of Fast qualification",
+      "qualified_version_examples_are_compatibility_ceiling": false,
+      "current_qualification_root": "state/qualifications",
+      "historical_regression_record": "docs/flfe-regression-record-20260717.md",
+      "historical_evidence_index": "artifacts/benchmarks/index.json",
+      "current_fast_status_entrypoint": "scripts/Report-CKForgeFastQualifications.cjs",
+      "current_status_is_runtime_derived": true,
+      "unqualified_target_display_status": "qualification-pending",
+      "qualification_pending_means_incompatible": false,
+      "qualification_pending_real_build_route": "native-arduino-cli-release",
+      "qualification_worklist_source": "scripts/Run-CKForgeRegression.cjs",
+      "required_qualification_sequence": ["simple", "complex", "medium", "simple-return"],
+      "requested_esp32_qualification_targets": [
+        "esp32:esp32:esp32c3",
+        "esp32:esp32:esp32c5",
+        "esp32:esp32:esp32c6",
+        "esp32:esp32:esp32s3",
+        "esp32:esp32:esp32h2",
+        "esp32:esp32:esp32p4",
+        "esp32:esp32:adafruit_feather_esp32s3"
+      ],
+      "historical_checked_snapshot": {
+        "production_executable_sha256": "7b45eccf6dabbb4a23ebac269c7f8c1f1a04d1cf9a59e7acb5a4fe7fc7453476",
+        "production_executable_bytes": 44863488,
+        "at_time_fast_qualified_target_count": 2,
+        "at_time_fast_qualified_by_architecture": {
+          "avr": 2,
+          "esp32": 0,
+          "samd": 0
+        },
+        "current_gate_recomputed_fast_qualified_target_count": 0,
+        "current_gate_invalid_certificate_count": 2,
+        "current_gate_invalid_reason": "preserved certificates predate the current lane-boundary/four-stage gate and are not current Fast qualifications",
+        "at_time_cold_compile_fast_qualified_target_count": 0,
+        "at_time_upload_fast_qualified_target_count": 0,
+        "native_relink_certificates": [
+          {
+            "canonical_fqbn": "arduino:avr:yun",
+            "core_version": "1.8.6",
+            "qualification_key": "7d0f3abbf7f9399cdbf45ae37039276c4ea3def79b67d4a0b0bfd78bb5776812",
+            "certificate": "state/qualifications/7d0f3abbf7f9399cdbf45ae37039276c4ea3def79b67d4a0b0bfd78bb5776812/certificate.json"
+          },
+          {
+            "canonical_fqbn": "arduino:avr:uno",
+            "core_version": "1.8.6",
+            "qualification_key": "7ff683e394f5d8a2958acc315cc9afb96b8617bbb2836859b6c76fc611e90409",
+            "certificate": "state/qualifications/7ff683e394f5d8a2958acc315cc9afb96b8617bbb2836859b6c76fc611e90409/certificate.json"
+          }
+        ],
+        "scope": "historical-only; does not describe the currently running or newly rebuilt executable"
+      },
+      "candidate_identity_manifest_grants_fast": false,
+      "exact_match_grants_fast": false,
+      "historical_executable_certificates_grant_current_fast": false,
+      "latest_evidence_status": "runtime-query-required; checked-7b45eccf-snapshot-is-historical-only",
+      "historical_20260718_evidence_ids": [
+        "flfe-c6-native-ab-v1-53dd76b7-20260718",
+        "flfe-avr-native-ab-v1-53dd76b7-20260718",
+        "flfe-stm32-native-ab-v1-53dd76b7-20260718",
+        "flfe-c6-normal-exact-v1-53dd76b7-20260718",
+        "flfe-stm32-normal-exact-v1-53dd76b7-20260718"
+      ],
+      "historical_20260718_ab_evidence_target_count": 3,
+      "historical_20260718_normal_exact_target_count": 2,
+      "historical_20260718_ab_runner_sha256": "236377d2d22d61e998af18503c5f069b7dad929f866ed2632de76d9bb3b0e015",
+      "historical_20260718_cross_board_runner_sha256": "6cddb4fdb8ac5f4b8ddce4658660bdbaaae6cc16856678ae2156941a2db76548",
+      "historical_20260718_evidence_scope": "compile-only; three alternating paired A/B trials per target with Exact disabled; normal Exact reports are separate functional evidence; hardwareTested=false",
+      "historical_20260718_ab_results": {
+        "esp32_c6": {
+          "path": "artifacts/benchmarks/ck-forge-20260718-flfe-53dd76b7-c6-native-ab-v1.json",
+          "fresh_ck_native_seconds": [42.13, 42.288],
+          "repeat_ck_native_seconds": [21.599, 21.015],
+          "performance_verdict": "not-qualified-fast"
+        },
+        "arduino_avr_uno": {
+          "path": "artifacts/benchmarks/ck-forge-20260718-flfe-53dd76b7-avr-native-ab-v1.json",
+          "fresh_ck_native_seconds": [6.817, 6.892],
+          "repeat_ck_native_seconds": [4.894, 4.542],
+          "performance_verdict": "not-qualified-fast"
+        },
+        "stm32_f401re": {
+          "path": "artifacts/benchmarks/ck-forge-20260718-flfe-53dd76b7-stm32-native-ab-v1.json",
+          "fresh_ck_native_seconds": [35.444, 36.565],
+          "repeat_ck_native_seconds": [16.018, 15.599],
+          "performance_verdict": "not-qualified-fast"
+        }
+      },
+      "historical_20260718_normal_exact_results": {
+        "esp32_c6": {
+          "path": "artifacts/benchmarks/ck-forge-20260718-flfe-53dd76b7-c6-normal-exact-v1.json",
+          "cold_seconds": 47.378,
+          "exact_seconds": 2.438
+        },
+        "stm32_f401re": {
+          "path": "artifacts/benchmarks/ck-forge-20260718-flfe-53dd76b7-stm32-normal-exact-v1.json",
+          "cold_seconds": 42.265,
+          "exact_seconds": 1.648,
+          "status": "passed-with-warnings-non-builtin-board-card"
+        }
+      },
+      "normal_exact_is_fast_qualification": false,
+      "immediate_previous_candidate_production_executable_sha256": "7f10e3f8d870b74a4bc105954a39903ebbd19f1eb8a1d3d317d39b0b80b7b434",
+      "immediate_previous_candidate_status": "historical-only; zero-fast-qualified",
+      "older_candidate_3fcaf092_c6_wifi_path": "artifacts/benchmarks/ck-forge-20260718-flfe-3fcaf092-c6-wifi-cycle-v2.json",
+      "older_candidate_3fcaf092_runner_stale_simple_path": "artifacts/benchmarks/ck-forge-20260718-flfe-3fcaf092-c6-native.json",
+      "older_candidate_3fcaf092_runner_stale_simple_sha256": "778f024eac2be55ed008fceae44bb2ff518942d76b18a969cb07977f2f404c62",
+      "older_candidate_3fcaf092_runner_stale_reason": "runner predates Core-builtin dependency gate fix",
+      "previous_candidate_production_executable_sha256": "0cce8cd1bb17831abb123a53294d0c8da6a6bc797f89e52116fd3f20510b1b01",
+      "previous_candidate_production_executable_bytes": 40595456,
+      "previous_candidate_stm32_path": "artifacts/benchmarks/ck-forge-20260718-flfe-0cce8cd1-stm32-native-pure.json",
+      "previous_candidate_stm32_sha256": "762f5e30c6c7f76b662e4fdec9bedf3eb095013ddc90d8b5317eaade30a90d2d",
+      "previous_candidate_compatibility_path": "artifacts/benchmarks/ck-forge-20260718-flfe-0cce8cd1-compatibility-native.json",
+      "previous_candidate_compatibility_sha256": "044f112ea7108bdd2d956544b550f34a1ce89518cbe00590f630285c5de8239c",
+      "previous_candidate_configuration_path": "artifacts/benchmarks/ck-forge-20260717-flfe-1b736151-configuration-v8-final.json",
+      "previous_candidate_configuration_sha256": "011e3c63fa5fa3fdf055132563ca0c0020c463afda3e5fc8783a7f4947dfcde2",
+      "previous_candidate_stm32_cold_build_path": "artifacts/benchmarks/ck-forge-20260717-flfe-1b736151-stm32-f401re-cold-build-final.json",
+      "previous_candidate_stm32_cold_build_sha256": "5ec2fac5752318f1d9106bccb422dbed62b7e599e2683a20b0415fcb6d65a6af",
+      "previous_candidate_status": "historical-only; not current EXE",
+      "stm32_cold_diagnostic_path": "artifacts/benchmarks/ck-forge-20260717-flfe-1b736151-stm32-f401re-cold-final.json",
+      "stm32_cold_diagnostic_sha256": "86fd5a0ddab5543ca405b5cda05afe76cffc192408cda93a37d7fe1513c0b22c",
+      "stm32_cold_diagnostic_is_performance_evidence": false,
+      "historical_release_v8_evidence_path": "artifacts/benchmarks/ck-forge-20260717-flfe-9275ab99-release-v8-qualified.json",
+      "historical_release_v8_evidence_sha256": "ac7e6347105d5b78069f79cdb7e259fe830e036b6db6ad4e9e3a5c4ac8b00eb8",
+      "historical_20260718_specialized_qualification_status": "three-ab-targets-evaluated; zero-fast-qualified",
+      "historical_20260718_minimum_qualified_target_count": 0,
+      "historical_20260718_compile_only_target_count": 3,
+      "cold_compile_30_40_percent_objective_status": "not-achieved",
+      "cache_maintenance": {
+        "status": "implemented-bounded-v1",
+        "documented_followups": "docs/flfe-cache-maintenance-followups.md",
+        "normal_sweep": "two-second delayed single-flight; at most once per ten minutes; cancellable when foreground consumers appear",
+        "low_disk_policy": "below 2 GiB available, synchronous enforcement with effective limit capped at 512 MiB",
+        "concurrency": "exclusive maintenance gate versus shared compile, warmup, upload and recovery consumers",
+        "out_of_tree_eviction": "CK_Builds/build container pinned; direct project directories ranked separately",
+        "deferred": ["shutdown coordination", "ENOSPC idempotent preparation retry", "source/build pair-aware LRU"]
+      },
+      "historical_release_compatibility_pass_target_count": 11,
+      "historical_release_compatibility_pass_grants_fast": false,
+      "current_full_release_matrix_status": "not-established-current-candidate",
+      "cross_core_3_3_7_status": "pending"
+    },
+    {
+      "id": "ck.build-identity",
+      "version": 1,
+      "status": "internal",
+      "document": "docs/compiler-and-package-regression-baseline.md"
+    },
+    {
+      "id": "ck.forge-performance-qualification",
+      "version": 4,
+      "status": "stable-local",
+      "policy_id": "ck-forge-portable-edit-no-regression-v3",
+      "document": "docs/ck-forge-performance-no-regression-gate.md",
+      "candidate_schema": "docs/schemas/ck-forge-performance-ab-candidate.schema.json",
+      "report_schema": "docs/schemas/ck-forge-performance-qualification-report.schema.json",
+      "local_certificate_schema": "docs/schemas/ck-forge-local-performance-certificate.schema.json",
+      "native_relink_certificate_schema": "docs/schemas/ck-forge-native-relink-certificate.schema.json",
+      "native_relink_certificate_version": 4,
+      "native_relink_binding_version": 3,
+      "artifact_set_schema": "docs/schemas/ck-forge-qualification-artifact-set.schema.json",
+      "artifact_bundle_schema": "docs/schemas/ck-forge-performance-artifact-bundle.schema.json",
+      "entrypoint": "scripts/Evaluate-CKForgePerformanceGate.cjs",
+      "installer_entrypoint": "scripts/Install-CKForgePerformanceQualification.cjs",
+      "status_entrypoint": "scripts/Report-CKForgeFastQualifications.cjs",
+      "candidate_identity_manifest_grants_fast": false,
+      "exact_match_grants_fast": false,
+      "minimum_paired_trials": 5,
+      "minimum_median_speedup_pct": 25,
+      "required_sequence": "portable-edit",
+      "required_stages": ["simple", "complex", "medium", "simple-return"],
+      "qualification_candidate_route": "qualification-token-probe",
+      "qualification_simple_build_modes": ["full-build", "fast-relink"],
+      "qualification_edit_build_mode": "fast-relink",
+      "qualification_fallback_allowed": false,
+      "cli_config_sha256_required": true,
+      "native_baseline_compiler_properties_sha256_required": true,
+      "portable_performance_scope": "exact-portable-simple-source",
+      "portable_performance_display_status": "source-bound-sample-qualification",
+      "portable_performance_grants_target_wide_fast": false,
+      "future_workload_class_contract": "required-before-general-user-sketch-authorization",
+      "not_qualified_route": "native-arduino-cli"
+    },
+    {
+      "id": "ck.upload-artifact-manifest",
+      "version": 1,
+      "status": "internal",
+      "document": "docs/release-evidence-manifest.md"
+    },
+    {
+      "id": "ck.last-working-version",
+      "version": 1,
+      "status": "stable-local",
+      "document": "docs/last-working-version-and-diagnostics.md"
+    },
+    {
+      "id": "ck.release-evidence-manifest",
+      "version": 1,
+      "status": "internal",
+      "document": "docs/release-evidence-manifest.md"
+    },
+    {
+      "id": "cktrace",
+      "status": "deferred",
+      "document": "docs/deferred-platform-roadmap.md"
+    },
+    {
+      "id": "ck.lab",
+      "status": "deferred",
+      "document": "docs/deferred-platform-roadmap.md"
+    },
+    {
+      "id": "ck.ai-engineering-advisor",
+      "status": "deferred",
+      "document": "docs/blockly-agent-design.md"
+    }
+  ]
+}

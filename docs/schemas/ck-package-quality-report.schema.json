@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-package-quality-report.schema.json",
+  "title": "CK Package Quality Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_kind",
+    "package_id",
+    "status",
+    "source_content_sha256",
+    "error_count",
+    "warning_count",
+    "checks",
+    "validator_id",
+    "validator_version",
+    "ruleset_version",
+    "generated_at",
+    "contract_sha256",
+    "certification_level",
+    "validated_consumers"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "package_kind": {
+      "enum": ["board", "block-library", "arduino-library"]
+    },
+    "package_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        { "type": "null" }
+      ]
+    },
+    "status": {
+      "enum": ["passed", "passed_with_warnings", "failed"]
+    },
+    "source_content_sha256": { "$ref": "#/$defs/nullableSha256" },
+    "error_count": { "type": "integer", "minimum": 0 },
+    "warning_count": { "type": "integer", "minimum": 0 },
+    "checks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validator_id": { "$ref": "#/$defs/nullableNonEmptyString" },
+    "validator_version": { "$ref": "#/$defs/nullableNonEmptyString" },
+    "ruleset_version": { "$ref": "#/$defs/nullableNonEmptyString" },
+    "generated_at": {
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ]
+    },
+    "contract_sha256": { "$ref": "#/$defs/nullableSha256" },
+    "certification_level": {
+      "oneOf": [
+        { "const": "local-static" },
+        { "type": "null" }
+      ]
+    },
+    "validated_consumers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "passed" } } },
+      "then": {
+        "properties": {
+          "error_count": { "const": 0 },
+          "warning_count": { "const": 0 },
+          "checks": {
+            "not": {
+              "contains": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": { "enum": ["warning", "error"] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "status": { "const": "passed_with_warnings" } }
+      },
+      "then": {
+        "properties": {
+          "error_count": { "const": 0 },
+          "warning_count": { "type": "integer", "minimum": 1 },
+          "checks": {
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "required": ["status"],
+                  "properties": { "status": { "const": "warning" } }
+                }
+              },
+              {
+                "not": {
+                  "contains": {
+                    "type": "object",
+                    "required": ["status"],
+                    "properties": { "status": { "const": "error" } }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "failed" } } },
+      "then": {
+        "properties": {
+          "error_count": { "type": "integer", "minimum": 1 },
+          "checks": {
+            "contains": {
+              "type": "object",
+              "required": ["status"],
+              "properties": { "status": { "const": "error" } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": { "enum": ["passed", "passed_with_warnings"] }
+        }
+      },
+      "then": {
+        "properties": {
+          "package_id": { "type": "string" },
+          "source_content_sha256": { "$ref": "#/$defs/sha256" },
+          "validator_id": { "$ref": "#/$defs/nonEmptyString" },
+          "validator_version": { "$ref": "#/$defs/nonEmptyString" },
+          "ruleset_version": { "$ref": "#/$defs/nonEmptyString" },
+          "generated_at": { "type": "string", "format": "date-time" },
+          "contract_sha256": { "$ref": "#/$defs/sha256" },
+          "certification_level": { "const": "local-static" },
+          "validated_consumers": {
+            "contains": { "const": "import-gate" }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": { "enum": ["passed", "passed_with_warnings"] },
+          "package_kind": { "enum": ["board", "block-library"] }
+        }
+      },
+      "then": {
+        "properties": {
+          "validated_consumers": {
+            "contains": { "const": "runtime-loader" }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": { "enum": ["passed", "passed_with_warnings"] },
+          "package_kind": { "enum": ["block-library", "arduino-library"] }
+        }
+      },
+      "then": {
+        "properties": {
+          "validated_consumers": {
+            "contains": { "const": "compile-resolver" }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "nullableNonEmptyString": {
+      "oneOf": [
+        { "$ref": "#/$defs/nonEmptyString" },
+        { "type": "null" }
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullableSha256": {
+      "oneOf": [
+        { "$ref": "#/$defs/sha256" },
+        { "type": "null" }
+      ]
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "status", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*$"
+        },
+        "status": { "enum": ["passed", "warning", "error"] },
+        "message": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "description": "Mutations that must be rejected by both the public JSON Schema and the Rust project.ckpkg importer.",
+  "cases": [
+    { "id": "invalid-generated-at", "expected": "reject" },
+    { "id": "uppercase-payload-sha256", "expected": "reject" },
+    { "id": "no-source-forged-disclosure", "expected": "reject" },
+    { "id": "oversized-acceptance-report-record", "expected": "reject" },
+    { "id": "editable-scope-missing-workspace", "expected": "reject" }
+  ]
+}

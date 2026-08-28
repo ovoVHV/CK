@@ -1,0 +1,143 @@
+{
+  "schema_version": 2,
+  "id": "ck_example_i2c_sensor_v2",
+  "display_name": "CK I2C 传感器积木 v2 示例",
+  "description": "演示质量门禁、搜索、文档、引脚体检和 AI 可共同消费的完整积木语义契约。",
+  "keywords": ["example", "sensor", "i2c", "temperature"],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": ["*"],
+    "architectures": ["*"]
+  },
+  "dependencies": [
+    {
+      "kind": "header",
+      "id": "Wire.h",
+      "headers": ["Wire.h"],
+      "optional": false,
+      "reason": "使用目标板核心提供的 I2C 总线。"
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.xml"
+  },
+  "blocks": [
+    {
+      "type": "ck_example_read_temperature_v2",
+      "display_name": "读取 I2C 温度",
+      "description": "从指定 I2C 地址读取摄氏温度。",
+      "category": "CK v2 示例",
+      "kind": "value",
+      "keywords": ["read", "temperature", "celsius", "i2c"],
+      "semantics": {
+        "purpose": "获取当前温度，供显示、判断或记录使用。",
+        "behavior": "初始化默认 I2C 总线、探测所选地址，然后同步读取一次传感器并返回摄氏温度；探测或读取失败时返回 NAN。",
+        "side_effects": ["占用默认 I2C 总线", "执行同步 I2C 通信"],
+        "concepts": ["temperature", "sensor-read", "i2c"]
+      },
+      "fields": [
+        {
+          "name": "ADDRESS",
+          "kind": "dropdown",
+          "description": "传感器的 7 位 I2C 地址。",
+          "required": true,
+          "default": "0x48",
+          "options": [
+            { "label": "0x48", "value": "0x48" },
+            { "label": "0x49", "value": "0x49" }
+          ]
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": ["Number"],
+        "description": "当前摄氏温度；读取失败时返回 NAN。",
+        "unit": "°C",
+        "nullable": false
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKExampleSensor.h",
+          "headers": ["CKExampleSensor.h"],
+          "optional": false,
+          "reason": "由本包提供最小 I2C 温度传感器封装。",
+          "license": "MIT"
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "i2c",
+            "id": "default-i2c",
+            "source": { "kind": "board-default" },
+            "access": "read-write",
+            "sharing": "shared",
+            "quantity": 1,
+            "capabilities": ["controller"],
+            "description": "使用板卡声明的默认 SDA/SCL 引脚和 I2C 控制器。"
+          }
+        ],
+        "notes": ["同一总线上的设备必须使用不同的 7 位地址。"]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": ["Wire.h", "CKExampleSensor.h"],
+        "calls": ["Wire.begin", "ckExampleReadTemperature", "CKExampleSensor::begin", "CKExampleSensor::readCelsius"],
+        "emissions": [
+          { "section": "include", "description": "每个工程只生成一次 Wire.h 和 CKExampleSensor.h 头文件。" },
+          { "section": "global", "description": "生成受限的 ckExampleReadTemperature 帮助函数，并在函数内复用两个合法地址的实例。" },
+          { "section": "setup", "description": "初始化默认 I2C 总线。" },
+          { "section": "expression", "description": "生成返回 float 的帮助函数调用。", "template": "ckExampleReadTemperature(ADDRESS)" }
+        ]
+      },
+      "constraints": [
+        {
+          "id": "supported-address",
+          "severity": "error",
+          "description": "示例硬件只支持两个焊盘地址。",
+          "check": { "target": "field.ADDRESS", "operator": "one-of", "value": ["0x48", "0x49"] },
+          "message": "I2C 地址必须为 0x48 或 0x49。",
+          "recovery": "检查模块地址焊盘，并选择对应地址。"
+        },
+        {
+          "id": "board-i2c-required",
+          "severity": "error",
+          "description": "目标板卡必须提供可用的 I2C 控制器。",
+          "check": { "target": "board", "operator": "board-capability", "value": "i2c-controller" },
+          "message": "当前板卡没有声明可用 I2C 控制器。",
+          "recovery": "选择带 I2C 的板卡，或为第三方板卡补全能力声明。"
+        }
+      ],
+      "examples": [
+        {
+          "id": "serial-temperature",
+          "title": "每秒输出一次温度",
+          "description": "通过串口每秒显示一次传感器温度。",
+          "field_values": { "ADDRESS": "0x48" },
+          "input_values": {},
+          "project": "examples/serial_temperature/serial_temperature.ino",
+          "expected_code_contains": ["#include <Wire.h>", "readCelsius()"],
+          "expected_behavior": "串口监视器每秒显示一次摄氏温度。"
+        }
+      ],
+      "errors": [
+        {
+          "code": "I2C_DEVICE_NOT_FOUND",
+          "severity": "error",
+          "message": "没有在所选地址发现温度传感器。",
+          "cause": "地址错误、接线断开或传感器未供电。",
+          "recovery": "运行 I2C 扫描并核对 SDA、SCL、供电和 ADDRESS 字段。"
+        }
+      ]
+    }
+  ]
+}

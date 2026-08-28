@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-forge-regression-report.schema.json",
+  "title": "CK Forge compile-only regression report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "status",
+    "startedAt",
+    "sketchSha256",
+    "selectedTargetIds",
+    "controls",
+    "validationBoundary",
+    "targets",
+    "checks",
+    "warnings",
+    "failures",
+    "runner",
+    "productionExecutable",
+    "finishedAt"
+  ],
+  "properties": {
+    "schemaId": { "const": "ck.cross-board-compile-only-matrix" },
+    "schemaVersion": { "const": 2 },
+    "status": { "enum": ["passed", "passed-with-warnings", "failed"] },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "sketchSha256": { "$ref": "#/$defs/sha256" },
+    "selectedTargetIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/targetId" }
+    },
+    "controls": { "$ref": "#/$defs/controls" },
+    "validationBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verifiedWithoutHardware", "requiresRealHardware"],
+      "properties": {
+        "verifiedWithoutHardware": { "$ref": "#/$defs/nonEmptyStrings" },
+        "requiresRealHardware": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/target" }
+    },
+    "checks": { "type": "array", "items": { "$ref": "#/$defs/check" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "failures": { "type": "array", "items": { "type": "string" } },
+    "runner": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["fileName", "bytes", "sha256", "verifiedBeforeAt", "verifiedAfterAt", "unchanged"],
+      "properties": {
+        "fileName": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "verifiedBeforeAt": { "type": "string", "format": "date-time" },
+        "verifiedAfterAt": { "type": "string", "format": "date-time" },
+        "unchanged": { "const": true }
+      }
+    },
+    "productionExecutable": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["schemaVersion", "independentlyResolved", "executableFileName", "executableBytes", "executableSha256", "expectedReleasePathMatched", "unchanged"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "independentlyResolved": { "const": true },
+        "executableFileName": { "type": "string", "minLength": 1 },
+        "executableBytes": { "type": "integer", "minimum": 1 },
+        "executableSha256": { "$ref": "#/$defs/sha256" },
+        "expectedReleasePathMatched": { "const": true },
+        "unchanged": { "const": true }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "passed" } } },
+      "then": {
+        "properties": {
+          "warnings": { "maxItems": 0 },
+          "failures": { "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "passed-with-warnings" } } },
+      "then": {
+        "properties": {
+          "warnings": { "minItems": 1 },
+          "failures": { "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "failed" } } },
+      "then": { "properties": { "failures": { "minItems": 1 } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "targetId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "fqbn": { "type": "string", "pattern": "^[^:]+:[^:]+:[^:]+(?::.*)?$" },
+    "nonEmptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compileOnly",
+        "uploadPerformed",
+        "physicalFlashWritten",
+        "serialPortAccessed",
+        "deviceProbePerformed",
+        "networkProbeExecuted",
+        "physicalBoardRequired",
+        "hardwareTested",
+        "formalProjectModified",
+        "compileCacheWritten",
+        "recentBoardActivityMayBeUpdated",
+        "uiProgressEventsEmitted",
+        "explicitCacheClear",
+        "exactRecompileRequested",
+        "exactMatchRequired",
+        "dependencyCycleRequested",
+        "sequentialExecution"
+      ],
+      "properties": {
+        "compileOnly": { "const": true },
+        "uploadPerformed": { "const": false },
+        "physicalFlashWritten": { "const": false },
+        "serialPortAccessed": { "const": false },
+        "deviceProbePerformed": { "const": false },
+        "networkProbeExecuted": { "const": false },
+        "physicalBoardRequired": { "const": false },
+        "hardwareTested": { "const": false },
+        "formalProjectModified": { "const": false },
+        "compileCacheWritten": { "const": true },
+        "recentBoardActivityMayBeUpdated": { "type": "boolean" },
+        "uiProgressEventsEmitted": { "type": "boolean" },
+        "explicitCacheClear": { "type": "boolean" },
+        "exactRecompileRequested": { "type": "boolean" },
+        "exactMatchRequired": { "type": "boolean" },
+        "dependencyCycleRequested": { "type": "boolean" },
+        "sequentialExecution": { "const": true }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "label", "fqbn", "builtinUiBoard", "hardwareTested", "installedPlatform", "runs", "checks", "warnings", "status"],
+      "properties": {
+        "id": { "$ref": "#/$defs/targetId" },
+        "label": { "type": "string", "minLength": 1 },
+        "fqbn": { "$ref": "#/$defs/fqbn" },
+        "builtinUiBoard": { "type": "boolean" },
+        "hardwareTested": { "const": false },
+        "installedPlatform": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["available", "package", "architecture", "boardDeclared"],
+          "properties": {
+            "available": { "type": "boolean" },
+            "package": { "type": "string", "minLength": 1 },
+            "architecture": { "type": "string", "minLength": 1 },
+            "boardDeclared": { "type": "boolean" }
+          }
+        },
+        "runs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/run" } },
+        "checks": { "type": "array", "items": { "$ref": "#/$defs/check" } },
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "status": { "enum": ["passed", "passed-with-warnings", "failed"] }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["phase", "success", "hardwareTested", "uploadPerformed", "codeSha256", "wallMs", "wallSeconds", "buildMode", "profile", "environment", "resources", "artifacts", "runIdSha256"],
+      "properties": {
+        "phase": { "enum": ["compile", "dependency", "simple-return", "exact"] },
+        "success": { "type": "boolean" },
+        "hardwareTested": { "const": false },
+        "uploadPerformed": { "const": false },
+        "codeSha256": { "$ref": "#/$defs/sha256" },
+        "wallMs": { "type": "integer", "minimum": 0 },
+        "wallSeconds": { "type": "number", "minimum": 0 },
+        "buildMode": { "type": "string", "minLength": 1 },
+        "profile": { "type": "string", "minLength": 1 },
+        "engine": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["id", "schemaVersion", "productVersion", "contractId", "decision", "source", "reasonCodes"],
+          "properties": {
+            "id": { "const": "ck-forge" },
+            "schemaVersion": { "const": 1 },
+            "productVersion": { "const": "1" },
+            "contractId": { "type": "string", "minLength": 1 },
+            "decision": { "enum": ["allow-fast", "force-platform"] },
+            "source": { "enum": ["builtin-matrix", "local-qualification", "conservative-fallback"] },
+            "reasonCodes": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["fqbn", "fqbnMatchesRequest"],
+          "properties": {
+            "fqbn": { "$ref": "#/$defs/fqbn" },
+            "fqbnMatchesRequest": { "const": true },
+            "toolchainIdentitySource": {
+              "enum": ["process-memory", "persistent-metadata", "strong-content"]
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["evidenceComplete", "warningCount"],
+          "properties": {
+            "evidenceComplete": { "const": true },
+            "warningCount": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "contains": {
+            "type": "object",
+            "required": ["primaryApplication", "verified", "sha256"],
+            "properties": {
+              "primaryApplication": { "const": true },
+              "verified": { "const": true },
+              "sha256": { "$ref": "#/$defs/sha256" }
+            }
+          },
+          "items": { "type": "object" }
+        },
+        "runIdSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "passed"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "passed": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "null" }
+          ]
+        },
+        "skipped": { "type": "boolean" }
+      }
+    }
+  }
+}

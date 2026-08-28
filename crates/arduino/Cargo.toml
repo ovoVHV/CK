@@ -1,0 +1,37 @@
+[package]
+name = "arduino"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+# These network/install verification programs are maintenance tools, not part of
+# the desktop product. Keeping their logger optional avoids adding env_logger to
+# the normal `arduino` library dependency graph used by appsdesktop.
+maintenance-tools = ["dep:env_logger"]
+
+[dependencies]
+tokio = { version = "1", features = ["process", "io-util", "macros", "rt-multi-thread"] }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+log = "0.4"
+anyhow = "1.0"
+ck_core = { path = "../ck_core" }
+env_logger = { version = "0.11", optional = true }
+
+[dev-dependencies]
+tempfile = "3"
+
+[[bin]]
+name = "install_esp32"
+path = "src/bin/install_esp32.rs"
+required-features = ["maintenance-tools"]
+
+[[bin]]
+name = "verify_boards"
+path = "src/bin/verify_boards.rs"
+required-features = ["maintenance-tools"]
+
+[[bin]]
+name = "verify_download"
+path = "src/bin/verify_download.rs"
+required-features = ["maintenance-tools"]

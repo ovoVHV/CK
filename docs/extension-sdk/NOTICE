@@ -1,0 +1,16 @@
+CK Extension SDK
+Copyright 2026 CK contributors
+
+The CK-owned files in this Extension SDK are licensed under the Apache
+License, Version 2.0. The license applies to the SDK aggregate, CLI,
+documentation, schemas, and templates unless a file or bundled example states
+another license.
+
+Bundled example packages retain the LICENSE file shipped in each example.
+Third-party Arduino libraries, board cores, tools, trademarks, and user-created
+packages are not relicensed by this NOTICE. Package authors remain responsible
+for their own dependency and asset permissions.
+
+CK is a product name. The Apache-2.0 license does not grant trademark rights or
+claim that an extension has been certified, signed, or hardware-verified by CK.
+

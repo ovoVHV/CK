@@ -1,0 +1,8 @@
+{
+  "id": "ck_example_serial_blocks",
+  "name": "CK 可导入积木示例",
+  "version": "1.0.0",
+  "description": "用于演示标准 CK 第三方积木包、全局搜索和 Arduino 代码生成。",
+  "author": "CK Example",
+  "architectures": ["*"]
+}

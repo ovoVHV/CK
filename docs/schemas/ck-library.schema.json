@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-library.schema.json",
+  "title": "CK Library Package Metadata",
+  "$comment": "This is the stable library.json envelope shared by ck-blocks.json schema versions 1 and 2. Blockly entrypoints and per-block semantics belong only to the corresponding ck-blocks schema. Unknown native Arduino/PlatformIO metadata is intentionally preserved for ecosystem compatibility.",
+  "type": "object",
+  "required": ["id", "name", "version"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "name": { "$ref": "#/$defs/nonEmptyString" },
+    "version": { "$ref": "#/$defs/semver" },
+    "description": { "$ref": "#/$defs/nonEmptyString" },
+    "sentence": { "$ref": "#/$defs/nonEmptyString" },
+    "paragraph": { "$ref": "#/$defs/nonEmptyString" },
+    "author": { "$ref": "#/$defs/personOrPeople" },
+    "maintainer": { "$ref": "#/$defs/personOrPeople" },
+    "license": {
+      "oneOf": [
+        { "$ref": "#/$defs/nonEmptyString" },
+        { "type": "object" }
+      ]
+    },
+    "architectures": { "$ref": "#/$defs/stringOrStringSet" },
+    "architecture": { "$ref": "#/$defs/nonEmptyString" },
+    "platforms": { "$ref": "#/$defs/stringOrStringSet" },
+    "platform": { "$ref": "#/$defs/nonEmptyString" },
+    "includes": {
+      "oneOf": [
+        { "$ref": "#/$defs/publicHeaderPath" },
+        {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/publicHeaderPath" }
+        }
+      ]
+    },
+    "keywords": { "$ref": "#/$defs/stringOrStringSet" },
+    "website": { "$ref": "#/$defs/nonEmptyString" },
+    "category": { "$ref": "#/$defs/nonEmptyString" },
+    "dependencies": {
+      "oneOf": [
+        { "type": "object" },
+        { "type": "array" }
+      ]
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    },
+    "stringOrStringSet": {
+      "oneOf": [
+        { "$ref": "#/$defs/nonEmptyString" },
+        {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        }
+      ]
+    },
+    "person": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "$ref": "#/$defs/nonEmptyString" },
+        "email": { "$ref": "#/$defs/nonEmptyString" },
+        "url": { "$ref": "#/$defs/nonEmptyString" },
+        "maintainer": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "personOrPeople": {
+      "oneOf": [
+        { "$ref": "#/$defs/nonEmptyString" },
+        { "$ref": "#/$defs/person" },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/person" }
+        }
+      ]
+    },
+    "publicHeaderPath": {
+      "type": "string",
+      "minLength": 1,
+      "allOf": [
+        { "not": { "pattern": "^(?:[A-Za-z]:|[/\\\\])" } },
+        { "not": { "pattern": "(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)" } },
+        {
+          "pattern": "\\.(?:[Hh]|[Hh][Hh]|[Hh][Pp][Pp]|[Hh][Xx][Xx]|[Ii][Nn][Cc]|[Ii][Pp][Pp]|[Tt][Pp][Pp])$"
+        }
+      ]
+    }
+  }
+}

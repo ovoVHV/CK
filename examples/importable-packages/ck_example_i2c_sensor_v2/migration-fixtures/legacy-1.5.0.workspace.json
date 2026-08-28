@@ -1,0 +1,38 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "ck_example_read_temperature",
+        "id": "legacy-temperature-72",
+        "x": 40,
+        "y": 40,
+        "fields": {
+          "I2C_ADDRESS": "72"
+        },
+        "inputs": {
+          "FALLBACK": {
+            "shadow": {
+              "type": "ck_example_read_temperature",
+              "id": "legacy-temperature-73",
+              "fields": {
+                "I2C_ADDRESS": "73"
+              }
+            }
+          }
+        },
+        "extraState": {
+          "opaque_author_state": {
+            "type": "ck_example_read_temperature",
+            "fields": {
+              "I2C_ADDRESS": "raw-must-not-migrate"
+            }
+          }
+        },
+        "mutation": {
+          "legacy_payload": "preserve-exactly"
+        }
+      }
+    ]
+  }
+}

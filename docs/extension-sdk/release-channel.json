@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "channel": "stable",
+  "sdk_version": "1.0.0",
+  "license": "Apache-2.0",
+  "artifact_file": "CK-Extension-SDK-1.0.0.zip",
+  "repository_relative_path": "artifacts/release/CK-Extension-SDK-1.0.0.zip",
+  "public_url": null,
+  "publication_status": "local-artifact-ready",
+  "integrity_metadata_file": "CK-Extension-SDK-1.0.0.release.json",
+  "notes": [
+    "The repository-relative artifact is the canonical local and closed-test distribution address.",
+    "A public_url must not be invented. Set it and publication_status=published only after the owner publishes the exact SHA-256-addressed artifact on an immutable HTTPS endpoint.",
+    "Apache-2.0 licenses the SDK aggregate; it is not a publisher signature or CK certification."
+  ]
+}

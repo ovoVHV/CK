@@ -1,0 +1,15 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_example_serial_message",
+      "kind": "statement",
+      "template": "Serial.println({{field_json:MESSAGE}});\n",
+      "order": 0,
+      "setup": {
+        "serial_begin": "Serial.begin(115200);"
+      }
+    }
+  ]
+}

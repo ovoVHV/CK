@@ -1,0 +1,25 @@
+{
+  "schema_version": 2,
+  "engine_id": "ck-forge/v1",
+  "contract_id": "ck-fast-build-contract-v9:command-scoped-ccache-native-file-paths-O1-final-g0-no-lto-expanded-ccdb-core-deps-portable-response-guard",
+  "arduino_cli_version": "1.4.1",
+  "host_os": "windows",
+  "host_arch": "x86_64",
+  "targets": [
+    { "canonical_fqbn": "esp32:esp32:esp32", "core_version": "3.3.6", "toolchain_key": "esp32|esp32|3.3.6|44f60ad4d1584a66c84170c65393dcdddb5560a7fb7e10e2f2be57370c2d87c2" },
+    { "canonical_fqbn": "esp32:esp32:esp32s2", "core_version": "3.3.6", "toolchain_key": "esp32|esp32|3.3.6|49a270254c427c693d7d84fe94c3fdc3b51c77d95ef38d3230887002ec306429" },
+    { "canonical_fqbn": "esp32:esp32:esp32s3", "core_version": "3.3.6", "toolchain_key": "esp32|esp32|3.3.6|d018fd63866be36a44ab9e7b23b93d0923cea153435eeb15545be3d70a473e7e" },
+    { "canonical_fqbn": "esp32:esp32:esp32c3", "core_version": "3.3.6", "toolchain_key": "esp32|esp32|3.3.6|28b93c8b712f869aa79771712b65d00777518337c6a83297ece9375d82650db6" },
+    { "canonical_fqbn": "esp32:esp32:esp32c5", "core_version": "3.3.6", "toolchain_key": "esp32|esp32|3.3.6|e68b87f5a27b510072662275848a7292d5c5f8848a9fa109286fabbc08ef2e5a" },
+    { "canonical_fqbn": "esp32:esp32:esp32c6", "core_version": "3.3.6", "toolchain_key": "esp32|esp32|3.3.6|66850923cd173ef5aa5695f18c256d8eaa7cf02c4c91369abf5e0991e8bca1ab" },
+    { "canonical_fqbn": "esp32:esp32:esp32c6:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB", "core_version": "3.3.6", "toolchain_key": "esp32|esp32|3.3.6|66850923cd173ef5aa5695f18c256d8eaa7cf02c4c91369abf5e0991e8bca1ab" },
+    { "canonical_fqbn": "arduino:avr:uno", "core_version": "1.8.6", "toolchain_key": "arduino|avr|1.8.6|e3cda3ee2bb32d52758751a70316cc43c60aaa3a01dd1e3112ce9df94d90858f" },
+    { "canonical_fqbn": "arduino:avr:nano", "core_version": "1.8.6", "toolchain_key": "arduino|avr|1.8.6|29dc43616ef327656b4ea9c08adb2e46a631d8e5516086243d1227fb61e278d7" },
+    { "canonical_fqbn": "arduino:avr:nano:cpu=atmega328", "core_version": "1.8.6", "toolchain_key": "arduino|avr|1.8.6|29dc43616ef327656b4ea9c08adb2e46a631d8e5516086243d1227fb61e278d7" },
+    { "canonical_fqbn": "arduino:avr:mega", "core_version": "1.8.6", "toolchain_key": "arduino|avr|1.8.6|2b401f765199d41979a73c44c6739d0b4d34aa6f11b68058338f53147d8e427b" },
+    { "canonical_fqbn": "arduino:avr:mega:cpu=atmega2560", "core_version": "1.8.6", "toolchain_key": "arduino|avr|1.8.6|2b401f765199d41979a73c44c6739d0b4d34aa6f11b68058338f53147d8e427b" },
+    { "canonical_fqbn": "arduino:avr:diecimila", "core_version": "1.8.6", "toolchain_key": "arduino|avr|1.8.6|89e40479e5e41effff9295f3cc52fddd30ac4e704058bed27894d6f98dc9e229" },
+    { "canonical_fqbn": "arduino:avr:diecimila:cpu=atmega328", "core_version": "1.8.6", "toolchain_key": "arduino|avr|1.8.6|89e40479e5e41effff9295f3cc52fddd30ac4e704058bed27894d6f98dc9e229" },
+    { "canonical_fqbn": "esp8266:esp8266:nodemcuv2", "core_version": "3.1.2", "toolchain_key": "esp8266|esp8266|3.1.2|cd9800a9ed00802cc909d61b2bd55f4fd24298103e520c580521aa4a57a7fe96" }
+  ]
+}

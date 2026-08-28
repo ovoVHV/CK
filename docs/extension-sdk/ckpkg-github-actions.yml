@@ -1,0 +1,68 @@
+# LOCAL DEVELOPMENT ONLY. The validator comes from this checkout and can be
+# modified by the same PR; a green run is not CK certification.
+name: CK extension local development checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # Adjust these two paths after copying the SDK into your extension repository.
+  CK_SDK: tools/CK-Extension-SDK-1.0.0
+  PACKAGE_DIR: packages/my-sensor
+
+jobs:
+  quality:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: arduino/setup-arduino-cli@v2
+        with:
+          # Match the CK 1.0 closed-test candidate tool identity.
+          version: '1.4.1'
+
+      - name: Install the SDK command entrypoint
+        shell: pwsh
+        # This deliberately consumes the checkout copy. Use the separate trusted
+        # template for protected evidence or certification workflows.
+        run: npm install --global $env:CK_SDK
+
+      # Pin the Core used by the compile profile; do not silently use latest.
+      - name: Install ESP32 Core 3.3.6
+        shell: pwsh
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@3.3.6
+
+      - name: Validate package
+        shell: pwsh
+        run: ckpkg validate $env:PACKAGE_DIR --json --output artifacts/ckpkg-validate.json
+
+      - name: Run declarative contract tests
+        shell: pwsh
+        run: ckpkg test $env:PACKAGE_DIR --json --output artifacts/ckpkg-test.json
+
+      - name: Compile a declared profile with the real toolchain
+        shell: pwsh
+        run: ckpkg compile $env:PACKAGE_DIR esp32-c6 --json --output artifacts/ckpkg-compile.json
+
+      - name: Build deterministic package
+        shell: pwsh
+        run: ckpkg pack $env:PACKAGE_DIR --out artifacts/my-sensor.zip --json --output artifacts/ckpkg-pack.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ckpkg-local-development-output
+          path: artifacts/

@@ -1,0 +1,759 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-forge-performance-ab-candidate.schema.json",
+  "title": "CK Forge portable-edit performance A/B candidate v4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "operation",
+    "candidateProfile",
+    "ckContractId",
+    "artifactEquivalencePolicyId",
+    "compilePropertyDelta",
+    "nativeBaselineCompilerPropertiesSha256",
+    "measurementSequence",
+    "sequenceSha256",
+    "stages",
+    "controls",
+    "captureOrder",
+    "lanes"
+  ],
+  "properties": {
+    "schemaId": { "const": "ck.forge.performance-ab-candidate" },
+    "schemaVersion": { "const": 4 },
+    "operation": { "enum": ["compile", "upload-ready"] },
+    "candidateProfile": { "enum": ["portable-fast", "quick-fast", "shared-fast"] },
+    "ckContractId": { "type": "string", "minLength": 1 },
+    "artifactEquivalencePolicyId": {
+      "enum": [
+        "compile-only-shared-primary-application-exact-v1",
+        "generic-required-role-content-exact-v1",
+        "portable-fast-esp-application-bin-elf-sha256-offset-flash-args-normalized-v2"
+      ]
+    },
+    "portableFastEspApplicationBinRecipeProof": {
+      "$ref": "#/$defs/portableFastEspApplicationBinRecipeProof"
+    },
+    "compilePropertyDelta": { "type": "string", "minLength": 1 },
+    "nativeBaselineCompilerPropertiesSha256": { "$ref": "#/$defs/sha256" },
+    "measurementSequence": { "const": "portable-edit" },
+    "sequenceSha256": { "$ref": "#/$defs/sha256" },
+    "stages": {
+      "const": [
+        { "id": "simple", "sourceSha256": "9957ed4144a4dcb3ea6918ae021976812dda56d4da3815ef92ca29682e0fa0b5" },
+        { "id": "complex", "sourceSha256": "ea468a750d243cc9a5a801d7bcd66a87e8daa2fdb535a783896fef99b0a0266e" },
+        { "id": "medium", "sourceSha256": "1e41189bc6e324ef3e72a08adfceef99ed1a1c8153a6d0a5c0f98cb874b52d99" },
+        { "id": "simple-return", "sourceSha256": "9957ed4144a4dcb3ea6918ae021976812dda56d4da3815ef92ca29682e0fa0b5" }
+      ]
+    },
+    "controls": { "$ref": "#/$defs/controls" },
+    "captureOrder": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 25,
+      "items": { "enum": ["ck-native", "native-ck"] }
+    },
+    "lanes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ck", "native"],
+      "properties": {
+        "ck": { "type": "object" },
+        "native": { "type": "object" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "operation": { "const": "compile" } } },
+      "then": {
+        "anyOf": [
+          {
+            "properties": {
+              "candidateProfile": { "const": "quick-fast" },
+              "artifactEquivalencePolicyId": {
+                "const": "compile-only-shared-primary-application-exact-v1"
+              }
+            }
+          },
+          {
+            "properties": {
+              "candidateProfile": { "const": "portable-fast" },
+              "artifactEquivalencePolicyId": {
+                "const": "generic-required-role-content-exact-v1"
+              }
+            },
+            "not": { "required": ["portableFastEspApplicationBinRecipeProof"] }
+          },
+          {
+            "required": ["portableFastEspApplicationBinRecipeProof"],
+            "properties": {
+              "candidateProfile": { "const": "portable-fast" },
+              "artifactEquivalencePolicyId": {
+                "const": "portable-fast-esp-application-bin-elf-sha256-offset-flash-args-normalized-v2"
+              },
+              "portableFastEspApplicationBinRecipeProof": {
+                "$ref": "#/$defs/portableFastEspApplicationBinRecipeProof"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": { "properties": { "operation": { "const": "upload-ready" } } },
+      "then": {
+        "properties": {
+          "candidateProfile": { "enum": ["quick-fast", "shared-fast"] },
+          "artifactEquivalencePolicyId": {
+            "const": "generic-required-role-content-exact-v1"
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "candidateProfile": { "const": "portable-fast" } } },
+      "then": {
+        "properties": {
+          "operation": { "const": "compile" },
+          "lanes": {
+            "properties": {
+              "ck": { "$ref": "#/$defs/portableCkLane" },
+              "native": { "$ref": "#/$defs/portableNativeLane" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "candidateProfile": { "enum": ["quick-fast", "shared-fast"] }
+        }
+      },
+      "then": {
+        "not": { "required": ["portableFastEspApplicationBinRecipeProof"] },
+        "properties": {
+          "lanes": {
+            "properties": {
+              "ck": { "$ref": "#/$defs/ckLane" },
+              "native": { "$ref": "#/$defs/nativeLane" }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compileOnly",
+        "uploadPerformed",
+        "physicalFlashWritten",
+        "serialPortAccessed",
+        "sameMachine",
+        "freshBuildPathsVerified",
+        "sameBuildPathWithinLaneVerified",
+        "stageSourceHashesVerified",
+        "exactReuseDenied",
+        "routeGatePassed",
+        "recipeCapabilityGatePassed",
+        "globalCachesSharedEqually",
+        "noConcurrentCompiles",
+        "laneBoundaryIdleGatePassed",
+        "compilePropertyDeltaDeclared",
+        "dependencyClosureGatePassed",
+        "artifactGatePassed",
+        "resourceGatePassed",
+        "reproducibleBuildEnvironment"
+      ],
+      "properties": {
+        "compileOnly": { "const": true },
+        "uploadPerformed": { "const": false },
+        "physicalFlashWritten": { "const": false },
+        "serialPortAccessed": { "const": false },
+        "sameMachine": { "const": true },
+        "freshBuildPathsVerified": { "const": true },
+        "sameBuildPathWithinLaneVerified": { "const": true },
+        "stageSourceHashesVerified": { "const": true },
+        "exactReuseDenied": { "const": true },
+        "routeGatePassed": { "const": true },
+        "recipeCapabilityGatePassed": { "const": true },
+        "globalCachesSharedEqually": { "const": true },
+        "noConcurrentCompiles": { "const": true },
+        "laneBoundaryIdleGatePassed": { "const": true },
+        "compilePropertyDeltaDeclared": { "const": true },
+        "dependencyClosureGatePassed": { "const": true },
+        "artifactGatePassed": { "const": true },
+        "resourceGatePassed": { "const": true },
+        "reproducibleBuildEnvironment": { "$ref": "#/$defs/reproducibleBuildEnvironment" }
+      }
+    },
+    "reproducibleBuildEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policyId", "sourceDateEpoch", "timeZone", "passed"],
+      "properties": {
+        "policyId": { "const": "source-date-epoch-utc-v1" },
+        "sourceDateEpoch": { "const": 1704067200 },
+        "timeZone": { "const": "UTC" },
+        "passed": { "const": true }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fqbn",
+        "corePackage",
+        "coreArchitecture",
+        "coreVersion",
+        "toolchainKey",
+        "toolchainContentSha256",
+        "sketchSha256",
+        "cliExecutableSha256",
+        "cliConfigSha256",
+        "cliVersion",
+        "hostIdentitySha256",
+        "productionExecutableSha256"
+      ],
+      "properties": {
+        "fqbn": { "type": "string", "minLength": 5 },
+        "corePackage": { "type": "string", "minLength": 1 },
+        "coreArchitecture": { "type": "string", "minLength": 1 },
+        "coreVersion": { "type": "string", "minLength": 1 },
+        "toolchainKey": { "type": "string", "minLength": 1 },
+        "toolchainContentSha256": { "$ref": "#/$defs/sha256" },
+        "sketchSha256": { "const": "9957ed4144a4dcb3ea6918ae021976812dda56d4da3815ef92ca29682e0fa0b5" },
+        "cliExecutableSha256": { "$ref": "#/$defs/sha256" },
+        "cliConfigSha256": { "$ref": "#/$defs/sha256" },
+        "cliVersion": { "type": "string", "minLength": 1 },
+        "hostIdentitySha256": { "$ref": "#/$defs/sha256" },
+        "productionExecutableSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceComplete", "flashUsedBytes", "ramUsedBytes", "warningCount"],
+      "properties": {
+        "evidenceComplete": { "const": true },
+        "flashUsedBytes": { "type": "integer", "minimum": 0 },
+        "ramUsedBytes": { "type": "integer", "minimum": 0 },
+        "warningCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role", "bytes", "sha256", "primaryApplication"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "primaryApplication": { "type": "boolean" }
+      }
+    },
+    "portableFastEspApplicationBinRecipeProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "corePackage",
+        "coreArchitecture",
+        "coreVersion",
+        "recipeProperty",
+        "recipeSource",
+        "recipeSourceSha256",
+        "recipeValueSha256",
+        "elfSha256OffsetArgument",
+        "elfSha256Offset"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "esp32-platform-recipe-elf-sha256-offset-v1" },
+        "corePackage": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$" },
+        "coreArchitecture": { "const": "esp32" },
+        "coreVersion": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$" },
+        "recipeProperty": { "const": "recipe.objcopy.bin.pattern_args" },
+        "recipeSource": { "enum": ["platform.txt", "platform.local.txt"] },
+        "recipeSourceSha256": { "$ref": "#/$defs/sha256" },
+        "recipeValueSha256": { "$ref": "#/$defs/sha256" },
+        "elfSha256OffsetArgument": { "const": "--elf-sha256-offset 0xb0" },
+        "elfSha256Offset": { "const": 176 }
+      }
+    },
+    "applicationBinPayloadEquivalenceWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "recipe",
+        "byteLength",
+        "mutableRange",
+        "immutableSegments",
+        "footer"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "esp-application-bin-elf-sha256-offset-v1" },
+        "recipe": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["elfSha256OffsetArgument", "elfSha256Offset"],
+          "properties": {
+            "elfSha256OffsetArgument": { "const": "--elf-sha256-offset 0xb0" },
+            "elfSha256Offset": { "const": 176 }
+          }
+        },
+        "byteLength": { "type": "integer", "minimum": 241 },
+        "mutableRange": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["offset", "length"],
+          "properties": {
+            "offset": { "const": 176 },
+            "length": { "const": 32 }
+          }
+        },
+        "immutableSegments": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["offset", "length", "sha256"],
+              "properties": {
+                "offset": { "const": 0 },
+                "length": { "const": 176 },
+                "sha256": { "$ref": "#/$defs/sha256" }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["offset", "length", "sha256"],
+              "properties": {
+                "offset": { "type": "integer", "minimum": 208 },
+                "length": { "type": "integer", "minimum": 0 },
+                "sha256": { "$ref": "#/$defs/sha256" }
+              }
+            }
+          ],
+          "items": false
+        },
+        "footer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "offset",
+            "length",
+            "checksumOffset",
+            "checksum",
+            "validationHash",
+            "checksumValid",
+            "validationHashValid"
+          ],
+          "properties": {
+            "offset": { "type": "integer", "minimum": 241 },
+            "length": { "const": 33 },
+            "checksumOffset": { "type": "integer", "minimum": 241 },
+            "checksum": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "validationHash": { "$ref": "#/$defs/sha256" },
+            "checksumValid": { "const": true },
+            "validationHashValid": { "const": true }
+          }
+        }
+      }
+    },
+    "espFlashArgumentsWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "kind", "byteLength", "optionLines", "segments"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "esp-flash-args-normalized-v1" },
+        "byteLength": { "type": "integer", "minimum": 1 },
+        "optionLines": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "segments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["offset", "role", "reference", "resolved"],
+            "properties": {
+              "offset": { "type": "integer", "minimum": 0 },
+              "role": { "type": "string", "minLength": 1 },
+              "reference": { "type": "string", "minLength": 1 },
+              "resolved": { "type": "boolean" },
+              "bytes": { "type": "integer", "minimum": 1 },
+              "sha256": { "$ref": "#/$defs/sha256" }
+            },
+            "allOf": [
+              {
+                "if": { "properties": { "resolved": { "const": true } } },
+                "then": { "required": ["bytes", "sha256"] }
+              },
+              {
+                "if": { "properties": { "resolved": { "const": false } } },
+                "then": {
+                  "not": {
+                    "anyOf": [
+                      { "required": ["bytes"] },
+                      { "required": ["sha256"] }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "portableArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role", "bytes", "sha256", "primaryApplication"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "primaryApplication": { "type": "boolean" },
+        "payloadEquivalenceWitness": { "$ref": "#/$defs/applicationBinPayloadEquivalenceWitness" },
+        "flashArgumentsWitness": { "$ref": "#/$defs/espFlashArgumentsWitness" }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["payloadEquivalenceWitness"] },
+          "then": { "properties": { "role": { "const": "application-bin" } } }
+        },
+        {
+          "if": { "required": ["flashArgumentsWitness"] },
+          "then": { "properties": { "role": { "const": "flash-arguments" } } }
+        }
+      ]
+    },
+    "recipeCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "baselineSha256",
+        "observationOnly",
+        "capabilityGatePassed",
+        "requiredCapabilities",
+        "missingCapabilities"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "baselineSha256": { "$ref": "#/$defs/sha256" },
+        "observationOnly": { "const": true },
+        "capabilityGatePassed": { "const": true },
+        "requiredCapabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "missingCapabilities": { "const": [] }
+      }
+    },
+    "portableRecipeCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "baselineSha256",
+        "observationOnly",
+        "capabilityGatePassed",
+        "requiredCapabilities",
+        "missingCapabilities",
+        "intent"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "baselineSha256": { "$ref": "#/$defs/sha256" },
+        "observationOnly": { "const": true },
+        "capabilityGatePassed": { "const": true },
+        "requiredCapabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "missingCapabilities": { "const": [] },
+        "intent": { "const": "native-recipe-cache" }
+      }
+    },
+    "nativeRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success", "wallMs", "artifactsVerified", "resourceGatePassed", "exactUsed",
+        "evidenceSha256", "artifactSetSha256", "artifacts", "codeSha256", "buildPathIdentitySha256",
+        "resources", "profile", "compilerPropertyDeltaSha256"
+      ],
+      "properties": {
+        "success": { "const": true },
+        "wallMs": { "type": "number", "exclusiveMinimum": 0 },
+        "artifactsVerified": { "const": true },
+        "resourceGatePassed": { "const": true },
+        "exactUsed": { "const": false },
+        "evidenceSha256": { "$ref": "#/$defs/sha256" },
+        "artifactSetSha256": { "$ref": "#/$defs/sha256" },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/artifact" }
+        },
+        "codeSha256": { "$ref": "#/$defs/sha256" },
+        "buildPathIdentitySha256": { "$ref": "#/$defs/sha256" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "profile": { "enum": ["quick-fast", "shared-fast"] },
+        "compilerPropertyDeltaSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "ckRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success", "wallMs", "artifactsVerified", "resourceGatePassed", "exactUsed",
+        "evidenceSha256", "artifactSetSha256", "artifacts", "codeSha256", "buildPathIdentitySha256",
+        "resources", "buildMode", "profile", "qualificationOperation", "qualificationProfile",
+        "candidateRoute", "fallbackUsed", "ckContractId", "recipeCapability"
+      ],
+      "properties": {
+        "success": { "const": true },
+        "wallMs": { "type": "number", "exclusiveMinimum": 0 },
+        "artifactsVerified": { "const": true },
+        "resourceGatePassed": { "const": true },
+        "exactUsed": { "const": false },
+        "evidenceSha256": { "$ref": "#/$defs/sha256" },
+        "artifactSetSha256": { "$ref": "#/$defs/sha256" },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/artifact" }
+        },
+        "codeSha256": { "$ref": "#/$defs/sha256" },
+        "buildPathIdentitySha256": { "$ref": "#/$defs/sha256" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "buildMode": { "enum": ["full-build", "fast-relink"] },
+        "profile": { "enum": ["quick-fast", "shared-fast"] },
+        "qualificationOperation": { "enum": ["compile", "upload-ready"] },
+        "qualificationProfile": { "enum": ["quick-fast", "shared-fast"] },
+        "candidateRoute": { "const": "qualification-token-probe" },
+        "fallbackUsed": { "const": false },
+        "ckContractId": { "type": "string", "minLength": 1 },
+        "recipeCapability": { "$ref": "#/$defs/recipeCapability" }
+      }
+    },
+    "portableNativeRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success", "wallMs", "artifactsVerified", "resourceGatePassed", "exactUsed",
+        "evidenceSha256", "artifactSetSha256", "artifacts", "codeSha256", "buildPathIdentitySha256",
+        "resources", "profile", "compilerPropertyDeltaSha256"
+      ],
+      "properties": {
+        "success": { "const": true },
+        "wallMs": { "type": "number", "exclusiveMinimum": 0 },
+        "artifactsVerified": { "const": true },
+        "resourceGatePassed": { "const": true },
+        "exactUsed": { "const": false },
+        "evidenceSha256": { "$ref": "#/$defs/sha256" },
+        "artifactSetSha256": { "$ref": "#/$defs/sha256" },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/portableArtifact" }
+        },
+        "codeSha256": { "$ref": "#/$defs/sha256" },
+        "buildPathIdentitySha256": { "$ref": "#/$defs/sha256" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "profile": { "const": "portable-fast" },
+        "compilerPropertyDeltaSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "portableCkRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success", "wallMs", "artifactsVerified", "resourceGatePassed", "exactUsed",
+        "evidenceSha256", "artifactSetSha256", "artifacts", "codeSha256", "buildPathIdentitySha256",
+        "resources", "buildMode", "profile", "qualificationOperation", "qualificationProfile",
+        "candidateRoute", "fallbackUsed", "ckContractId", "ccacheEnabled", "recipeCapability"
+      ],
+      "properties": {
+        "success": { "const": true },
+        "wallMs": { "type": "number", "exclusiveMinimum": 0 },
+        "artifactsVerified": { "const": true },
+        "resourceGatePassed": { "const": true },
+        "exactUsed": { "const": false },
+        "evidenceSha256": { "$ref": "#/$defs/sha256" },
+        "artifactSetSha256": { "$ref": "#/$defs/sha256" },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/portableArtifact" }
+        },
+        "codeSha256": { "$ref": "#/$defs/sha256" },
+        "buildPathIdentitySha256": { "$ref": "#/$defs/sha256" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "buildMode": {
+          "enum": [
+            "full-build",
+            "arduino-cli-core-seeded",
+            "arduino-cli-incremental",
+            "arduino-cli-incremental-fallback",
+            "arduino-cli-full-fallback"
+          ]
+        },
+        "profile": { "const": "portable-fast" },
+        "qualificationOperation": { "const": "compile" },
+        "qualificationProfile": { "const": "portable-fast" },
+        "candidateRoute": { "const": "qualification-token-probe" },
+        "fallbackUsed": { "const": false },
+        "ckContractId": { "type": "string", "minLength": 1 },
+        "ccacheEnabled": { "const": true },
+        "recipeCapability": { "$ref": "#/$defs/portableRecipeCapability" }
+      }
+    },
+    "ckTrial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "simple", "complex", "medium", "simple-return"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "simple": { "$ref": "#/$defs/ckRun" },
+        "complex": { "$ref": "#/$defs/ckRun" },
+        "medium": { "$ref": "#/$defs/ckRun" },
+        "simple-return": { "$ref": "#/$defs/ckRun" }
+      },
+      "allOf": [
+        {
+          "properties": {
+            "complex": { "properties": { "buildMode": { "const": "fast-relink" } } },
+            "medium": { "properties": { "buildMode": { "const": "fast-relink" } } },
+            "simple-return": { "properties": { "buildMode": { "const": "fast-relink" } } }
+          }
+        }
+      ]
+    },
+    "nativeTrial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "simple", "complex", "medium", "simple-return"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "simple": { "$ref": "#/$defs/nativeRun" },
+        "complex": { "$ref": "#/$defs/nativeRun" },
+        "medium": { "$ref": "#/$defs/nativeRun" },
+        "simple-return": { "$ref": "#/$defs/nativeRun" }
+      }
+    },
+    "portableCkTrial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "simple", "complex", "medium", "simple-return"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "simple": { "$ref": "#/$defs/portableCkRun" },
+        "complex": { "$ref": "#/$defs/portableCkRun" },
+        "medium": { "$ref": "#/$defs/portableCkRun" },
+        "simple-return": { "$ref": "#/$defs/portableCkRun" }
+      }
+    },
+    "portableNativeTrial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "simple", "complex", "medium", "simple-return"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "simple": { "$ref": "#/$defs/portableNativeRun" },
+        "complex": { "$ref": "#/$defs/portableNativeRun" },
+        "medium": { "$ref": "#/$defs/portableNativeRun" },
+        "simple-return": { "$ref": "#/$defs/portableNativeRun" }
+      }
+    },
+    "ckLane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "trials"],
+      "properties": {
+        "identity": { "$ref": "#/$defs/identity" },
+        "trials": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 25,
+          "items": { "$ref": "#/$defs/ckTrial" }
+        }
+      }
+    },
+    "nativeLane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "trials"],
+      "properties": {
+        "identity": { "$ref": "#/$defs/identity" },
+        "trials": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 25,
+          "items": { "$ref": "#/$defs/nativeTrial" }
+        }
+      }
+    },
+    "portableCkLane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "trials"],
+      "properties": {
+        "identity": { "$ref": "#/$defs/identity" },
+        "trials": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 25,
+          "items": { "$ref": "#/$defs/portableCkTrial" }
+        }
+      }
+    },
+    "portableNativeLane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "trials"],
+      "properties": {
+        "identity": { "$ref": "#/$defs/identity" },
+        "trials": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 25,
+          "items": { "$ref": "#/$defs/portableNativeTrial" }
+        }
+      }
+    }
+  }
+}
