@@ -12834,7 +12834,7 @@ async fn compile_sketch_impl(
     };
     let source_map_payload =
         validate_compile_source_map_payload(&code, source_map_json.as_deref())?;
-    let trusted_sketch_alias = foreground_run_id
+    let trusted_sketch_alias = foreground_run_id.clone()
         .map(|run_id| Arc::new(Mutex::new(TrustedSketchAliasCollector::new(run_id, &code))));
     let total_start = std::time::Instant::now();
     let sysroot = get_app_sysroot().await?;
@@ -12844,6 +12844,8 @@ async fn compile_sketch_impl(
     let board_library_scope =
         board_library_scope_for_build(&app, &fqbn, board_package_id.as_deref())?;
     let diagnostic_trace = Arc::new(Mutex::new(CompileDiagnosticTrace::new()));
+    let mut feedback_capture = foreground_run_id.as_deref().map(|run|
+        compile_feedback::Capture::new(&app, run, &fqbn, diagnostic_trace.clone()));
 
     // Emit initial status immediately
     if !silent_mode && candidate_core_version.is_none() {
@@ -13973,6 +13975,7 @@ async fn compile_sketch_impl(
         &path,
         _build_cache_read_guard,
     );
+    if let Some(capture) = feedback_capture.as_mut() { capture.success(); }
     Ok(result.to_string())
 }
 
@@ -14084,9 +14087,13 @@ async fn upload_sketch_impl(
     let board_library_scope =
         board_library_scope_for_build(&app, &fqbn, board_package_id.as_deref())?;
 
+    let feedback_trace = Arc::new(Mutex::new(CompileDiagnosticTrace::new()));
+    let mut feedback_capture = (!observe_preparation_only).then(||
+        compile_feedback::Capture::new(&app, &run_id, &fqbn, feedback_trace.clone()));
     let app_for_log = app.clone();
     let trusted_sketch_alias_for_log = trusted_sketch_alias.clone();
     let log_val = move |line: String| {
+        if let Ok(mut trace) = feedback_trace.lock() { trace.push_str(&line); }
         emit_trusted_sketch_alias_for_line(&app_for_log, &trusted_sketch_alias_for_log, &line);
         let _ = app_for_log.emit("build-log", line);
     };
@@ -14678,6 +14685,9 @@ async fn upload_sketch_impl(
         upload_request_started.elapsed().as_secs_f64()
     ));
     let upload_transport_started = std::time::Instant::now();
+    // Freeze compile-only diagnostics before any upload/serial content exists.
+    if let Some(capture) = feedback_capture.as_mut() { capture.success(); }
+    drop(feedback_capture);
     let upload_outcome = run_upload_transport_with_identity_gate(
         &toolchain_identity_lease,
         &sysroot.root_dir,
@@ -23616,6 +23626,7 @@ mod compile_accel;
 mod board_activity;
 mod device_health;
 mod diagnostic_bundle;
+mod compile_feedback;
 mod extensions;
 mod last_working_version;
 mod lib_custom_registry;
@@ -23678,6 +23689,7 @@ pub fn run() {
     );
     let app = tauri::Builder::default()
         .manage(app_update::UpdateState::default())
+        .manage(compile_feedback::FeedbackState::default())
         .manage(startup_project_open_state)
         // This must remain the first plugin: it owns the process rendezvous
         // used by Windows file associations while CK is already running.
@@ -23820,6 +23832,8 @@ pub fn run() {
             arduino_board_list,
             preproof_compile_target,
             compile_sketch,
+            compile_feedback::preview_compile_feedback,
+            compile_feedback::submit_compile_feedback,
             compile_ai_candidate,
             ai_library_source::ai_read_library_source,
             ai_library::ai_prepare_library,

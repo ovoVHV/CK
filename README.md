@@ -6,9 +6,11 @@
 
 CK 面向 Arduino 兼容硬件，把 Blockly 编辑、AI 编程、原生增量编译、上传、串口调试、库管理和工程恢复放在同一个 Windows 桌面应用中。
 
-当前源码版本：**9.1.0-alpha.46**，预览版。原作者与维护者：**jackchen（[@ovoVHV](https://github.com/ovoVHV)）**。
+当前源码版本：**9.1.0-alpha.47**，预览版。原作者与维护者：**CKYAN（[@ovoVHV](https://github.com/ovoVHV)）**。
 
 [作者声明与署名方式](AUTHORS.md) · [源码构建](docs/BUILDING.md) · [AI 使用说明](docs/ai-assistant-guide.md) · [问题反馈](https://github.com/ovoVHV/CK/issues)
+
+**CK LAB 官方QQ群：1080798212**（交流使用、反馈问题与编译性能日志）。
 
 ## 核心能力
 
@@ -19,6 +21,7 @@ CK 面向 Arduino 兼容硬件，把 Blockly 编辑、AI 编程、原生增量�
 | AI 制作库 | 生成声明式积木与 C++ 库，校验、试编译后安装加载；支持完整 Arduino 库文件夹结构 |
 | 本地编译加速 | CK Build Engine V9 自行管理库发现、依赖图、对象、PCH、链接和镜像任务；Rust 完整资产校验与 Windows 进程管理 |
 | 报错定位 | 在可可靠映射时，把编译错误定位到积木并显示提示；第三方作者不必专门编写报错逻辑 |
+| 编译日志反馈 | 复制完整输出；主动预览脱敏诊断后提交 CK LAB，每次编译只保存一份并返回报告编号 |
 | 工程恢复 | 检查点、恢复稿、缺库保护、依赖锁及符合条件的上一个可用版本恢复 |
 | 板卡与硬件 | Core 与完整菜单配置管理、声明式引脚资源与冲突检查；按实际板卡能力显示诊断功能 |
 | 连接与调试 | 驱动指南、串口监视与曲线、已接入目标的积木运行轨迹和软断点 |
@@ -49,6 +52,7 @@ update-protocol/ 更新清单与签名验证协议
 tests/           引擎单测及真实桌面/板卡测试入口
 docs/            构建说明、AI/扩展规范、版本说明与测试边界
 website/         CK LAB 网站源代码与图解
+feedback-server/ 私有编译诊断接收服务、防重复与限流
 scripts/         构建、依赖准备、打包与验证脚本
 ```
 
@@ -81,7 +85,7 @@ pwsh -File scripts/Build-Source.ps1
 
 我把 CK 开源，是希望它能帮助大家学习和创造。如果你使用了 CK 的源码或具体实现，也希望你能在 README、软件“关于”页面或相应说明中标注作者与来源：
 
-> 本项目使用或基于 CK 开源项目的部分技术与实现。原作者：**jackchen（@ovoVHV）**。
+> 本项目使用或基于 CK 开源项目的部分技术与实现。原作者：**CKYAN（@ovoVHV）**。
 > 原始仓库：**https://github.com/ovoVHV/CK**
 
 完整声明及可复制署名见 [AUTHORS.md](AUTHORS.md)。上述醒目标注是作者倡议；使用条件以 [Apache License 2.0](LICENSE) 为准，请保留适用的许可、版权及 [NOTICE](NOTICE) 声明。第三方组件保留自己的许可，见 [第三方说明](THIRD_PARTY_NOTICES.md)。

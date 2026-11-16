@@ -1,0 +1,7 @@
+[Unit]
+Description=Daily expiry of CK diagnostic logs
+[Timer]
+OnCalendar=daily
+Persistent=true
+[Install]
+WantedBy=timers.target

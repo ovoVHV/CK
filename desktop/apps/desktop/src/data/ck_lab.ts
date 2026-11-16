@@ -1,4 +1,5 @@
 export const CK_LAB = 'https://ckswitch.site';
+export const CK_OFFICIAL_QQ_GROUP = '1080798212';
 
 export const CK_DRIVER_SOURCES = [
     { id: 'ch340', chip: 'CH340 / CH341', vendor: 'WCH · 沁恒', url: `${CK_LAB}/downloads/drivers/CH341SER-4.0.ZIP`, official: false },

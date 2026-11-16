@@ -1,0 +1,26 @@
+[Unit]
+Description=CK private compilation diagnostic receiver
+After=network.target
+
+[Service]
+Type=simple
+User=ck-feedback
+Group=ck-feedback
+ExecStart=/usr/bin/python3 /opt/ck-feedback/server.py
+Restart=on-failure
+RestartSec=5
+StateDirectory=ck-feedback
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=192M
+TasksMax=32
+CPUQuota=50%
+LimitNOFILE=128
+
+[Install]
+WantedBy=multi-user.target

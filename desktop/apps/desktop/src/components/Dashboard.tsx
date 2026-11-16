@@ -9,7 +9,7 @@ import DataStorageSettings from './DataStorageSettings';
 import { useDashboardUpdate } from './DashboardUpdate';
 import { BrandLogo } from './BrandLogo';
 import { DashboardResources } from './DashboardResources';
-import { CK_LAB } from '../data/ck_lab';
+import { CK_LAB, CK_OFFICIAL_QQ_GROUP } from '../data/ck_lab';
 import { DashboardProjectStatus } from './DashboardProjectStatus';
 import { useRecentProjectPath } from './project_status_session';
 import {
@@ -504,6 +504,12 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
             <Download size={16} /> {t('dashboard.sidebar.driverDownloads')}
           </button>
           <div className="mt-auto border-t border-slate-200 pt-4 dark:border-slate-800">
+            <button type="button" data-ck-action="copy-official-qq-group" onClick={async () => {
+              try { await navigator.clipboard.writeText(CK_OFFICIAL_QQ_GROUP); setResourceNotice({ message: `已复制 CK LAB 官方QQ群：${CK_OFFICIAL_QQ_GROUP}`, error: false }); }
+              catch { setResourceNotice({ message: `请在 QQ 搜索群号：${CK_OFFICIAL_QQ_GROUP}`, error: false }); }
+            }} className="mb-2 flex w-full items-center justify-between gap-2 rounded-xl border border-brand-100 bg-brand-50 px-3 py-3 text-left text-brand-700 hover:bg-brand-100 dark:border-brand-900 dark:bg-brand-950/40 dark:text-brand-300">
+              <span><span className="block text-xs font-bold">CK LAB 官方QQ群</span><span className="mt-1 block text-sm font-semibold tracking-wide">{CK_OFFICIAL_QQ_GROUP}</span></span><Copy size={15} />
+            </button>
             <button type="button" onClick={() => void openResourceLink(CK_LAB)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-bold text-slate-700 hover:bg-brand-50 hover:text-brand-700 dark:text-slate-200 dark:hover:bg-slate-800">
               CK LAB <ExternalLink size={14} />
             </button>

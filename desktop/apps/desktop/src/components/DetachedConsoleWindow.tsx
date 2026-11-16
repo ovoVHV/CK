@@ -5,6 +5,7 @@ import { Activity, Cpu, ExternalLink, Monitor, Pause, Play, Send, Terminal, Tras
 import { SerialMonitor, SerialTerminalRef } from './SerialMonitor';
 import { SerialPlotter } from './SerialPlotter';
 import { useTranslation } from 'react-i18next';
+import { CompileLogActions } from './CompileLogActions';
 
 type DetachedConsoleProps = {
     theme: 'light' | 'dark' | 'system';
@@ -17,6 +18,8 @@ type SerialPortInfo = {
 };
 
 type DetachedConsoleStatePayload = {
+    feedbackRunId?: string | null;
+    compiling?: boolean;
     open: boolean;
     switching: boolean;
     selectedPort: string;
@@ -66,6 +69,8 @@ export default function DetachedConsoleWindow({ theme }: DetachedConsoleProps) {
     const [baudRate, setBaudRate] = useState(115200);
     const [consoleTab, setConsoleTab] = useState<'serial' | 'compile'>('serial');
     const [compileLog, setCompileLog] = useState<string[]>(() => readPersistedCompileLog());
+    const [feedbackRunId, setFeedbackRunId] = useState<string | null>(null);
+    const [compiling, setCompiling] = useState(false);
     const [serialInput, setSerialInput] = useState('');
     const [lineEnding, setLineEnding] = useState('\r\n');
     const [viewMode, setViewMode] = useState<'text' | 'hex'>('text');
@@ -135,6 +140,8 @@ export default function DetachedConsoleWindow({ theme }: DetachedConsoleProps) {
 
                 const stopConfig = await listen<DetachedConsoleStatePayload>('ck-console-state', (event) => {
                     const payload = event.payload;
+                    setFeedbackRunId(payload.feedbackRunId ?? null);
+                    setCompiling(payload.compiling === true);
                     setPorts(Array.isArray(payload.ports) ? payload.ports : []);
                     const nextPort = String(payload.monitorPort || payload.selectedPort || '').trim();
                     if (nextPort) setSelectedPort(nextPort);
@@ -461,6 +468,7 @@ export default function DetachedConsoleWindow({ theme }: DetachedConsoleProps) {
                 </div>
             )}
 
+            {consoleTab === 'compile' && <CompileLogActions runId={feedbackRunId} busy={compiling} getLog={() => [...compileLog, ...pendingCompileLinesRef.current].join('\n')} />}
             <div className="ck-serial-console-content flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-900">
                 {consoleTab === 'serial' ? (
                     <div className="relative w-full h-full">

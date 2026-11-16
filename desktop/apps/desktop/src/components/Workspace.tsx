@@ -50,6 +50,7 @@ import { emitTo, listen } from '@tauri-apps/api/event';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { save, open } from '@tauri-apps/plugin-dialog'; // Native file dialogs
 import { writeTextFile } from '@tauri-apps/plugin-fs';
+import { CompileLogActions } from './CompileLogActions';
 import * as Blockly from 'blockly';
 // Install the presentation-only Blockly locale hooks before blockly_setup
 // evaluates its imperative custom block definitions.
@@ -707,6 +708,8 @@ type DetachedConsoleCommand = {
 };
 
 type DetachedConsoleStatePayload = {
+    feedbackRunId: string | null;
+    compiling: boolean;
     open: boolean;
     switching: boolean;
     selectedPort: string;
@@ -1142,6 +1145,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     // health has its own responsive drawer so opening it never steals console state.
     const [consoleTab, setConsoleTab] = useState<'serial' | 'compile'>('serial');
     const [compileLog, setCompileLog] = useState<string>("");
+    const [feedbackRunId, setFeedbackRunId] = useState<string | null>(null);
     const [compileLogViewMode, setCompileLogViewMode] = useState<'key' | 'full'>('key');
     const [compileDoctorReport, setCompileDoctorReport] = useState<CompileDoctorReport | null>(null);
     const [projectUploadResult, setProjectUploadResult] = useState<ProjectUploadResult | null>(null);
@@ -2275,6 +2279,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         baudOverride?: number,
     ) => {
         const payload: DetachedConsoleStatePayload = {
+            feedbackRunId,
+            compiling: isCompiling,
             open: desiredSerialOpenRef.current && monitorPortRef.current !== null,
             switching: isSerialMonitorSwitching,
             selectedPort: selectedPortOverride ?? activePortRef.current ?? monitorPortRef.current ?? '',
@@ -2380,7 +2386,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         void publishDetachedConsoleState();
     // State publication is intentionally driven by confirmed monitor state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activePort, baudRate, isConsoleDetached, isSerialMonitorOpen, isSerialMonitorSwitching, monitorBaudRate, monitorPort, ports]);
+    }, [activePort, baudRate, isConsoleDetached, isSerialMonitorOpen, isSerialMonitorSwitching, monitorBaudRate, monitorPort, ports, feedbackRunId, isCompiling]);
 
     const openDetachedConsole = async () => {
         // `openDetachedConsole` also acts as "focus" when the window already
@@ -3099,6 +3105,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
         const sessionId = compileSessionRef.current + 1;
         compileSessionRef.current = sessionId;
+        setFeedbackRunId(buildRunId);
         const isCurrentSession = () => compileSessionRef.current === sessionId;
         const resourceTargetIdentity: CompileResourceTargetIdentity = {
             projectPath: currentPath,
@@ -8957,6 +8964,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     </div>
 
                     {/* Log Content Wrapper */}
+                    {consoleTab === 'compile' && <CompileLogActions runId={feedbackRunId} busy={isCompiling} getLog={() => compileLogRef.current} />}
 
                     <div className="ck-serial-console-content flex-1 min-h-0 flex flex-col overflow-hidden bg-[#fbfcfe] dark:bg-slate-950">
                         {consoleTab === 'serial' ? (

@@ -1,9 +1,9 @@
 {
   "name": "ck-build-engine",
-  "version": "9.1.0-alpha.46",
+  "version": "9.1.0-alpha.47",
   "private": true,
   "license": "Apache-2.0",
-  "author": "jackchen",
+  "author": "CKYAN",
   "repository": { "type": "git", "url": "https://github.com/ovoVHV/CK.git" },
   "type": "module",
   "engines": { "node": ">=24 <25" },
