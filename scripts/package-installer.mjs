@@ -22,7 +22,7 @@ for(const dir of ['src','bin','runtime','licenses','tests','scripts','docs']){
  else copy(from,to);
 }
 if(fs.existsSync(path.join(stage,'engine/docs/audits')))throw Error('Internal audit files must not be packaged');
-for(const name of ['package.json','config.example.json'])copy(path.join(root,name),path.join(stage,'engine',name));
+for(const name of ['package.json','config.example.json','LICENSE','NOTICE','AUTHORS.md','THIRD_PARTY_NOTICES.md'])copy(path.join(root,name),path.join(stage,'engine',name));
 copy(preview,path.join(stage,'desktop'));copy(path.join(root,'bin/launcher.exe'),path.join(stage,'CK-V9.1.exe'));
 copy(path.join(root,'installer/MicrosoftEdgeWebview2Setup.exe'),path.join(stage,'MicrosoftEdgeWebview2Setup.exe'));
 fs.writeFileSync(path.join(stage,'package-id.txt'),'CK-V91-alpha-current-user\r\n');
