@@ -1,0 +1,14 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_74hc595_write",
+      "kind": "statement",
+      "template": "ckKit595Write({{field:DATA}}, {{field:CLOCK}}, {{field:LATCH}}, {{value:BYTE}}, {{field:ORDER}});",
+      "includes": {
+        "driver": "#include <CKKit595.h>"
+      }
+    }
+  ]
+}

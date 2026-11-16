@@ -1,0 +1,13 @@
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';
+import {loadConfig} from '../src/config.mjs';import {BuildController} from '../src/controller.mjs';import {digest,validateArtifacts} from '../src/protocol.mjs';
+const config=loadConfig(process.argv[2]),controller=new BuildController(config),workspace=path.join(config.paths.workspaceRoot,'cancel-library-'+Date.now());
+const source=fs.readFileSync(new URL('blockly-wifi-A.ino',import.meta.url),'utf8'),request={requestId:'cancel-during-library',sourceSha256:digest(source),fqbn:'esp32:esp32:esp32s3',sysroot:config.paths.sysroot,workspace,sketchDir:path.join(workspace,'source/sketch'),libraries:[],forceClean:true};
+const report={status:'RUNNING',boundary:'cancel after a cold library compiler creates output; process-tree drain and fresh-authority rebuild, no performance claim'},file=path.join(config.paths.evidenceRoot,'cold-library-cancel.json');
+const hasObject=dir=>fs.existsSync(dir)&&fs.readdirSync(dir,{withFileTypes:true}).some(e=>e.isDirectory()?hasObject(path.join(dir,e.name)):e.name.endsWith('.o'));
+try{
+ console.log('START cold library cancellation');const pending=controller.submit({protocolVersion:1,request,source}).then(result=>({result}),error=>({error:String(error)}));
+ let started=false;for(let i=0;i<6000;i++){if(hasObject(path.join(workspace,'build/libraries'))){started=true;break;}await new Promise(r=>setTimeout(r,50));}assert(started,'A real library compiler must start before cancellation');
+ const slot=[...controller.workspaces.values()][0];report.oldJob=slot.dir;await controller.cancel(request.requestId);report.cancelled=await pending;assert(report.cancelled.error||!report.cancelled.result?.success);
+ report.metrics=JSON.parse(fs.readFileSync(path.join(slot.dir,'metrics.json')));assert.equal(report.metrics.activeProcesses,0);assert.equal(controller.requests.size,0);assert.equal(slot.quarantined,undefined);
+ console.log('REBUILD after cancellation');const next={...request,requestId:'after-library-cancel'};const rebuilt=await controller.submit({protocolVersion:1,request:next,source});report.rebuilt=rebuilt;assert(rebuilt.success,JSON.stringify(rebuilt.error));validateArtifacts(rebuilt.artifacts);assert.equal(rebuilt.counts.CompileGCC,71);assert.equal(rebuilt.counts.ObjectRetained,0);assert.equal(rebuilt.counts.CacheRestored,0);assert.notEqual(slot.dir,report.oldJob);await controller.acknowledge(next.requestId,{sourceSha256:next.sourceSha256,success:true});report.status='PASS';
+}catch(error){report.status='FAIL';report.error=String(error.stack);console.error(error);process.exitCode=1;}finally{await controller.close();fs.writeFileSync(file,JSON.stringify(report,null,2));console.log('REPORT '+file);}

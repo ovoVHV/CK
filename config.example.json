@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "engineVersion": "9.1.0-alpha.46",
+  "paths": {
+    "sysroot": "C:\\Users\\YOUR_USER\\Documents\\CK",
+    "node": "C:\\Program Files\\nodejs\\node.exe",
+    "cli": "C:\\Users\\YOUR_USER\\Documents\\CK\\bin\\arduino-cli.exe",
+    "ninja": "C:\\Tools\\ninja.exe",
+    "cliConfig": "C:\\Users\\YOUR_USER\\Documents\\CK\\arduino-cli.yaml",
+    "userLibraries": "C:\\Users\\YOUR_USER\\Documents\\CK\\sketchbook\\libraries",
+    "workspaceRoot": "C:\\Users\\YOUR_USER\\AppData\\Local\\CK-V9\\runtime\\CK_Builds\\v9\\sessions",
+    "evidenceRoot": "C:\\Users\\YOUR_USER\\AppData\\Local\\CK-V9\\evidence"
+  },
+  "features": {
+    "enabled": false,
+    "independentDiscovery": true,
+    "frontendReplay": true,
+    "sessionHistory": true,
+    "assetBackend": "rust",
+    "receiptOptimize": false,
+    "sharedHeaderPch": true,
+    "batchInputProof": true,
+    "avrProperties": true,
+    "directExecution": true
+  },
+  "limits": {
+    "jobs": 8,
+    "maxWorkspaces": 4,
+    "historyBytes": 134217728,
+    "leaseTimeoutMs": 120000,
+    "requestTimeoutMs": 900000
+  },
+  "allowedFqbns": [
+    "esp32:esp32:*", "arduino:avr:*"
+  ],
+  "sourceDateEpoch": 1792800000
+}

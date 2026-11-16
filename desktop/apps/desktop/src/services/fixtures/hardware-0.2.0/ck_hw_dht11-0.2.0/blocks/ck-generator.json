@@ -1,0 +1,15 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_common_dht11_read",
+      "kind": "expression",
+      "template": "ckKitDht11({{field:PIN}}, {{field:VALUE}})",
+      "includes": {
+        "driver": "#include <CKKitDht11.h>"
+      },
+      "order": 0
+    }
+  ]
+}

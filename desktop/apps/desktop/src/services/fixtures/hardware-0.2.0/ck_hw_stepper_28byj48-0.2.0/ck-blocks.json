@@ -1,0 +1,651 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_stepper_28byj48",
+  "display_name": "CK 28BYJ-48 步进电机 / ULN2003",
+  "description": "28BYJ-48 步进电机 / ULN2003独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_stepper_28byj48",
+    "28BYJ-48 步进电机 / ULN2003",
+    "28BYJ-48 Stepper / ULN2003"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [
+    {
+      "kind": "arduino-library",
+      "id": "AccelStepper",
+      "version": "1.64.0",
+      "headers": [
+        "AccelStepper.h"
+      ],
+      "optional": false,
+      "reason": "Pinned upstream implementation; installed separately."
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_stepper_28byj48_begin",
+      "display_name": "初始化 28BYJ-48",
+      "description": "初始化 28BYJ-48",
+      "category": "28BYJ-48 步进电机 / ULN2003",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_stepper_28byj48",
+        "28BYJ-48 步进电机 / ULN2003",
+        "28BYJ-48 Stepper / ULN2003"
+      ],
+      "semantics": {
+        "purpose": "初始化 28BYJ-48",
+        "behavior": "初始化 28BYJ-48。一个 ULN2003 四相 5 V 单极步进驱动，支持半步控制。参数按驱动板 IN1/IN2/IN3/IN4 接线。只用“步数”，不猜减速比或每圈步数。循环中高频调用运行积木；移动目标不会自动运行。电机使用合适外部电源并共地，不接 GPIO 直接驱动。",
+        "side_effects": [
+          "Explicit initialization of user-configured pins / peripheral."
+        ],
+        "concepts": [
+          "ck_hw_stepper_28byj48"
+        ]
+      },
+      "fields": [
+        {
+          "name": "IN1",
+          "kind": "number",
+          "description": "IN1",
+          "required": true,
+          "default": 8
+        },
+        {
+          "name": "IN2",
+          "kind": "number",
+          "description": "IN2",
+          "required": true,
+          "default": 9
+        },
+        {
+          "name": "IN3",
+          "kind": "number",
+          "description": "IN3",
+          "required": true,
+          "default": 10
+        },
+        {
+          "name": "IN4",
+          "kind": "number",
+          "description": "IN4",
+          "required": true,
+          "default": 11
+        },
+        {
+          "name": "SPEED",
+          "kind": "number",
+          "description": "最大半步/秒",
+          "required": true,
+          "default": 500
+        },
+        {
+          "name": "ACCEL",
+          "kind": "number",
+          "description": "加速度",
+          "required": true,
+          "default": 200
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitStepper.h",
+          "headers": [
+            "CKKitStepper.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "AccelStepper",
+          "version": "1.64.0",
+          "headers": [
+            "AccelStepper.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "in1",
+            "source": {
+              "kind": "field",
+              "name": "IN1"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: IN1"
+          },
+          {
+            "kind": "gpio",
+            "id": "in2",
+            "source": {
+              "kind": "field",
+              "name": "IN2"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: IN2"
+          },
+          {
+            "kind": "gpio",
+            "id": "in3",
+            "source": {
+              "kind": "field",
+              "name": "IN3"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: IN3"
+          },
+          {
+            "kind": "gpio",
+            "id": "in4",
+            "source": {
+              "kind": "field",
+              "name": "IN4"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: IN4"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "in1-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "IN1",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "in2-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "IN2",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "in3-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "IN3",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "in4-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "IN4",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitStepper.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "初始化 28BYJ-48",
+            "template": "ckKitStepperBegin({{field:IN1}}, {{field:IN2}}, {{field:IN3}}, {{field:IN4}}, {{field:SPEED}}, {{field:ACCEL}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_stepper_28byj48_begin-example",
+          "title": "初始化 28BYJ-48",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "IN1": 8,
+            "IN2": 9,
+            "IN3": 10,
+            "IN4": 11,
+            "SPEED": 500,
+            "ACCEL": 200
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_stepper_28byj48_target",
+      "display_name": "步进电机移动到半步位置",
+      "description": "步进电机移动到半步位置",
+      "category": "28BYJ-48 步进电机 / ULN2003",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_stepper_28byj48",
+        "28BYJ-48 步进电机 / ULN2003",
+        "28BYJ-48 Stepper / ULN2003"
+      ],
+      "semantics": {
+        "purpose": "步进电机移动到半步位置",
+        "behavior": "步进电机移动到半步位置。一个 ULN2003 四相 5 V 单极步进驱动，支持半步控制。参数按驱动板 IN1/IN2/IN3/IN4 接线。只用“步数”，不猜减速比或每圈步数。循环中高频调用运行积木；移动目标不会自动运行。电机使用合适外部电源并共地，不接 GPIO 直接驱动。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_stepper_28byj48"
+        ]
+      },
+      "fields": [],
+      "inputs": [
+        {
+          "name": "POSITION",
+          "kind": "value",
+          "description": "绝对半步位置",
+          "required": true,
+          "check": "Number",
+          "default": 512
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitStepper.h",
+          "headers": [
+            "CKKitStepper.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "AccelStepper",
+          "version": "1.64.0",
+          "headers": [
+            "AccelStepper.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitStepper.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "步进电机移动到半步位置",
+            "template": "ckKitStepperTarget({{value:POSITION}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_stepper_28byj48_target-example",
+          "title": "步进电机移动到半步位置",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {
+            "POSITION": 512
+          },
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_stepper_28byj48_run",
+      "display_name": "运行步进电机一步（循环调用）",
+      "description": "运行步进电机一步（循环调用）",
+      "category": "28BYJ-48 步进电机 / ULN2003",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_stepper_28byj48",
+        "28BYJ-48 步进电机 / ULN2003",
+        "28BYJ-48 Stepper / ULN2003"
+      ],
+      "semantics": {
+        "purpose": "运行步进电机一步（循环调用）",
+        "behavior": "运行步进电机一步（循环调用）。一个 ULN2003 四相 5 V 单极步进驱动，支持半步控制。参数按驱动板 IN1/IN2/IN3/IN4 接线。只用“步数”，不猜减速比或每圈步数。循环中高频调用运行积木；移动目标不会自动运行。电机使用合适外部电源并共地，不接 GPIO 直接驱动。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_stepper_28byj48"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitStepper.h",
+          "headers": [
+            "CKKitStepper.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "AccelStepper",
+          "version": "1.64.0",
+          "headers": [
+            "AccelStepper.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitStepper.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "运行步进电机一步（循环调用）",
+            "template": "ckKitStepperRun();"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_stepper_28byj48_run-example",
+          "title": "运行步进电机一步（循环调用）",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_stepper_28byj48_remaining",
+      "display_name": "步进电机剩余半步数",
+      "description": "步进电机剩余半步数",
+      "category": "28BYJ-48 步进电机 / ULN2003",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_stepper_28byj48",
+        "28BYJ-48 步进电机 / ULN2003",
+        "28BYJ-48 Stepper / ULN2003"
+      ],
+      "semantics": {
+        "purpose": "步进电机剩余半步数",
+        "behavior": "步进电机剩余半步数。一个 ULN2003 四相 5 V 单极步进驱动，支持半步控制。参数按驱动板 IN1/IN2/IN3/IN4 接线。只用“步数”，不猜减速比或每圈步数。循环中高频调用运行积木；移动目标不会自动运行。电机使用合适外部电源并共地，不接 GPIO 直接驱动。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_stepper_28byj48"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Number"
+        ],
+        "description": "步进电机剩余半步数"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitStepper.h",
+          "headers": [
+            "CKKitStepper.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "AccelStepper",
+          "version": "1.64.0",
+          "headers": [
+            "AccelStepper.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitStepper.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "步进电机剩余半步数",
+            "template": "ckKitStepperRemaining()"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_stepper_28byj48_remaining-example",
+          "title": "步进电机剩余半步数",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_stepper_28byj48_release",
+      "display_name": "释放步进电机线圈",
+      "description": "释放步进电机线圈",
+      "category": "28BYJ-48 步进电机 / ULN2003",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_stepper_28byj48",
+        "28BYJ-48 步进电机 / ULN2003",
+        "28BYJ-48 Stepper / ULN2003"
+      ],
+      "semantics": {
+        "purpose": "释放步进电机线圈",
+        "behavior": "释放步进电机线圈。一个 ULN2003 四相 5 V 单极步进驱动，支持半步控制。参数按驱动板 IN1/IN2/IN3/IN4 接线。只用“步数”，不猜减速比或每圈步数。循环中高频调用运行积木；移动目标不会自动运行。电机使用合适外部电源并共地，不接 GPIO 直接驱动。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_stepper_28byj48"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitStepper.h",
+          "headers": [
+            "CKKitStepper.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "AccelStepper",
+          "version": "1.64.0",
+          "headers": [
+            "AccelStepper.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitStepper.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "释放步进电机线圈",
+            "template": "ckKitStepperRelease();"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_stepper_28byj48_release-example",
+          "title": "释放步进电机线圈",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

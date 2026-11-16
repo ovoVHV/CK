@@ -1,0 +1,25 @@
+[
+  {
+    "kind": "category",
+    "name": "I2C LCD1602",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_lcd1602_i2c_begin"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_lcd1602_i2c_print"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_lcd1602_i2c_clear"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_lcd1602_i2c_backlight"
+      }
+    ]
+  }
+]

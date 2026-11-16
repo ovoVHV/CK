@@ -1,0 +1,489 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_keypad4x4",
+  "display_name": "CK 4×4 薄膜键盘",
+  "description": "4×4 薄膜键盘独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_keypad4x4",
+    "4×4 薄膜键盘",
+    "4x4 Membrane Keypad"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [
+    {
+      "kind": "arduino-library",
+      "id": "Keypad",
+      "version": "3.1.1",
+      "headers": [
+        "Keypad.h"
+      ],
+      "optional": false,
+      "reason": "Pinned upstream implementation; installed separately."
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_keypad4x4_begin",
+      "display_name": "初始化 4×4 键盘",
+      "description": "初始化 4×4 键盘",
+      "category": "4×4 薄膜键盘",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_keypad4x4",
+        "4×4 薄膜键盘",
+        "4x4 Membrane Keypad"
+      ],
+      "semantics": {
+        "purpose": "初始化 4×4 键盘",
+        "behavior": "初始化 4×4 键盘。每包一个 4×4 键盘。按 R1..R4/C1..C4 配置 MCU 接线；排线物理顺序不能凭照片确定。键帽映射为 123A/456B/789C/*0#D。getKey 返回新按下的键，未按键返回空字符串；不是持续按下状态。",
+        "side_effects": [
+          "Explicit initialization of user-configured pins / peripheral."
+        ],
+        "concepts": [
+          "ck_hw_keypad4x4"
+        ]
+      },
+      "fields": [
+        {
+          "name": "R1",
+          "kind": "number",
+          "description": "R1",
+          "required": true,
+          "default": 2
+        },
+        {
+          "name": "R2",
+          "kind": "number",
+          "description": "R2",
+          "required": true,
+          "default": 3
+        },
+        {
+          "name": "R3",
+          "kind": "number",
+          "description": "R3",
+          "required": true,
+          "default": 4
+        },
+        {
+          "name": "R4",
+          "kind": "number",
+          "description": "R4",
+          "required": true,
+          "default": 5
+        },
+        {
+          "name": "C1",
+          "kind": "number",
+          "description": "C1",
+          "required": true,
+          "default": 6
+        },
+        {
+          "name": "C2",
+          "kind": "number",
+          "description": "C2",
+          "required": true,
+          "default": 7
+        },
+        {
+          "name": "C3",
+          "kind": "number",
+          "description": "C3",
+          "required": true,
+          "default": 8
+        },
+        {
+          "name": "C4",
+          "kind": "number",
+          "description": "C4",
+          "required": true,
+          "default": 9
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitKeypad.h",
+          "headers": [
+            "CKKitKeypad.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "Keypad",
+          "version": "3.1.1",
+          "headers": [
+            "Keypad.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "r1",
+            "source": {
+              "kind": "field",
+              "name": "R1"
+            },
+            "access": "read",
+            "sharing": "shared",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input"
+            ],
+            "description": "Explicit GPIO binding: R1"
+          },
+          {
+            "kind": "gpio",
+            "id": "r2",
+            "source": {
+              "kind": "field",
+              "name": "R2"
+            },
+            "access": "read",
+            "sharing": "shared",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input"
+            ],
+            "description": "Explicit GPIO binding: R2"
+          },
+          {
+            "kind": "gpio",
+            "id": "r3",
+            "source": {
+              "kind": "field",
+              "name": "R3"
+            },
+            "access": "read",
+            "sharing": "shared",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input"
+            ],
+            "description": "Explicit GPIO binding: R3"
+          },
+          {
+            "kind": "gpio",
+            "id": "r4",
+            "source": {
+              "kind": "field",
+              "name": "R4"
+            },
+            "access": "read",
+            "sharing": "shared",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input"
+            ],
+            "description": "Explicit GPIO binding: R4"
+          },
+          {
+            "kind": "gpio",
+            "id": "c1",
+            "source": {
+              "kind": "field",
+              "name": "C1"
+            },
+            "access": "read-write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input",
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C1"
+          },
+          {
+            "kind": "gpio",
+            "id": "c2",
+            "source": {
+              "kind": "field",
+              "name": "C2"
+            },
+            "access": "read-write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input",
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C2"
+          },
+          {
+            "kind": "gpio",
+            "id": "c3",
+            "source": {
+              "kind": "field",
+              "name": "C3"
+            },
+            "access": "read-write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input",
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C3"
+          },
+          {
+            "kind": "gpio",
+            "id": "c4",
+            "source": {
+              "kind": "field",
+              "name": "C4"
+            },
+            "access": "read-write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input",
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C4"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "r1-gpio",
+              "role": "digital-input",
+              "resource": {
+                "kind": "field",
+                "name": "R1",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r2-gpio",
+              "role": "digital-input",
+              "resource": {
+                "kind": "field",
+                "name": "R2",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r3-gpio",
+              "role": "digital-input",
+              "resource": {
+                "kind": "field",
+                "name": "R3",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r4-gpio",
+              "role": "digital-input",
+              "resource": {
+                "kind": "field",
+                "name": "R4",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c1-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C1",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c2-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C2",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c3-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C3",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c4-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C4",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitKeypad.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "初始化 4×4 键盘",
+            "template": "ckKitKeypadBegin({{field:R1}}, {{field:R2}}, {{field:R3}}, {{field:R4}}, {{field:C1}}, {{field:C2}}, {{field:C3}}, {{field:C4}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_keypad4x4_begin-example",
+          "title": "初始化 4×4 键盘",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "R1": 2,
+            "R2": 3,
+            "R3": 4,
+            "R4": 5,
+            "C1": 6,
+            "C2": 7,
+            "C3": 8,
+            "C4": 9
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_keypad4x4_key",
+      "display_name": "读取新按下的键",
+      "description": "读取新按下的键",
+      "category": "4×4 薄膜键盘",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_keypad4x4",
+        "4×4 薄膜键盘",
+        "4x4 Membrane Keypad"
+      ],
+      "semantics": {
+        "purpose": "读取新按下的键",
+        "behavior": "读取新按下的键。每包一个 4×4 键盘。按 R1..R4/C1..C4 配置 MCU 接线；排线物理顺序不能凭照片确定。键帽映射为 123A/456B/789C/*0#D。getKey 返回新按下的键，未按键返回空字符串；不是持续按下状态。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_keypad4x4"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "String"
+        ],
+        "description": "读取新按下的键"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitKeypad.h",
+          "headers": [
+            "CKKitKeypad.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "Keypad",
+          "version": "3.1.1",
+          "headers": [
+            "Keypad.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitKeypad.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "读取新按下的键",
+            "template": "ckKitKeypadRead()"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_keypad4x4_key-example",
+          "title": "读取新按下的键",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

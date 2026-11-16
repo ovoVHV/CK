@@ -1,0 +1,41 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_irremote_begin",
+      "kind": "statement",
+      "template": "ckKitIrBegin({{field:PIN}});",
+      "includes": {
+        "driver": "#include <CKKitIrReceiver.h>"
+      }
+    },
+    {
+      "type": "ck_hw_irremote_poll",
+      "kind": "expression",
+      "template": "ckKitIrPoll()",
+      "includes": {
+        "driver": "#include <CKKitIrReceiver.h>"
+      },
+      "order": 0
+    },
+    {
+      "type": "ck_hw_irremote_value",
+      "kind": "expression",
+      "template": "ckKitIrValue({{field:ITEM}})",
+      "includes": {
+        "driver": "#include <CKKitIrReceiver.h>"
+      },
+      "order": 0
+    },
+    {
+      "type": "ck_common_irremote_command",
+      "kind": "expression",
+      "template": "ckKitIrLegacyCommand({{field:PIN}})",
+      "includes": {
+        "driver": "#include <CKKitIrReceiver.h>"
+      },
+      "order": 0
+    }
+  ]
+}

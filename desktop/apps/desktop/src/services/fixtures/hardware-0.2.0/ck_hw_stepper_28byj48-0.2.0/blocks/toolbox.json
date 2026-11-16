@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "category",
+    "name": "28BYJ-48 步进电机 / ULN2003",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_stepper_28byj48_begin"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_stepper_28byj48_target"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_stepper_28byj48_run"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_stepper_28byj48_remaining"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_stepper_28byj48_release"
+      }
+    ]
+  }
+]

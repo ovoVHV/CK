@@ -1,0 +1,21 @@
+[
+  {
+    "kind": "category",
+    "name": "红外接收器",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_irremote_begin"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_irremote_poll"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_irremote_value"
+      }
+    ]
+  }
+]

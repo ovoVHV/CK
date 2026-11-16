@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-forge-native-relink-certificate.schema.json",
+  "title": "CK Forge NativeRelink local performance certificate v4",
+  "description": "Local, read-only NativeRelink authorization envelope. The referenced evidence and report carry the productionExecutableSha256-bound qualification key; this certificate stores their immutable hashes and does not replace publisher signing or Authenticode.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "candidateProfile",
+    "evidenceSha256",
+    "reportSha256"
+  ],
+  "properties": {
+    "schemaId": { "const": "ck.forge.local-performance-certificate" },
+    "schemaVersion": { "const": 4 },
+    "candidateProfile": { "const": "native-relink-compile-only" },
+    "evidenceSha256": { "$ref": "#/$defs/sha256" },
+    "reportSha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

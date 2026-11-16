@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "updatedAt": "2026-11-09",
+  "kind": "curated-experiment-summary",
+  "currentClaim": {
+    "text": "相比原生 Arduino 编译，编译耗时减少约 40%",
+    "scenarios": [
+      "首次完整编译",
+      "修改后再次编译"
+    ],
+    "basis": "项目方 2026-11-09 对当前实测反馈的确认；没有将以下任一历史实验替代为完整原生 Arduino 对照。",
+    "scope": "只测试了部分代码、库、板卡与 Core 配置，不是全部工程的平均值或固定承诺；本页三组实验不能证明当前版本整体超过 40%。",
+    "evidenceType": "project-owner-feedback",
+    "publishedMatchedEndToEndSamples": false
+  },
+  "experiments": [
+    {
+      "id": "v8f-history",
+      "label": "V8-F · 返回历史版本",
+      "date": "2026-10-31",
+      "comparison": "历史恢复关闭 / 组合恢复开启",
+      "samplesPerGroup": 5,
+      "boundary": "真实桌面 compile_sketch IPC 至宿主交付",
+      "referenceMedianSeconds": 26.283,
+      "optimizedMedianSeconds": 15.438,
+      "reductionPercent": 41.3,
+      "referenceRangeSeconds": [
+        26.173,
+        26.499
+      ],
+      "optimizedRangeSeconds": [
+        15.405,
+        16.204
+      ],
+      "scope": "同一工程 A→B→A；前端均重放；隔离实验。不是原生 Arduino 基线，也不是全新编辑。",
+      "source": {
+        "document": "CK-Build-Engine-v8F-实验报告-2026-10-31.md",
+        "sha256": "4b5352d6380d552054e28f950e020829ff9eb718c9876e0be2f657e52b5b00dc"
+      },
+      "optimization": "恢复已经编译过的历史成果",
+      "scenario": "同一工程 A→B→A，返回此前编译过的 A 版本。",
+      "referencePath": "CK 关闭历史恢复；前端仍使用原型重放",
+      "optimizedPath": "CK 开启组合恢复，恢复对象、ELF 与镜像"
+    },
+    {
+      "id": "v8g-edit",
+      "label": "V8-G · 新函数体编辑",
+      "date": "2026-11-01",
+      "comparison": "Node 全量验证 / Rust 并行验证",
+      "samplesPerGroup": 5,
+      "boundary": "真实桌面 IPC，完整输入与宿主产物验证",
+      "referenceMedianSeconds": 26.376,
+      "optimizedMedianSeconds": 18.73,
+      "reductionPercent": 29.0,
+      "referenceRangeSeconds": [
+        26.218,
+        28.307
+      ],
+      "optimizedRangeSeconds": [
+        18.681,
+        19.249
+      ],
+      "scope": "本机 73 单元工程；每次 1 编译、1 链接、2 镜像；历史恢复为 0；隔离实验。独立确认批次最慢 20.355 秒，未证明稳定 P95 达标。",
+      "source": {
+        "document": "CK-Build-Engine-v8G-实验报告-2026-11-01.md",
+        "sha256": "8870260a68b1076518218a2b4391708370193218d8a4a3dde542e66fbbde4833"
+      },
+      "optimization": "降低完整资产校验的开销",
+      "scenario": "此前未出现的普通函数体编辑，执行相同的编译、链接与镜像工作。",
+      "referencePath": "CK 使用 Node 全量资产验证",
+      "optimizedPath": "CK 使用 Rust 并行资产验证"
+    },
+    {
+      "id": "alpha17-cold",
+      "label": "alpha.17 · 首次完整构建",
+      "date": "2026-11-04",
+      "comparison": "官方参数查询 / CK 直接展开",
+      "samplesPerGroup": 5,
+      "boundary": "真实编辑器按钮至完成，开发版桌面 A/B",
+      "referenceMedianSeconds": 59.695,
+      "optimizedMedianSeconds": 53.355,
+      "reductionPercent": 10.6,
+      "referenceSamplesSeconds": [
+        67.541,
+        63.638,
+        59.695,
+        55.265,
+        54.896
+      ],
+      "optimizedSamplesSeconds": [
+        57.298,
+        52.436,
+        56.794,
+        53.355,
+        51.158
+      ],
+      "scope": "ESP32-S3 / Core 3.3.6-cn；71 对象全重建、零沿用与恢复；未清 OS 文件缓存。仅参数展开优化对照。",
+      "source": {
+        "document": "alpha.17-esp32-properties.md",
+        "sha256": "bb92882bfbbdf4ab4809daf6d04c126f94a9178b8f25e903fa57e1c8265c58a6"
+      },
+      "optimization": "在已有加速上，进一步减少板卡参数查询",
+      "scenario": "首次完整构建，71 个对象全重建；两边均使用 CK 构建路径。",
+      "referencePath": "CK 调用官方工具查询板卡参数",
+      "optimizedPath": "CK 直接展开已验证的板卡参数"
+    }
+  ],
+  "coreMatrix": {
+    "date": "2026-11-05",
+    "board": "esp32:esp32:esp32s3",
+    "cores": [
+      "3.3.6",
+      "3.3.10",
+      "3.3.12"
+    ],
+    "projects": [
+      "Wi-Fi",
+      "GPIO / 串口"
+    ],
+    "successfulMatrixRequests": 27,
+    "officialCleanComparisons": 9,
+    "objectPairsChecked": 618,
+    "deliveryPairsChecked": 90,
+    "ordinaryEditCompiledObjects": 1,
+    "identicalSourceTaskCounts": {
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    "retainedFailure": {
+      "core": "3.3.12",
+      "seconds": 185.476,
+      "reason": "PCH allocation failure；官方回退成功，但不算原生加速通过。新版后续配置关闭可选 PCH。"
+    },
+    "scope": "不是所有板卡、菜单或库资格；无实体设备上传；正确性对照时间不作为桌面端到端提速百分比。",
+    "source": {
+      "document": "REPORT.md",
+      "sha256": "50fb2d98c7cdc59821e672f7b9d37a8302e53d3bc35814bb3f94a63315acbb3a"
+    }
+  },
+  "notes": [
+    "历史结果不是 alpha.30 新跑的性能测试。",
+    "不同基线、工作量和日期的收益不可相加或连乘，也不是版本间的速度排名。",
+    "遇到增量编译异常，请保留日志、诊断包及最小复现工程反馈。"
+  ],
+  "comparisonGuide": {
+    "kind": "independent-ck-optimization-comparisons",
+    "commonArduinoBaseline": false,
+    "crossExperimentComparable": false,
+    "percentageMeaning": "各项优化相对该组 CK 参考路径的耗时减少；不是当前 CK 对原生 Arduino 的整体加速比例。",
+    "aggregation": "不同工作量和参考路径不可相加、连乘或用来判断版本快慢趋势。"
+  }
+}

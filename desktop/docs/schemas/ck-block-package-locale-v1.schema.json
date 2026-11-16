@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-block-package-locale-v1.schema.json",
+  "title": "CK Block Package Presentation Locale v1",
+  "description": "Declarative, presentation-only locale data. It cannot define machine identity or generator behavior.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["locale"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "locale": { "type": "string", "pattern": "^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$" },
+    "package": { "$ref": "#/$defs/package" },
+    "categories": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 16384 }
+    },
+    "blocks": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/block" }
+    }
+  },
+  "$defs": {
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "keywords": {
+          "type": "array",
+          "maxItems": 2048,
+          "items": { "type": "string", "minLength": 1, "maxLength": 16384 }
+        }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "message": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "tooltip": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "fields": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/field" }
+        }
+      },
+      "minProperties": 1
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "options": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 16384 }
+        }
+      },
+      "minProperties": 1
+    }
+  }
+}

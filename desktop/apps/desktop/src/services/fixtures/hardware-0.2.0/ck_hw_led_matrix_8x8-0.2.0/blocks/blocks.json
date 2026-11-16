@@ -1,0 +1,222 @@
+[
+  {
+    "type": "ck_hw_led_matrix_8x8_begin",
+    "message0": "初始化 8×8 裸点阵 行有效电平 %1 R1 %2 R2 %3 R3 %4 R4 %5 R5 %6 R6 %7 R7 %8 R8 %9 C1 %10 C2 %11 C3 %12 C4 %13 C5 %14 C6 %15 C7 %16 C8 %17",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "ROW_HIGH",
+        "options": [
+          [
+            "高",
+            "1"
+          ],
+          [
+            "低",
+            "0"
+          ]
+        ]
+      },
+      {
+        "type": "field_number",
+        "name": "R1",
+        "value": 2,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "R2",
+        "value": 3,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "R3",
+        "value": 4,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "R4",
+        "value": 5,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "R5",
+        "value": 6,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "R6",
+        "value": 7,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "R7",
+        "value": 8,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "R8",
+        "value": 9,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C1",
+        "value": 10,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C2",
+        "value": 11,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C3",
+        "value": 12,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C4",
+        "value": 13,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C5",
+        "value": 14,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C6",
+        "value": 15,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C7",
+        "value": 16,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C8",
+        "value": 17,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "初始化 8×8 裸点阵",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_led_matrix_8x8_pixel",
+    "message0": "点阵设置像素 列 0–7 %1 行 0–7 %2 亮/灭 %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "X",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "Y",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "ON",
+        "check": "Boolean"
+      }
+    ],
+    "colour": 190,
+    "tooltip": "点阵设置像素",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_led_matrix_8x8_row",
+    "message0": "点阵设置一行 行 0–7 %1 字节（bit0 为第 0 列） %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "ROW",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "BYTE",
+        "check": "Number"
+      }
+    ],
+    "colour": 190,
+    "tooltip": "点阵设置一行",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_led_matrix_8x8_refresh",
+    "message0": "扫描点阵（循环调用）",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "扫描点阵（循环调用）",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_led_matrix_8x8_clear",
+    "message0": "清空点阵",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "清空点阵",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  }
+]

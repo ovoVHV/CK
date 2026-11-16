@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "tools": [
+    {"name":"Node.js 24.13.0", "url":"https://nodejs.org/dist/v24.13.0/win-x64/node.exe", "sha256":"d14ba95cdce1ef7dc9ad3ac74949ca5db38b27378ee30f30a23cf26f9e875a11", "files":[{"target":"runtime/node.exe","sha256":"d14ba95cdce1ef7dc9ad3ac74949ca5db38b27378ee30f30a23cf26f9e875a11"}]},
+    {"name":"Ninja 1.13.2", "url":"https://files.pythonhosted.org/packages/3f/dd/3766b5f4d32e8a9b97d195496b0b01fbbe2e1a41669dab0cd6492a6ce199/ninja-1.13.2-py3-none-win_amd64.whl", "sha256":"1293f4078278b70d0ee4b6cc8f3a9e030656c9b2f59909970343c4fe76070118", "archive":true, "files":[{"entry":"ninja-1.13.2.data/scripts/ninja.exe","target":"runtime/ninja.exe","sha256":"a7f084e8ee37bff0872aa8bd3d17cc19632d2a37734f6c242dd3dee22d77c0b4"}]},
+    {"name":"Arduino CLI 1.4.1", "url":"https://github.com/arduino/arduino-cli/releases/download/v1.4.1/arduino-cli_1.4.1_Windows_64bit.zip", "sha256":"44f506a29d134cb294898d5f729aea85e5498f5d81ff5fc63c549087c45a20a3", "archive":true, "files":[{"entry":"arduino-cli.exe","target":"desktop/apps/desktop/src-tauri/bin/arduino-cli.exe","sha256":"8f73503f7ac280dc1245b085c4e856c9549eb1e88c2904c777bf229692ee4c39"}]},
+    {"name":"ccache 4.10.2", "url":"https://github.com/ccache/ccache/releases/download/v4.10.2/ccache-4.10.2-windows-x86_64.zip", "sha256":"6252f081876a9a9f700fae13a5aec5d0d486b28261d7f1f72ac11c7ad9df4da9", "archive":true, "files":[{"entry":"ccache-4.10.2-windows-x86_64/ccache.exe","target":"desktop/tools/ccache.exe","sha256":"1a67a99f6c70146edfedba174840a95995de65aebfcce16cdd78546ee884663d"},{"entry":"ccache-4.10.2-windows-x86_64/LICENSE.html","target":"local/third-party/ccache/LICENSE.html","sha256":"c7c29ea7005d93470c2d1d0762058bc13d24ca0e500992e21999654cfd161bb6"},{"entry":"ccache-4.10.2-windows-x86_64/LICENSE.adoc","target":"local/third-party/ccache/LICENSE.adoc","sha256":"de4684f5251a0a2c58f3a7ab94d6a8d3443822cbd01abcdadd9250d3d1e0bfe1"}]}
+  ]
+}

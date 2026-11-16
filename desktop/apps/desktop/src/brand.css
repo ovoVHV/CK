@@ -1,0 +1,24 @@
+/* CK product identity. Blockly categories and success/warning/error colours
+   remain independent of this palette. Solid 500+ buttons support white text. */
+@theme {
+    --color-brand-50: #fff7ed;
+    --color-brand-100: #ffedd5;
+    --color-brand-200: #fed7aa;
+    --color-brand-300: #fdba74;
+    --color-brand-400: #fb923c;
+    --color-brand-500: #ce4a00;
+    --color-brand-600: #c2410c;
+    --color-brand-700: #9a3412;
+    --color-brand-800: #7c2d12;
+    --color-brand-900: #652b18;
+    --color-brand-950: #35150a;
+}
+
+:root {
+    --brand-orange: #ff6a00;
+    --brand-action: #c2410c;
+    --brand-action-hover: #9a3412;
+    --brand-ink: #202124;
+}
+
+.ck-brand-logo { max-width: 100%; }

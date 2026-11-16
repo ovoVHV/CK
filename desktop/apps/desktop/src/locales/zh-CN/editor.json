@@ -1,0 +1,76 @@
+{
+  "discovery": {
+    "requires": "声明所需资源",
+    "undeclared": "未声明",
+    "declaredTargets": "包声明的支持目标",
+    "dependencies": "依赖",
+    "controllers": "板卡控制器",
+    "noController": "已有结果中未列出匹配控制器，请检查覆盖范围",
+    "insert": "插入积木",
+    "context": {
+      "unresolved": "板卡资源等待解析，兼容性尚未确认。",
+      "undeclared": "未声明资源要求，请查看积木包说明。",
+      "review": "这里只展示能力，不代表已绑定或兼容保证。插入后请确认字段与资源检查结果，不会自动分配引脚。"
+    },
+    "kind": { "gpio": "GPIO", "adc": "ADC", "pwm": "PWM", "i2c": "I2C", "spi": "SPI", "uart": "UART", "timer": "定时器", "interrupt": "中断", "network": "网络", "filesystem": "文件系统", "flash": "Flash", "ram": "RAM", "other": "其他" }
+  },
+  "blockDock": {
+    "source": {
+      "all": "全部积木",
+      "logic": "逻辑",
+      "recent": "最近",
+      "pinned": "已固定"
+    },
+    "target": {
+      "value": "值",
+      "statement": "语句",
+      "insertInto": "插入到",
+      "condition": "条件",
+      "statementInput": "内部语句",
+      "insertBefore": "在下方积木前插入",
+      "appendAfter": "在后面添加",
+      "choosePosition": "选择积木插入位置",
+      "compatibleTitle": "{{target}}：只显示可接入的积木",
+      "quickInsertAria": "{{target}}，快速插入积木"
+    },
+    "search": {
+      "placeholder": "搜索中文名、英文名、库名或功能",
+      "compatiblePlaceholder": "搜索可接入“{{target}}”的积木",
+      "aria": "快速搜索积木",
+      "compatibleAria": "{{target}}：快速插入积木",
+      "close": "关闭快速插入",
+      "compatibleOnly": "只显示可接入 · {{target}}",
+      "emptyCompatible": "当前位置没有匹配且类型兼容的积木",
+      "empty": "没有找到匹配的积木",
+      "insert": "插入",
+      "enterInsert": "Enter 插入",
+      "command": "搜索",
+      "pin": "固定 {{label}}",
+      "unpin": "取消固定 {{label}}",
+      "pinnedTitle": "从工作坞取消固定",
+      "pinTitle": "固定“{{label}}”到工作坞",
+      "helpSelect": "↑↓ 选择",
+      "helpInsert": "Enter 插入",
+      "helpClose": "Esc 关闭",
+      "dockAria": "积木编程工作坞",
+      "logicTitle": "逻辑（常驻）",
+      "recentTitle": "最近使用",
+      "globalTitle": "全局搜索积木（Ctrl+K）"
+    },
+    "count": "{{count}} 个",
+    "notice": {
+      "inserted": "已插入“{{label}}”"
+    },
+    "blockSearch": {
+      "aria": "全局搜索积木",
+      "placeholder": "搜索全部积木",
+      "resultCount": "找到 {{count}} 个积木",
+      "clear": "清空搜索",
+      "source": "来源 · {{source}}",
+      "noResults": "没有匹配的积木"
+    },
+    "toolbox": {
+      "loading": "工具箱加载中..."
+    }
+  }
+}

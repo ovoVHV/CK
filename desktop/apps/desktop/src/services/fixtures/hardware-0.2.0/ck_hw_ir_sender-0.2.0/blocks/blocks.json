@@ -1,0 +1,47 @@
+[
+  {
+    "type": "ck_hw_ir_sender_begin",
+    "message0": "初始化红外发射器 PIN %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 3,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "初始化红外发射器",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_ir_sender_nec",
+    "message0": "发送 NEC 红外帧 地址 %1 命令 %2 重复次数 %3",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "ADDRESS",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "COMMAND",
+        "check": "Number"
+      },
+      {
+        "type": "input_value",
+        "name": "REPEATS",
+        "check": "Number"
+      }
+    ],
+    "colour": 190,
+    "tooltip": "发送 NEC 红外帧",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  }
+]

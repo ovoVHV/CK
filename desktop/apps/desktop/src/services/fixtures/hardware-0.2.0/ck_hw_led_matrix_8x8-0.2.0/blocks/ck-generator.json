@@ -1,0 +1,46 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_led_matrix_8x8_begin",
+      "kind": "statement",
+      "template": "ckKitMatrixBegin({{field:ROW_HIGH}}, {{field:R1}}, {{field:R2}}, {{field:R3}}, {{field:R4}}, {{field:R5}}, {{field:R6}}, {{field:R7}}, {{field:R8}}, {{field:C1}}, {{field:C2}}, {{field:C3}}, {{field:C4}}, {{field:C5}}, {{field:C6}}, {{field:C7}}, {{field:C8}});",
+      "includes": {
+        "driver": "#include <CKKitMatrix.h>"
+      }
+    },
+    {
+      "type": "ck_hw_led_matrix_8x8_pixel",
+      "kind": "statement",
+      "template": "ckKitMatrixPixel({{value:X}}, {{value:Y}}, {{value:ON}});",
+      "includes": {
+        "driver": "#include <CKKitMatrix.h>"
+      }
+    },
+    {
+      "type": "ck_hw_led_matrix_8x8_row",
+      "kind": "statement",
+      "template": "ckKitMatrixRow({{value:ROW}}, {{value:BYTE}});",
+      "includes": {
+        "driver": "#include <CKKitMatrix.h>"
+      }
+    },
+    {
+      "type": "ck_hw_led_matrix_8x8_refresh",
+      "kind": "statement",
+      "template": "ckKitMatrixRefresh();",
+      "includes": {
+        "driver": "#include <CKKitMatrix.h>"
+      }
+    },
+    {
+      "type": "ck_hw_led_matrix_8x8_clear",
+      "kind": "statement",
+      "template": "ckKitMatrixClear();",
+      "includes": {
+        "driver": "#include <CKKitMatrix.h>"
+      }
+    }
+  ]
+}

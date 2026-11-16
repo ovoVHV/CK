@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "category",
+    "name": "HC-SR04 超声波",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_common_hc_sr04_distance"
+      }
+    ]
+  }
+]

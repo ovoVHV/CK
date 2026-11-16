@@ -1,0 +1,365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-forge-performance-qualification-report.schema.json",
+  "title": "CK Forge portable-edit performance qualification report v4 (policy v3)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "policy",
+    "evaluatedAt",
+    "inputSha256",
+    "qualificationKey",
+    "target",
+    "operation",
+    "candidateProfile",
+    "candidateRoute",
+    "nativeBaselineCompilerPropertiesSha256",
+    "artifactEquivalencePolicyId",
+    "measurementSequence",
+    "sequenceSha256",
+    "hostIdentitySha256",
+    "sampleSetSha256",
+    "ckContractId",
+    "compilePropertyDelta",
+    "trialCountPerLane",
+    "captureOrder",
+    "stages",
+    "qualifiedFast",
+    "status",
+    "recommendedRoute",
+    "reasonCodes",
+    "controls",
+    "compileOnly",
+    "uploadPerformed",
+    "hardwareTested"
+  ],
+  "properties": {
+    "schemaId": { "const": "ck.forge.performance-qualification-report" },
+    "schemaVersion": { "const": 4 },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "minTrials",
+        "maxTrials",
+        "minMedianSpeedupPct",
+        "minAbsoluteMedianGainMs",
+        "maxP95RegressionPct",
+        "maxCoefficientOfVariationPct",
+        "requiredSequence",
+        "requiredStages"
+      ],
+      "properties": {
+        "id": { "const": "ck-forge-portable-edit-no-regression-v3" },
+        "minTrials": { "const": 5 },
+        "maxTrials": { "const": 25 },
+        "minMedianSpeedupPct": { "const": 25 },
+        "minAbsoluteMedianGainMs": { "const": 500 },
+        "maxP95RegressionPct": { "const": 0 },
+        "maxCoefficientOfVariationPct": { "const": 20 },
+        "requiredSequence": { "const": "portable-edit" },
+        "requiredStages": { "const": ["simple", "complex", "medium", "simple-return"] }
+      }
+    },
+    "evaluatedAt": { "type": "string", "format": "date-time" },
+    "inputSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "qualificationKey": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "target": { "$ref": "#/$defs/identity" },
+    "operation": { "enum": ["compile", "upload-ready"] },
+    "candidateProfile": { "enum": ["portable-fast", "quick-fast", "shared-fast"] },
+    "candidateRoute": { "const": "qualification-token-probe" },
+    "nativeBaselineCompilerPropertiesSha256": { "$ref": "#/$defs/sha256" },
+    "artifactEquivalencePolicyId": {
+      "enum": [
+        "compile-only-shared-primary-application-exact-v1",
+        "generic-required-role-content-exact-v1",
+        "portable-fast-esp-application-bin-elf-sha256-offset-flash-args-normalized-v2"
+      ]
+    },
+    "portableFastEspApplicationBinRecipeProof": {
+      "$ref": "#/$defs/portableFastEspApplicationBinRecipeProof"
+    },
+    "measurementSequence": { "const": "portable-edit" },
+    "sequenceSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "hostIdentitySha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "sampleSetSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "ckContractId": { "type": "string", "minLength": 1 },
+    "compilePropertyDelta": { "type": "string", "minLength": 1 },
+    "trialCountPerLane": { "type": "integer", "minimum": 5, "maximum": 25 },
+    "captureOrder": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 25,
+      "items": { "enum": ["ck-native", "native-ck"] }
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        { "$ref": "#/$defs/simpleStageResult" },
+        { "$ref": "#/$defs/complexStageResult" },
+        { "$ref": "#/$defs/mediumStageResult" },
+        { "$ref": "#/$defs/simpleReturnStageResult" }
+      ],
+      "items": false
+    },
+    "qualifiedFast": { "type": "boolean" },
+    "status": { "enum": ["qualified-fast", "not-qualified"] },
+    "recommendedRoute": { "enum": ["ck-fast", "native-arduino-cli"] },
+    "reasonCodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "controls": { "$ref": "#/$defs/controls" },
+    "compileOnly": { "const": true },
+    "uploadPerformed": { "const": false },
+    "hardwareTested": { "const": false }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "operation": { "const": "compile" } } },
+      "then": {
+        "anyOf": [
+          {
+            "properties": {
+              "candidateProfile": { "const": "quick-fast" },
+              "artifactEquivalencePolicyId": {
+                "const": "compile-only-shared-primary-application-exact-v1"
+              }
+            }
+          },
+          {
+            "properties": {
+              "candidateProfile": { "const": "portable-fast" },
+              "artifactEquivalencePolicyId": {
+                "const": "generic-required-role-content-exact-v1"
+              }
+            },
+            "not": { "required": ["portableFastEspApplicationBinRecipeProof"] }
+          },
+          {
+            "required": ["portableFastEspApplicationBinRecipeProof"],
+            "properties": {
+              "candidateProfile": { "const": "portable-fast" },
+              "artifactEquivalencePolicyId": {
+                "const": "portable-fast-esp-application-bin-elf-sha256-offset-flash-args-normalized-v2"
+              },
+              "portableFastEspApplicationBinRecipeProof": {
+                "$ref": "#/$defs/portableFastEspApplicationBinRecipeProof"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": { "properties": { "operation": { "const": "upload-ready" } } },
+      "then": {
+        "not": { "required": ["portableFastEspApplicationBinRecipeProof"] },
+        "properties": {
+          "candidateProfile": { "enum": ["quick-fast", "shared-fast"] },
+          "artifactEquivalencePolicyId": {
+            "const": "generic-required-role-content-exact-v1"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "portableFastEspApplicationBinRecipeProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "corePackage",
+        "coreArchitecture",
+        "coreVersion",
+        "recipeProperty",
+        "recipeSource",
+        "recipeSourceSha256",
+        "recipeValueSha256",
+        "elfSha256OffsetArgument",
+        "elfSha256Offset"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "esp32-platform-recipe-elf-sha256-offset-v1" },
+        "corePackage": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$" },
+        "coreArchitecture": { "const": "esp32" },
+        "coreVersion": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$" },
+        "recipeProperty": { "const": "recipe.objcopy.bin.pattern_args" },
+        "recipeSource": { "enum": ["platform.txt", "platform.local.txt"] },
+        "recipeSourceSha256": { "$ref": "#/$defs/sha256" },
+        "recipeValueSha256": { "$ref": "#/$defs/sha256" },
+        "elfSha256OffsetArgument": { "const": "--elf-sha256-offset 0xb0" },
+        "elfSha256Offset": { "const": 176 }
+      }
+    },
+    "reproducibleBuildEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policyId", "sourceDateEpoch", "timeZone", "passed"],
+      "properties": {
+        "policyId": { "const": "source-date-epoch-utc-v1" },
+        "sourceDateEpoch": { "const": 1704067200 },
+        "timeZone": { "const": "UTC" },
+        "passed": { "const": true }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compileOnly",
+        "uploadPerformed",
+        "physicalFlashWritten",
+        "serialPortAccessed",
+        "sameMachine",
+        "freshBuildPathsVerified",
+        "sameBuildPathWithinLaneVerified",
+        "stageSourceHashesVerified",
+        "exactReuseDenied",
+        "routeGatePassed",
+        "recipeCapabilityGatePassed",
+        "globalCachesSharedEqually",
+        "noConcurrentCompiles",
+        "laneBoundaryIdleGatePassed",
+        "compilePropertyDeltaDeclared",
+        "dependencyClosureGatePassed",
+        "artifactGatePassed",
+        "resourceGatePassed",
+        "reproducibleBuildEnvironment"
+      ],
+      "properties": {
+        "compileOnly": { "const": true },
+        "uploadPerformed": { "const": false },
+        "physicalFlashWritten": { "const": false },
+        "serialPortAccessed": { "const": false },
+        "sameMachine": { "const": true },
+        "freshBuildPathsVerified": { "const": true },
+        "sameBuildPathWithinLaneVerified": { "const": true },
+        "stageSourceHashesVerified": { "const": true },
+        "exactReuseDenied": { "const": true },
+        "routeGatePassed": { "const": true },
+        "recipeCapabilityGatePassed": { "const": true },
+        "globalCachesSharedEqually": { "const": true },
+        "noConcurrentCompiles": { "const": true },
+        "laneBoundaryIdleGatePassed": { "const": true },
+        "compilePropertyDeltaDeclared": { "const": true },
+        "dependencyClosureGatePassed": { "const": true },
+        "artifactGatePassed": { "const": true },
+        "resourceGatePassed": { "const": true },
+        "reproducibleBuildEnvironment": { "$ref": "#/$defs/reproducibleBuildEnvironment" }
+      }
+    },
+    "laneStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["samples", "valuesMs", "medianMs", "p95Ms", "coefficientOfVariationPct"],
+      "properties": {
+        "samples": { "type": "integer", "minimum": 5, "maximum": 25 },
+        "valuesMs": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 25,
+          "items": { "type": "number", "exclusiveMinimum": 0 }
+        },
+        "medianMs": { "type": "number", "exclusiveMinimum": 0 },
+        "p95Ms": { "type": "number", "exclusiveMinimum": 0 },
+        "coefficientOfVariationPct": { "type": "number", "minimum": 0 }
+      }
+    },
+    "stageCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "passed"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "passed": { "type": "boolean" }
+      }
+    },
+    "stageResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "ck",
+        "native",
+        "medianGainMs",
+        "medianSpeedupPct",
+        "p95RegressionPct",
+        "checks",
+        "qualified"
+      ],
+      "properties": {
+        "stage": { "enum": ["simple", "complex", "medium", "simple-return"] },
+        "ck": { "$ref": "#/$defs/laneStats" },
+        "native": { "$ref": "#/$defs/laneStats" },
+        "medianGainMs": { "type": "number" },
+        "medianSpeedupPct": { "type": "number" },
+        "p95RegressionPct": { "type": "number" },
+        "checks": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/stageCheck" }
+        },
+        "qualified": { "type": "boolean" }
+      }
+    },
+    "simpleStageResult": {
+      "allOf": [
+        { "$ref": "#/$defs/stageResult" },
+        { "properties": { "stage": { "const": "simple" } } }
+      ]
+    },
+    "complexStageResult": {
+      "allOf": [
+        { "$ref": "#/$defs/stageResult" },
+        { "properties": { "stage": { "const": "complex" } } }
+      ]
+    },
+    "mediumStageResult": {
+      "allOf": [
+        { "$ref": "#/$defs/stageResult" },
+        { "properties": { "stage": { "const": "medium" } } }
+      ]
+    },
+    "simpleReturnStageResult": {
+      "allOf": [
+        { "$ref": "#/$defs/stageResult" },
+        { "properties": { "stage": { "const": "simple-return" } } }
+      ]
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fqbn", "corePackage", "coreArchitecture", "coreVersion", "toolchainKey",
+        "toolchainContentSha256", "sketchSha256", "cliExecutableSha256",
+        "cliConfigSha256", "cliVersion", "hostIdentitySha256", "productionExecutableSha256"
+      ],
+      "properties": {
+        "fqbn": { "type": "string", "minLength": 5 },
+        "corePackage": { "type": "string", "minLength": 1 },
+        "coreArchitecture": { "type": "string", "minLength": 1 },
+        "coreVersion": { "type": "string", "minLength": 1 },
+        "toolchainKey": { "type": "string", "minLength": 1 },
+        "toolchainContentSha256": { "$ref": "#/$defs/sha256" },
+        "sketchSha256": { "$ref": "#/$defs/sha256" },
+        "cliExecutableSha256": { "$ref": "#/$defs/sha256" },
+        "cliConfigSha256": { "$ref": "#/$defs/sha256" },
+        "cliVersion": { "type": "string", "minLength": 1 },
+        "hostIdentitySha256": { "$ref": "#/$defs/sha256" },
+        "productionExecutableSha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

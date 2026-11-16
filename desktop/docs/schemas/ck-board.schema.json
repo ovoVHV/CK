@@ -1,0 +1,794 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-board-v1.schema.json",
+  "title": "CK Third-Party Board Package",
+  "description": "Schema v1 remains backward compatible. Precise pin metadata, hardware variants, validation profiles, bounded matrices and controlled smoke tests are additive v1 fields.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "version",
+    "description",
+    "fqbn_base",
+    "arduino_core"
+  ],
+  "properties": {
+    "resource_graph": { "$ref": "#/$defs/resourceGraph" },
+    "schema_version": { "const": 1 },
+    "id": { "$ref": "#/$defs/id" },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "$ref": "#/$defs/semver" },
+    "description": { "type": "string", "minLength": 1 },
+    "vendor": { "type": "string", "minLength": 1 },
+    "author": { "type": "string", "minLength": 1 },
+    "architecture": { "type": "string", "minLength": 1 },
+    "fqbn_base": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9_-]*$"
+    },
+    "icon": { "$ref": "#/$defs/relativePath" },
+    "extends": { "$ref": "#/$defs/relativePath" },
+    "arduino_core": { "$ref": "#/$defs/arduinoCore" },
+    "capabilities": { "$ref": "#/$defs/capabilityMap" },
+    "pins": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/pin" }
+    },
+    "custom_menus": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["options"],
+        "properties": {
+          "label": { "type": "string" },
+          "selected": { "$ref": "#/$defs/optionValue" },
+          "options": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["value"],
+              "properties": {
+                "value": { "$ref": "#/$defs/optionValue" },
+                "label": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "hardware_variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/hardwareVariant" }
+    },
+    "validation_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/validationProfile" }
+    },
+    "smoke_tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/smokeTest" }
+    },
+    "validation_matrix": { "$ref": "#/$defs/validationMatrix" }
+  },
+  "$defs": {
+    "resourceGraph": {
+      "title": "CK declarative board resource graph",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "resources",
+        "routes",
+        "evidence",
+        "coverage"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "coverage": {
+          "enum": [
+            "full",
+            "partial",
+            "unknown"
+          ]
+        },
+        "resources": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/resourceGraph/$defs/resource"
+          }
+        },
+        "routes": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/resourceGraph/$defs/route"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/resourceGraph/$defs/evidence"
+          }
+        }
+      },
+      "$defs": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$",
+          "not": {
+            "pattern": "[^A-Za-z0-9_.:/-]"
+          }
+        },
+        "ids": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/resourceGraph/$defs/id"
+          }
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "resource": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "sharing",
+            "evidence"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/resourceGraph/$defs/id"
+            },
+            "type": {
+              "$ref": "#/$defs/resourceGraph/$defs/id"
+            },
+            "parent": {
+              "$ref": "#/$defs/resourceGraph/$defs/id"
+            },
+            "aliases": {
+              "$ref": "#/$defs/resourceGraph/$defs/ids"
+            },
+            "capabilities": {
+              "$ref": "#/$defs/resourceGraph/$defs/ids"
+            },
+            "sharing": {
+              "enum": [
+                "shared",
+                "exclusive",
+                "configuration",
+                "address",
+                "selector",
+                "unknown"
+              ]
+            },
+            "configurationKeys": {
+              "$ref": "#/$defs/resourceGraph/$defs/ids"
+            },
+            "reserved": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "$ref": "#/$defs/resourceGraph/$defs/ids"
+            }
+          }
+        },
+        "route": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "resource",
+            "signal",
+            "mode",
+            "pins"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/resourceGraph/$defs/id"
+            },
+            "resource": {
+              "$ref": "#/$defs/resourceGraph/$defs/id"
+            },
+            "signal": {
+              "$ref": "#/$defs/resourceGraph/$defs/id"
+            },
+            "mode": {
+              "enum": [
+                "fixed",
+                "selectable"
+              ]
+            },
+            "pins": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1024,
+              "items": {
+                "$ref": "#/$defs/resourceGraph/$defs/id"
+              }
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "mode": {
+                    "const": "fixed"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "pins": {
+                    "maxItems": 1
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "source",
+            "confidence"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/resourceGraph/$defs/id"
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "locator": {
+              "$ref": "#/$defs/resourceGraph/$defs/text"
+            },
+            "confidence": {
+              "enum": [
+                "verified",
+                "declared",
+                "unknown"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "allOf": [
+        { "not": { "pattern": "^(?:[A-Za-z]:|[/\\\\])" } },
+        { "not": { "pattern": "(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)" } }
+      ]
+    },
+    "optionMap": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+      },
+      "additionalProperties": { "$ref": "#/$defs/optionValue" },
+      "description": "May be empty only when the installed board target exposes no menu options. Backend environment validation remains the source of truth for completeness."
+    },
+    "optionValue": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "versionRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "minimum": {
+          "$ref": "#/$defs/semver",
+          "description": "Hard compatibility floor. Installed versions below this value are blocked."
+        },
+        "maximum_exclusive": {
+          "$ref": "#/$defs/semver",
+          "description": "Exclusive upper edge of the publisher-tested range. Versions at or above it are allowed with a warning and must be revalidated; this is not a blocker."
+        }
+      }
+    },
+    "knownIncompatible": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason"],
+      "properties": {
+        "version": { "$ref": "#/$defs/semver" },
+        "version_range": { "$ref": "#/$defs/versionRange" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "reference_url": { "type": "string", "format": "uri" }
+      },
+      "oneOf": [
+        { "required": ["version"] },
+        { "required": ["version_range"] }
+      ]
+    },
+    "arduinoCore": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["package"],
+      "properties": {
+        "package": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "version": {
+          "$ref": "#/$defs/semver",
+          "deprecated": true,
+          "description": "Legacy v1 alias for recommended_version. It is not an exact-version lock."
+        },
+        "recommended_version": { "$ref": "#/$defs/semver" },
+        "version_range": { "$ref": "#/$defs/versionRange" },
+        "tested_versions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/semver" }
+        },
+        "known_incompatible": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/knownIncompatible" }
+        },
+        "index_url": { "type": "string", "pattern": "^https?://[^\\s]+$" },
+        "platform_index_url": { "type": "string", "pattern": "^https?://[^\\s]+$" }
+      },
+      "anyOf": [
+        { "required": ["recommended_version"] },
+        { "required": ["version"] }
+      ]
+    },
+    "capabilityMap": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+      },
+      "properties": {
+        "wifi": { "type": "boolean" },
+        "bluetooth": { "type": "boolean" },
+        "bluetooth_le": { "type": "boolean" },
+        "zigbee": { "type": "boolean" },
+        "thread": { "type": "boolean" },
+        "psram": { "type": "boolean" },
+        "usb_cdc": { "type": "boolean" },
+        "usb_jtag": { "type": "boolean" },
+        "ota": { "type": "boolean" },
+        "filesystem": { "type": "boolean" }
+      },
+      "additionalProperties": { "type": "boolean" }
+    },
+    "pinIdentifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+    },
+    "pinAlias": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$"
+    },
+    "pinCodeToken": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^(?:0|[1-9][0-9]*|[A-Za-z_][A-Za-z0-9_]*)$",
+      "not": { "const": "__CK_PIN_UNDECLARED__" }
+    },
+    "pinConnector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "side": { "enum": ["left", "right", "top", "bottom"] },
+        "position": { "type": "number", "minimum": 0, "maximum": 10000 }
+      }
+    },
+    "pinRiskCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "options": {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 16,
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+          },
+          "additionalProperties": {
+            "oneOf": [
+              { "$ref": "#/$defs/optionValue" },
+              {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 64,
+                "uniqueItems": true,
+                "items": { "$ref": "#/$defs/optionValue" }
+              }
+            ]
+          }
+        },
+        "features": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pinIdentifier" }
+        }
+      }
+    },
+    "pinRisk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "title"],
+      "properties": {
+        "code": { "$ref": "#/$defs/pinIdentifier" },
+        "severity": { "enum": ["blocker", "warning", "notice"] },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$"
+        },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pinIdentifier" }
+        },
+        "when": { "$ref": "#/$defs/pinRiskCondition" }
+      }
+    },
+    "pinEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reference"],
+      "properties": {
+        "kind": {
+          "enum": ["datasheet", "schematic", "board-definition", "publisher-test", "other"]
+        },
+        "reference": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "locator": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" }
+      }
+    },
+    "pin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "value"],
+      "properties": {
+        "label": { "$ref": "#/$defs/pinAlias" },
+        "value": { "$ref": "#/$defs/pinCodeToken" },
+        "aliases": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pinAlias" }
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pinIdentifier" }
+        },
+        "risks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pinRisk" }
+        },
+        "reserved_by": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$"
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 32,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$"
+              }
+            }
+          ]
+        },
+        "sharing": { "enum": ["exclusive", "shared", "board-defined"] },
+        "connector": { "$ref": "#/$defs/pinConnector" },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$"
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pinEvidence" }
+        }
+      }
+    },
+    "expectedHardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chip", "flash_bytes"],
+      "properties": {
+        "chip": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "flash_bytes": { "type": "integer", "minimum": 1024 },
+        "psram_bytes": { "type": "integer", "minimum": 0 },
+        "revision": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "hardwareVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "expected_hardware", "default_profile"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "default": { "type": "boolean" },
+        "aliases": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "expected_hardware": { "$ref": "#/$defs/expectedHardware" },
+        "fixed_options": { "$ref": "#/$defs/optionMap" },
+        "default_profile": { "$ref": "#/$defs/id" },
+        "capabilities": { "$ref": "#/$defs/capabilityMap" }
+      }
+    },
+    "validationProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "hardware_variant",
+        "options_complete",
+        "options",
+        "smoke_tests"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "hardware_variant": { "$ref": "#/$defs/id" },
+        "default": { "type": "boolean" },
+        "options_complete": {
+          "const": true,
+          "description": "Publisher assertion that options contains the complete FQBN menu suffix for this profile. Environment validation must compare it with Arduino CLI board details."
+        },
+        "options": { "$ref": "#/$defs/optionMap" },
+        "smoke_tests": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "serialAssertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baud_rate", "timeout_seconds", "success_token"],
+      "properties": {
+        "baud_rate": {
+          "type": "integer",
+          "enum": [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
+        },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 120 },
+        "success_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[^\\r\\n]+$"
+        },
+        "failure_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[^\\r\\n]+$"
+        }
+      }
+    },
+    "smokeTest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "sketch", "mode", "timeout_seconds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "sketch": { "$ref": "#/$defs/relativePath" },
+        "mode": {
+          "type": "string",
+          "enum": ["compile-only", "device-upload", "serial-runtime"]
+        },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 900 },
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "requires_user_consent": { "type": "boolean" },
+        "serial": { "$ref": "#/$defs/serialAssertion" },
+        "resource_limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max_flash_bytes": { "type": "integer", "minimum": 1 },
+            "max_ram_bytes": { "type": "integer", "minimum": 1 },
+            "max_warnings": { "type": "integer", "minimum": 0, "maximum": 10000 }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "mode": { "enum": ["device-upload", "serial-runtime"] } },
+            "required": ["mode"]
+          },
+          "then": {
+            "required": ["requires_user_consent"],
+            "properties": { "requires_user_consent": { "const": true } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "mode": { "const": "serial-runtime" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["serial"] }
+        }
+      ]
+    },
+    "matrixGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "base_profile", "dimensions"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "base_profile": { "$ref": "#/$defs/id" },
+        "dimensions": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$" },
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/optionValue" }
+          }
+        },
+        "smoke_tests": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "matrixInclude": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "profile": { "$ref": "#/$defs/id" },
+        "base_profile": { "$ref": "#/$defs/id" },
+        "options": { "$ref": "#/$defs/optionMap" },
+        "smoke_tests": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      },
+      "oneOf": [
+        { "required": ["profile"] },
+        { "required": ["base_profile", "options"] }
+      ]
+    },
+    "matrixExclude": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["when", "reason"],
+      "properties": {
+        "group": { "$ref": "#/$defs/id" },
+        "base_profile": { "$ref": "#/$defs/id" },
+        "when": { "$ref": "#/$defs/optionMap" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "validationMatrix": {
+      "type": "object",
+      "description": "Bounded matrix declaration reserved for publisher/CK pipelines. Desktop automatic certification v1 records declared profiles only and must not claim this matrix was executed.",
+      "additionalProperties": false,
+      "required": ["strategy", "max_cases"],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["include-only", "bounded-pairwise"]
+        },
+        "max_cases": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/matrixGroup" }
+        },
+        "include": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/matrixInclude" }
+        },
+        "exclude": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/matrixExclude" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "strategy": { "const": "include-only" } },
+            "required": ["strategy"]
+          },
+          "then": {
+            "required": ["include"],
+            "properties": { "include": { "minItems": 1 } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "strategy": { "const": "bounded-pairwise" } },
+            "required": ["strategy"]
+          },
+          "then": { "required": ["groups"] }
+        }
+      ]
+    }
+  }
+}

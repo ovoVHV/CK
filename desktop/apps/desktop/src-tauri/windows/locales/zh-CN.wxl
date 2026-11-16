@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="zh-CN" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+  <String Id="LaunchApp">安装完成后启动 CK</String>
+  <String Id="DowngradeErrorMessage">已安装更高版本的 CK。如需安装此版本，请先卸载当前版本。</String>
+  <String Id="PathEnvVarFeature">将 CK 添加到系统 PATH，便于从终端启动。</String>
+  <String Id="InstallAppFeature">安装 CK MakerSwitch 可视化硬件开发工作台。</String>
+</WixLocalization>

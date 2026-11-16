@@ -1,0 +1,30 @@
+{
+  "schema_version": 2, "id": "orchard_probe", "display_name": "Orchard probe fixture",
+  "description": "Third-party resource declaration integration fixture.",
+  "license": { "spdx_id": "CC0-1.0", "file": "LICENSE" },
+  "compatibility": { "boards": ["*"], "architectures": ["*"] }, "dependencies": [],
+  "entrypoints": { "blocks": "blocks/blocks.json", "generator": "blocks/ck-generator.json", "toolbox": "blocks/toolbox.json" },
+  "blocks": [{
+    "type": "orchard_probe_read", "display_name": "Probe", "description": "Resolve a declared bus and literal address.",
+    "category": "Orchard", "kind": "value", "keywords": ["fixture"],
+    "semantics": { "purpose": "Contract validation", "behavior": "Return an address as a fixture value; no physical hardware access.", "side_effects": [], "concepts": ["resource-claim"] },
+    "fields": [{ "name": "BUS", "kind": "dropdown", "description": "Stable resource alias", "required": true, "default": "sensor-port", "options": [{ "label": "Sensor port", "value": "sensor-port" }] }],
+    "inputs": [{ "name": "ADDRESS", "kind": "value", "check": "Number", "required": true, "description": "Static device address" }],
+    "output": { "connection": "value", "types": ["Number"], "description": "Fixture value" },
+    "dependencies": [{ "kind": "header", "id": "OrchardProbe.h", "headers": ["OrchardProbe.h"], "reason": "Fixture implementation" }],
+    "hardware": {
+      "resources": [],
+      "claims": { "version": 1, "coverage": "full", "templates": [{
+        "id": "probe", "role": "i2c-device",
+        "resource": { "kind": "field", "name": "BUS", "valueType": "id" },
+        "discriminator": { "kind": "input", "name": "ADDRESS", "valueType": "integer" }
+      }] }
+    },
+    "generation": { "language": "arduino-cpp", "shape": "expression", "deterministic": true,
+      "includes": ["OrchardProbe.h"], "calls": ["orchardProbe"],
+      "emissions": [{ "section": "expression", "description": "Return the fixture address" }] },
+    "constraints": [],
+    "examples": [{ "id": "probe-address", "title": "Bind a probe", "description": "Resolve the sensor-port alias and constant input.", "field_values": { "BUS": "sensor-port" }, "input_values": { "ADDRESS": 60 }, "expected_behavior": "Returns 60; resource analysis binds the fixture device address to the declared bus." }],
+    "errors": []
+  }]
+}

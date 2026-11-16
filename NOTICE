@@ -1,13 +1,18 @@
 CK
-Copyright 2026 CK contributors
+Copyright 2026 jackchen and CK contributors
+
+Original author and maintainer: jackchen (GitHub: @ovoVHV)
+Original project: https://github.com/ovoVHV/CK
+Author's attribution request and copyable credit: AUTHORS.md
 
 CK-owned source code, documentation, schemas, and build scripts in this
 repository are licensed under the Apache License, Version 2.0 unless a file or
 subdirectory states otherwise.
 
-Bundled examples and third-party command-line tools retain their own licenses.
-Arduino CLI and ccache are distributed under GPL-compatible upstream terms;
-their provenance is documented in apps/desktop/src-tauri/THIRD_PARTY_NOTICES.md.
+Examples and third-party components retain their own licenses.
+Tool binaries are fetched separately from their upstream distributions;
+their provenance is documented in THIRD_PARTY_NOTICES.md and
+desktop/apps/desktop/src-tauri/THIRD_PARTY_NOTICES.md.
 Board cores, downloaded libraries, user projects, local qualification evidence,
 and generated build artifacts are not part of this source repository.
 

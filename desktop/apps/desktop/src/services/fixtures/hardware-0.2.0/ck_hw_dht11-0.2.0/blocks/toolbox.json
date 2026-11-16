@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "category",
+    "name": "DHT11 温湿度",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_common_dht11_read"
+      }
+    ]
+  }
+]

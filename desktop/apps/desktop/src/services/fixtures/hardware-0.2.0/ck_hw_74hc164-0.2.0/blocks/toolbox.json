@@ -1,0 +1,17 @@
+[
+  {
+    "kind": "category",
+    "name": "74HC164 移位寄存器",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_74hc164_write"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_74hc164_clear"
+      }
+    ]
+  }
+]

@@ -1,0 +1,102 @@
+{
+  "productV2": {
+    "impact": "影响",
+    "missingDependencyImpact": "依赖此头文件的代码暂时无法编译。请查找库，并确认哪个包提供该头文件。"
+  },
+  "toolbar": {
+    "compile": "编译", "upload": "普通上传", "uploading": "上传中…", "compiling": "编译中…", "cancel": "取消", "viewLog": "查看日志", "preparing": "准备中",
+    "compileOnlyHint": "仅编译，不上传", "normalUploadHint": "普通上传：编译正式固件并烧录，不包含断点", "selectPort": "请先选择串口", "debugOptions": "调试上传选项", "moreUploadActions": "更多上传操作", "debugUpload": "调试上传", "debugUploadWithBreakpoints_one": "调试上传：上传带 {{count}} 个断点的调试固件", "debugUploadWithBreakpoints_other": "调试上传：上传带 {{count}} 个断点的调试固件", "debugUploadNeedsBreakpoint": "调试上传：请先右键积木添加断点", "cancelOperation": "取消编译或上传"
+  },
+  "progress": {
+    "title": "编译与上传", "preparing": "准备中…", "compiling": "正在编译…", "uploading": "正在上传…", "verifying": "正在验证…", "completed": "已完成", "failed": "失败", "cancelled": "已取消",
+    "rebuilding": "正在重建当前配置", "firstFullBuild": "正在执行首次完整构建", "waitingWarmupLong": "已等待后台预热 {{seconds}} 秒，任务仍在正常移交缓存；前台编译会在缓存可用后继续。", "waitingWarmup": "后台预热正在完成同一板卡的缓存，前台会复用结果，不会重复启动完整构建。", "quietLong": "编译器已有 {{seconds}} 秒没有新输出，但任务仍在运行。ESP32 Core 编译期间出现静默属于正常现象。", "fullBuildHint": "首次编译、兼容编译或强制重建需要处理 Core 与依赖，ESP32 通常需要数分钟；上方计时会持续更新。", "checkingPath": "正在检查缓存和编译环境，确定安全路径后会进入编译或直接复用产物。",
+    "compileAria": "编译进度", "uploadingFirmware": "正在上传固件", "buildingProject": "正在编译工程", "elapsedAria": "已用时间 {{elapsed}}", "working": "编译器正在工作", "uploadAria": "固件上传进度", "projectBuildAria": "工程编译进度", "processing": "正在处理", "currentAria": "当前进度 {{percentage}}", "stagesAria": "编译阶段",
+    "message": {
+      "preparingUpload": "正在准备上传",
+      "initializingCompiler": "正在初始化编译环境",
+      "compilingCore": "正在编译 Core 与依赖",
+      "waitingForeground": "正在为前台编译释放后台任务",
+      "compilingSketch": "正在编译当前草图",
+      "linkingFirmware": "正在链接固件",
+      "generatingArtifacts": "正在生成烧录文件",
+      "checkingArtifacts": "正在检查固件大小与产物",
+      "connectingBoard": "正在连接开发板",
+      "resettingBoard": "正在复位开发板",
+      "uploadingFirmware": "正在上传固件",
+      "checkingCache": "正在检查可复用缓存",
+      "compilingSource": "正在编译 {{source}}",
+      "processingStage": "编译器正在处理当前阶段",
+      "preparingBuild": "正在准备编译",
+      "waitingWarmupHandoff": "正在等待后台预热移交可复用缓存",
+      "forcedRebuild": "正在强制重建当前配置",
+      "coreCacheReady": "Core 缓存已就绪，正在准备依赖",
+      "cacheChanged": "缓存条件发生变化，正在选择安全编译路径",
+      "compatibilityBuild": "快速路径不可用，正在执行兼容编译"
+    },
+    "step": { "prepare": "准备", "compile": "编译", "link": "链接", "artifact": "产物" }
+  },
+  "resourcePreflight": {
+    "conflictLog": "[资源预检查] 发现硬件资源冲突；本次编译未被自动修改，请打开工程体检查看详情。",
+    "warningLog": "[资源预检查] 发现资源覆盖或声明警告；本次编译仍按当前工程继续，请打开工程体检查看详情。"
+  },
+  "result": {
+    "compileSuccess": "编译成功", "uploadSuccess": "上传成功", "compileFailed": "编译失败", "uploadFailed": "上传失败", "duration": "用时 {{seconds}} 秒",
+    "compileSuccessToast": "编译成功（{{duration}}s）", "compileSuccessLog": "编译成功，用时 {{duration}} 秒。", "uploadSuccessToast": "{{firmware}}上传成功（{{duration}}s）", "uploadSuccessLog": "{{firmware}}上传成功，用时 {{duration}} 秒。", "operationFailed": "操作失败", "artifactFiles": "产物文件（{{count}}）", "artifactFile": "产物文件", "sourceMap": "积木源码映射"
+  },
+  "uploadMode": { "debug": "调试固件", "trace": "轨迹固件", "normal": "普通固件" },
+  "status": { "uploadingFirmware": "正在上传{{firmware}}…", "compiling": "正在编译…", "preparingFirmware": "正在准备{{firmware}}，完成后将自动上传" },
+  "doctor": {
+    "title": "Compile Doctor", "explanation": "CK 解释", "rawDiagnostic": "原始工具链诊断", "suggestions": "建议", "retry": "重试", "openSettings": "打开设置",
+    "collecting": "构建体检正在采集缓存、锁等待和工具链信息…", "healthTitle": "构建体检", "rechecking": "正在重新检测", "buildPath": "编译路径", "totalTime": "总耗时", "actualBuild": "真正编译", "lockWait": "等待编译锁", "toolchainLabel": "工具链", "forcedRebuild": "本次为强制重建", "cacheChanges": "缓存变化", "environmentChanges": "环境变化", "eligibilityReasons": "资格原因", "recommendation": "建议", "viewTechnical": "查看缓存与环境技术信息", "listSeparator": "；",
+    "forge": { "fastEligible": "已通过快速路径资格检查", "platformPath": "使用平台原生兼容路径" },
+    "status": {
+      "healthy": { "summary": "构建路径健康", "explanation": "当前构建证据完整，缓存与工具链状态可用于安全复用。", "recommendation": "无需处理；继续使用当前配置即可。" },
+      "attention": { "summary": "构建环境需要留意", "explanation": "构建仍可继续，但缓存、环境或快速路径资格发生了变化。", "recommendation": "核对下方变化；若配置符合预期，可继续构建。" },
+      "problem": { "summary": "构建存在问题", "explanation": "构建工具链报告了需要处理的问题，原始证据仍保留在日志中。", "recommendation": "按问题卡片的操作建议处理后重试。" }
+    },
+    "buildMode": { "exact-match": "完整缓存命中", "fast-relink": "重链接构建", "native-relink-compile-only": "NativeRelink 局部构建", "native-relink-graph-transition": "NativeRelink 依赖图重构", "arduino-cli-core-seeded": "Arduino CLI Core 复用构建", "full-build": "完整构建", "arduino-cli-incremental": "Arduino CLI 增量构建", "arduino-cli-incremental-fallback": "Arduino CLI 增量回退", "arduino-cli-full-fallback": "Arduino CLI 完整回退", "unknown": "常规编译" },
+    "cache": { "artifact": "完整产物", "core": "Core 缓存", "objects": "编译对象", "warmup": "后台预热" },
+    "toolchain": { "processMemory": "进程内身份复用", "persistentMetadata": "跨进程证据复用", "strongContent": "强内容校验", "persistentHint": "已复核安装树元数据并复用上次强内容校验结论", "processHint": "已复核轻量包元数据并复用本进程已验证的工具链身份", "strongHint": "本次重新校验了当前目标实际使用的工具链内容" },
+    "missReason": { "code_changed": "代码发生变化", "include_headers_changed": "头文件集合发生变化", "workspace_fingerprint_changed": "积木工作区发生变化", "build_signature_changed": "Core、工具链或依赖发生变化", "fqbn_changed": "板卡或编译选项发生变化", "build_path_missing": "上次构建目录不存在", "metadata_missing": "缺少缓存元数据", "artifact_missing": "固件产物不存在" },
+    "forgeStatus": {
+      "certified-evidence-available": { "label": "FLFE Core {{coreVersion}} · 已有资格证据", "detail": "当前 Core 在随包 FLFE 资格证据范围内；完整 FQBN、工具链和构建合同仍会在编译时复核。" },
+      "local-certification-required": { "label": "FLFE Core {{coreVersion}} · 待本机认证", "detail": "当前 Core 仍可正常编译；取得资格前使用平台原生安全构建。已有资格版本：{{versions}}。" },
+      "safe-fallback": { "label": "FLFE Core {{coreVersion}} · 安全回退", "detail": "当前身份尚无随包 FLFE 资格证据，仍可通过平台原生路径正常编译。" }
+    },
+    "forgeReason": { "unverified-core-version": "当前 Core 版本尚无 FLFE 资格证据", "qualification-core-version-mismatch": "本机资格证据属于另一 Core 版本", "missing-core-version": "未能识别当前 Core 版本", "invalid-core-version": "当前 Core 版本格式无法验证", "unverified-board-target": "当前板卡目标尚无 FLFE 资格证据", "qualification-fqbn-mismatch": "资格证据与当前完整 FQBN 不一致", "qualification-toolchain-mismatch": "资格证据与当前工具链内容不一致", "qualification-contract-mismatch": "资格证据与当前构建合同不一致", "qualification-performance-regression": "当前环境 A/B 性能未达到快速路径门槛", "qualification-performance-unavailable": "当前身份缺少完整 A/B 性能证据", "builtin-performance-qualification-missing": "当前完整身份缺少随包 A/B 性能资格", "builtin-toolchain-content-mismatch": "当前工具链内容与随包资格证据不一致", "builtin-toolchain-identity-unavailable": "暂时无法取得当前工具链强身份", "unknown-platform": "当前平台尚未纳入随包 FLFE 资格范围" }
+  },
+  "issue": { "sourceError": "源码编译错误", "undeclared": "名称 {{symbol}} 尚未声明", "locate": "定位积木", "showRaw": "查看原始诊断", "actionableAria": "可操作的编译问题", "blockError": "“{{label}}”积木错误", "certain": "已确认", "likely": "可能", "block": "积木", "location": "位置", "reason": "原因", "suggestion": "建议", "rawDiagnosticEvidence": "原始诊断证据", "rawSourceEvidence": "原始源码证据", "locateAria": "定位积木：{{label}}", "action": { "library_search": "搜索 {{query}}", "rescan_ports": "重新扫描串口", "show_boot_help": "查看 BOOT/RESET 步骤", "show_resources": "查看资源占用", "open_board_config": "打开板卡设置" } },
+  "explanation": {
+    "compile": {
+      "missing_header": { "title": "缺少头文件 {{header}}", "summary": "编译器确认当前环境找不到这个头文件。可搜索提供它的 Arduino 库，并检查所选板卡与 Core 版本。" },
+      "diagnostic": {
+        "undeclared_symbol": { "title": "名称 {{symbol}} 尚未声明", "summary": "程序使用了 {{symbol}}，但当前作用域中找不到它的创建或声明。", "suggestion": "检查是否先创建了对应变量、函数或对象，并确认名称拼写一致。" },
+        "unknown_type": { "title": "类型 {{typeName}} 无法识别", "summary": "编译器不知道 {{typeName}} 是什么类型，通常是缺少声明、头文件未生效或库版本不匹配。", "suggestion": "检查初始化积木和库依赖，并确认当前板卡 Core 支持这个类型。" },
+        "missing_member": { "title": "当前库没有 {{member}} 功能", "summary": "{{typeName}} 中不存在 {{member}}，可能选中了错误的同名库，或 API 与当前库/Core 版本不兼容。", "suggestion": "核对日志中的实际库路径与当前安装版本。" },
+        "redefinition": { "title": "重复定义 {{symbol}}", "summary": "同一个名称 {{symbol}} 被定义了不止一次。", "suggestion": "检查重复的初始化、对象或同名变量积木，只保留一处定义。" },
+        "conflicting_declaration": { "title": "同名声明互相冲突", "summary": "同一个名称被用不同类型或形式声明。", "suggestion": "检查重复变量、对象或函数积木，统一名称与类型。" },
+        "no_matching_function": { "title": "函数参数与库接口不匹配", "summary": "当前调用的参数数量或类型与当前库版本的函数定义不一致。", "suggestion": "检查积木输入值的类型与数量，并核对库版本。" },
+        "argument_count": { "title": "函数参数数量不正确", "summary": "当前调用传入的参数数量与函数定义要求不一致。", "suggestion": "检查对应积木是否缺少输入，或库版本是否改变了参数。" },
+        "invalid_conversion": { "title": "数据类型不匹配", "summary": "当前值的类型不能安全转换成目标参数或变量要求的类型。", "suggestion": "检查积木输入槽连接的值类型。" },
+        "expected_semicolon": { "title": "前一段生成代码不完整", "summary": "编译器在这里期待分号，真正的问题通常位于这一行或前面的语句。", "suggestion": "定位附近积木，检查文本、表达式或自定义代码是否完整。" },
+        "incomplete_syntax": { "title": "表达式或语句结构不完整", "summary": "编译器在当前位置期待另一个符号或表达式。", "suggestion": "检查附近是否有空输入或未完整连接的表达式。" },
+        "stray_character": { "title": "代码中出现无法识别的字符", "summary": "生成源码含有编译器不能接受的字符。", "suggestion": "检查文本和自定义代码，改用英文半角标点并删除不可见字符。" },
+        "generic": { "title": "源码编译错误", "summary": "编译器确认这个源码位置存在错误；原始诊断保留在下方。", "suggestion": "定位积木并检查输入、变量和连接；若属于库文件，请核对库与 Core 版本。" }
+      },
+      "capacity": {
+        "iram": { "title": "程序超过当前 IRAM 容量", "summary": "链接器确认指令 RAM（IRAM）容量不足。" },
+        "dram": { "title": "程序超过当前 DRAM 容量", "summary": "链接器确认数据 RAM（DRAM）容量不足。" },
+        "ram": { "title": "程序超过当前 RAM 容量", "summary": "链接器确认静态数据区域容量不足。" },
+        "flash": { "title": "程序超过当前 Flash 分区容量", "summary": "链接器确认程序无法放入当前 Flash 分区。" },
+        "target_region": { "title": "构建产物超过目标区域容量", "summary": "链接器确认某个目标内存区域容量不足。" }
+      }
+    },
+    "upload": {
+      "serial_port_unavailable": { "title": "无法使用当前串口", "summary": "上传工具没有成功打开目标串口。请重新扫描端口，并确认没有被其他软件占用。" },
+      "esp_handshake_failed": { "title": "芯片未进入可上传状态", "summary": "串口已交给上传工具，但芯片没有完成握手。请按当前芯片的 BOOT/RESET 步骤操作。" },
+      "physical_flash_mismatch": { "title": "Flash 配置大于开发板实测容量", "summary": "CK 已在写入前阻止上传；请在板卡设置中选择匹配的 FlashSize 与分区方案。" }
+    },
+    "build": { "environment_changed": { "title": "板卡或编译配置与上次成功构建不同", "summary": "配置变化会让旧缓存安全失效，但不代表它一定是本次错误原因。", "suggestion": "核对具体变化后重试，不必直接清空全部缓存。" } }
+  },
+  "log": { "title": "输出日志", "copy": "复制日志", "clear": "清空日志", "empty": "暂无输出日志" }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "kind": "category",
+    "name": "红外发射器",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_ir_sender_begin"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_ir_sender_nec"
+      }
+    ]
+  }
+]

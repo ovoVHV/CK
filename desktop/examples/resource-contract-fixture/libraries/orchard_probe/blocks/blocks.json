@@ -1,0 +1,10 @@
+[
+  {
+    "type": "orchard_probe_read", "message0": "Probe on %1 address %2",
+    "args0": [
+      { "type": "field_dropdown", "name": "BUS", "options": [["Sensor port", "sensor-port"]] },
+      { "type": "input_value", "name": "ADDRESS", "check": "Number" }
+    ],
+    "output": "Number", "colour": 160, "tooltip": "Resource contract fixture only"
+  }
+]

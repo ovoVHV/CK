@@ -1,0 +1,30 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "includes": {
+        "ckMedian5Float": "#include <CkMedian5Float.h>"
+      },
+      "kind": "statement",
+      "template": "ckMedian5fReset();\n",
+      "type": "ck_ai_736b8b7dd8f8_reset"
+    },
+    {
+      "includes": {
+        "ckMedian5Float": "#include <CkMedian5Float.h>"
+      },
+      "kind": "statement",
+      "template": "ckMedian5fPush((double)({{value:VALUE}}));\n",
+      "type": "ck_ai_736b8b7dd8f8_push"
+    },
+    {
+      "includes": {
+        "ckMedian5Float": "#include <CkMedian5Float.h>"
+      },
+      "kind": "expression",
+      "template": "ckMedian5fValue()",
+      "type": "ck_ai_736b8b7dd8f8_value"
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+[
+  {
+    "package": "ck_hw_74hc164-0.2.0.zip",
+    "sha256": "de62a003a3244486bee6116c132cf2ed7dded9835f9fc0648f906afe581a92f0",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_74hc595-0.2.0.zip",
+    "sha256": "2cfbad3cd29be37138c34f466268ce5274f33247964d6c9b7a5e9d6fc09b2abe",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_dht11-0.2.0.zip",
+    "sha256": "5dc595d405ba676658295fbd804602b1d2414793b32ecb848554e9856aca3e40",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_ds1302-0.2.0.zip",
+    "sha256": "78496f3c14f1de788d94c6999b3be2ce04f6d5813d5f67c5b8faa9aabba6b954",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_hc_sr04-0.2.0.zip",
+    "sha256": "50dbe7bf6768cbe4307864eaf60f7d1d6c405a0841f79522566ceba9d6b1d98d",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_ir_sender-0.2.0.zip",
+    "sha256": "997063c4159acacf168fe00092f93534fa752b8aa5d647b6f2903817eefd5744",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_irremote-0.2.0.zip",
+    "sha256": "810681b8f1b6f7a2b4fd9df8ebe01dbdf848d48508f6d63e23a50ff2d8e87e64",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_keypad4x4-0.2.0.zip",
+    "sha256": "2605fa07a518732409c11e4ce8f961c45234fc9353079f57f3e61fe25674ca44",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_lcd1602_i2c-0.2.0.zip",
+    "sha256": "b6132d49491496ede9d2476c775d1bfa534eb231409688a5d252495e2d85cf17",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_led_matrix_8x8-0.2.0.zip",
+    "sha256": "f618f68fe62badc72b84e2117307c40266df3983026b9998e6fc2b2eaedf65d8",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_seven_segment_1-0.2.0.zip",
+    "sha256": "aab2b4f47d6e73b2acfd4c3777fbbede834fc1e7b3d64d70c29e8d8bf063645b",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_seven_segment_4-0.2.0.zip",
+    "sha256": "2b50c35b8288d25629f1182a42198a32b31e1745d3d98861c591fcf94bac72c5",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  },
+  {
+    "package": "ck_hw_stepper_28byj48-0.2.0.zip",
+    "sha256": "2865583b239015537f24f9f35c2cd75007dc7fc2f45fc747a6fce2c019973e73",
+    "files": [
+      "LICENSE",
+      "ck-blocks.json",
+      "blocks/blocks.json",
+      "blocks/toolbox.json",
+      "blocks/ck-generator.json"
+    ]
+  }
+]

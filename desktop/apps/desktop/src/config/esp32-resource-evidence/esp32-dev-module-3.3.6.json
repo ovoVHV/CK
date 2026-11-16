@@ -1,0 +1,33 @@
+{
+  "fqbn": "esp32:esp32:esp32",
+  "options": {},
+  "mcu": "esp32",
+  "variant": "esp32",
+  "coreVersion": "3.3.6",
+  "fCpu": "240000000L",
+  "validGpio": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,25,26,27,32,33,34,35,36,37,38,39],
+  "inputOnlyGpio": [34,35,36,37,38,39],
+  "adc1": { "0": 36, "1": 37, "2": 38, "3": 39, "4": 32, "5": 33, "6": 34, "7": 35 },
+  "adc2": { "0": 4, "1": 0, "2": 2, "3": 15, "4": 13, "5": 12, "6": 14, "7": 27, "8": 25, "9": 26 },
+  "dac": { "0": 25, "1": 26 },
+  "evidence": [
+    { "id": "boards", "path": "packages/esp32/hardware/esp32/3.3.6/boards.txt", "sha256": "e5a076af9323d82ceae6287479f2aa3ec44db9ffda509c2b86815b642c3446a3", "locator": "esp32.name/build.mcu/build.variant/build.f_cpu and menu defaults", "confidence": "verified" },
+    { "id": "variant", "path": "packages/esp32/hardware/esp32/3.3.6/variants/esp32/pins_arduino.h", "sha256": "4468b01f68155d1f5c8144c336ff1a702adfcd216e90528e52008f32d259cfd2", "locator": "default UART/SPI/I2C pins, analog tokens and DAC aliases", "confidence": "verified" },
+    { "id": "soc-caps", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/soc/esp32/include/soc/soc_caps.h", "sha256": "2f481a509ce8e4edffb77c83e93b01a2c4007685a392c1314ef4b1e977bbd2f5", "locator": "GPIO/ADC/DAC/UART/SPI/I2C/LEDC/RMT/MCPWM/TWAI/timer capacities", "confidence": "verified" },
+    { "id": "gpio", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/soc/esp32/include/soc/gpio_num.h", "sha256": "5f6fb2220754e94e007b07abdac5906eb4f950bb01de030fa7e9f69261783081", "locator": "input-only GPIO34..39 and valid/output masks", "confidence": "verified" },
+    { "id": "adc", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/soc/esp32/include/soc/adc_channel.h", "sha256": "faf3bcd5d1c67ccef399570de0cc33d0b4a659b5be7ad4e26309c2ade0cca68e", "locator": "ADC1/ADC2 channel-to-GPIO mapping", "confidence": "verified" },
+    { "id": "adc-runtime", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/driver/deprecated/driver/adc.h", "sha256": "3688b31f2af11908c6de0853cf0be6b79b3a409a71222a4cc646507336075763", "locator": "ADC2 arbiter priority: Wi-Fi > RTC > Digital", "confidence": "verified" },
+    { "id": "dac", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/soc/esp32/include/soc/dac_channel.h", "sha256": "f72cbdee90cb1d73f1d8ec2a64f9cee4c8a0574ed003c3f4020aa5b06f6db130", "locator": "DAC channel 0/1 GPIO25/26", "confidence": "verified" },
+    { "id": "spi", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/soc/esp32/include/soc/spi_pins.h", "sha256": "c6517df7ce16e6772493cfbcf2398886317de45689c0c3a935ed18725b4f057f", "locator": "HSPI/VSPI default pins; SPI0/SPI1 reserved by core", "confidence": "verified" },
+    { "id": "uart", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/soc/esp32/include/soc/uart_pins.h", "sha256": "9cd275ce4692f012dd1dd35204d0f546afb617fda25dcf98ad5963d2bd515532", "locator": "UART0/1/2 default signal pins", "confidence": "verified" },
+    { "id": "wire", "path": "packages/esp32/hardware/esp32/3.3.6/libraries/Wire/src/Wire.cpp", "sha256": "6d2154a1ec032733082f45e334025ad7745d449596c47825bc81f24bf5f62661", "locator": "Wire on GPIO21/22; Wire1 requires explicit pins on this variant", "confidence": "verified" },
+    { "id": "spi-core", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-spi.c", "sha256": "e626e5741e5f89087b50b205d7f392946f2058a17a522344962d9fc48402660b", "locator": "SPI2/SPI3 user buses; SPI0/SPI1 flash/PSRAM", "confidence": "verified" },
+    { "id": "gpio-matrix", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/soc/esp32/include/soc/gpio_sig_map.h", "sha256": "40d374f73e03922ac13f4a9d7b6fa780f54e5afde7178ac5369bef4a41cc7c49", "locator": "GPIO matrix signal routing identifiers", "confidence": "verified" },
+    { "id": "uart-hal", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-uart.c", "sha256": "6548ea2687f72625c518588099133f573a9ee396d25498894a52720af8228698", "locator": "uartSetPins and GPIO matrix attach/detach for RX/TX/CTS/RTS", "confidence": "verified" },
+    { "id": "ledc-driver", "path": "packages/esp32/tools/esp32-libs/3.3.6/include/esp_driver_ledc/include/driver/ledc.h", "sha256": "8ac4036faeca0c487f67af316baa944dc07e4ca689a683f9b2dba13843410378", "locator": "LEDC driver timer/channel API", "confidence": "verified" },
+    { "id": "ledc", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-ledc.c", "sha256": "a046c1ecc237d05565f6e73f606f3b2772656d229399088ffa2f4566f2f245d7", "locator": "analogWrite dynamically allocates LEDC channels", "confidence": "verified" },
+    { "id": "timer", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-timer.c", "sha256": "334ef3d4b485cd1ab608c70b19a9d34b9e4461388f85a5fcffbe8898da58c9ea", "locator": "four hardware timers allocated by timerBegin", "confidence": "verified" },
+    { "id": "rmt", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-rmt.c", "sha256": "54035da3a11ef9e233ca00df638ea146e687555321fcc2f00dfe22e42f6623e7", "locator": "RMT channel implementation", "confidence": "verified" },
+    { "id": "uart-core", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/HardwareSerial.cpp", "sha256": "8097d203a565bb68ab9bf392133f07df193957ba8411bd5576ebfb766a5dfaa1", "locator": "HardwareSerial UART instances", "confidence": "verified" }
+  ]
+}

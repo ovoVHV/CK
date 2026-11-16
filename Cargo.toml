@@ -1,7 +1,0 @@
-[workspace]
-members = [
-    "apps/desktop/src-tauri",
-    "crates/ck_core",
-    "crates/arduino"
-]
-resolver = "2"

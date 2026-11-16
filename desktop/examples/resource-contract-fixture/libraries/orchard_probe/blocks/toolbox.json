@@ -1,0 +1,5 @@
+{
+  "kind": "categoryToolbox", "contents": [{ "kind": "category", "name": "Orchard", "contents": [
+    { "kind": "block", "type": "orchard_probe_read" }
+  ] }]
+}

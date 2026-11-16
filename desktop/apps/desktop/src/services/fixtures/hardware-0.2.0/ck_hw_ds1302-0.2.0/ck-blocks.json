@@ -1,0 +1,597 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_ds1302",
+  "display_name": "CK DS1302 时钟",
+  "description": "DS1302 时钟独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_ds1302",
+    "DS1302 时钟",
+    "DS1302 RTC"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [
+    {
+      "kind": "arduino-library",
+      "id": "Rtc by Makuna",
+      "version": "2.5.0",
+      "headers": [
+        "RtcDS1302.h",
+        "ThreeWire.h"
+      ],
+      "optional": false,
+      "reason": "Pinned upstream implementation; installed separately."
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_ds1302_begin",
+      "display_name": "初始化 DS1302",
+      "description": "初始化 DS1302",
+      "category": "DS1302 时钟",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_ds1302",
+        "DS1302 时钟",
+        "DS1302 RTC"
+      ],
+      "semantics": {
+        "purpose": "初始化 DS1302",
+        "behavior": "初始化 DS1302。DS1302 三线接口，不是 I2C。配置 IO/SCLK/CE。初始化只启动通信，不会按编译时间重置时钟。显式设置日期时间才解除写保护、写入并启动时钟。不会开启涓流充电。RTC 有效值不等于电池/走时精度通过实测。",
+        "side_effects": [
+          "Explicit initialization of user-configured pins / peripheral."
+        ],
+        "concepts": [
+          "ck_hw_ds1302"
+        ]
+      },
+      "fields": [
+        {
+          "name": "IO",
+          "kind": "number",
+          "description": "IO",
+          "required": true,
+          "default": 4
+        },
+        {
+          "name": "CLK",
+          "kind": "number",
+          "description": "CLK",
+          "required": true,
+          "default": 5
+        },
+        {
+          "name": "CE",
+          "kind": "number",
+          "description": "CE",
+          "required": true,
+          "default": 6
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitDs1302.h",
+          "headers": [
+            "CKKitDs1302.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "Rtc by Makuna",
+          "version": "2.5.0",
+          "headers": [
+            "RtcDS1302.h",
+            "ThreeWire.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "io",
+            "source": {
+              "kind": "field",
+              "name": "IO"
+            },
+            "access": "read-write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input",
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: IO"
+          },
+          {
+            "kind": "gpio",
+            "id": "clk",
+            "source": {
+              "kind": "field",
+              "name": "CLK"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: CLK"
+          },
+          {
+            "kind": "gpio",
+            "id": "ce",
+            "source": {
+              "kind": "field",
+              "name": "CE"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: CE"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "io-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "IO",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "clk-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "CLK",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "ce-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "CE",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitDs1302.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "初始化 DS1302",
+            "template": "ckKitRtcBegin({{field:IO}}, {{field:CLK}}, {{field:CE}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_ds1302_begin-example",
+          "title": "初始化 DS1302",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "IO": 4,
+            "CLK": 5,
+            "CE": 6
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_ds1302_set",
+      "display_name": "设置 DS1302 日期时间",
+      "description": "设置 DS1302 日期时间",
+      "category": "DS1302 时钟",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_ds1302",
+        "DS1302 时钟",
+        "DS1302 RTC"
+      ],
+      "semantics": {
+        "purpose": "设置 DS1302 日期时间",
+        "behavior": "设置 DS1302 日期时间。DS1302 三线接口，不是 I2C。配置 IO/SCLK/CE。初始化只启动通信，不会按编译时间重置时钟。显式设置日期时间才解除写保护、写入并启动时钟。不会开启涓流充电。RTC 有效值不等于电池/走时精度通过实测。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_ds1302"
+        ]
+      },
+      "fields": [
+        {
+          "name": "YEAR",
+          "kind": "number",
+          "description": "年",
+          "required": true,
+          "default": 2026
+        },
+        {
+          "name": "MONTH",
+          "kind": "number",
+          "description": "月",
+          "required": true,
+          "default": 1
+        },
+        {
+          "name": "DAY",
+          "kind": "number",
+          "description": "日",
+          "required": true,
+          "default": 1
+        },
+        {
+          "name": "HOUR",
+          "kind": "number",
+          "description": "时",
+          "required": true,
+          "default": 0
+        },
+        {
+          "name": "MINUTE",
+          "kind": "number",
+          "description": "分",
+          "required": true,
+          "default": 0
+        },
+        {
+          "name": "SECOND",
+          "kind": "number",
+          "description": "秒",
+          "required": true,
+          "default": 0
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitDs1302.h",
+          "headers": [
+            "CKKitDs1302.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "Rtc by Makuna",
+          "version": "2.5.0",
+          "headers": [
+            "RtcDS1302.h",
+            "ThreeWire.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitDs1302.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "设置 DS1302 日期时间",
+            "template": "ckKitRtcSet({{field:YEAR}}, {{field:MONTH}}, {{field:DAY}}, {{field:HOUR}}, {{field:MINUTE}}, {{field:SECOND}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_ds1302_set-example",
+          "title": "设置 DS1302 日期时间",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "YEAR": 2026,
+            "MONTH": 1,
+            "DAY": 1,
+            "HOUR": 0,
+            "MINUTE": 0,
+            "SECOND": 0
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_ds1302_read",
+      "display_name": "读取 DS1302",
+      "description": "读取 DS1302",
+      "category": "DS1302 时钟",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_ds1302",
+        "DS1302 时钟",
+        "DS1302 RTC"
+      ],
+      "semantics": {
+        "purpose": "读取 DS1302",
+        "behavior": "读取 DS1302。DS1302 三线接口，不是 I2C。配置 IO/SCLK/CE。初始化只启动通信，不会按编译时间重置时钟。显式设置日期时间才解除写保护、写入并启动时钟。不会开启涓流充电。RTC 有效值不等于电池/走时精度通过实测。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_ds1302"
+        ]
+      },
+      "fields": [
+        {
+          "name": "ITEM",
+          "kind": "dropdown",
+          "description": "项目",
+          "required": true,
+          "default": "0",
+          "options": [
+            {
+              "label": "年",
+              "value": "0"
+            },
+            {
+              "label": "月",
+              "value": "1"
+            },
+            {
+              "label": "日",
+              "value": "2"
+            },
+            {
+              "label": "时",
+              "value": "3"
+            },
+            {
+              "label": "分",
+              "value": "4"
+            },
+            {
+              "label": "秒",
+              "value": "5"
+            }
+          ]
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Number"
+        ],
+        "description": "读取 DS1302"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitDs1302.h",
+          "headers": [
+            "CKKitDs1302.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "Rtc by Makuna",
+          "version": "2.5.0",
+          "headers": [
+            "RtcDS1302.h",
+            "ThreeWire.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitDs1302.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "读取 DS1302",
+            "template": "ckKitRtcRead({{field:ITEM}})"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_ds1302_read-example",
+          "title": "读取 DS1302",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "ITEM": "0"
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_ds1302_valid",
+      "display_name": "DS1302 日期有效且时钟运行",
+      "description": "DS1302 日期有效且时钟运行",
+      "category": "DS1302 时钟",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_ds1302",
+        "DS1302 时钟",
+        "DS1302 RTC"
+      ],
+      "semantics": {
+        "purpose": "DS1302 日期有效且时钟运行",
+        "behavior": "DS1302 日期有效且时钟运行。DS1302 三线接口，不是 I2C。配置 IO/SCLK/CE。初始化只启动通信，不会按编译时间重置时钟。显式设置日期时间才解除写保护、写入并启动时钟。不会开启涓流充电。RTC 有效值不等于电池/走时精度通过实测。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_ds1302"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Boolean"
+        ],
+        "description": "DS1302 日期有效且时钟运行"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitDs1302.h",
+          "headers": [
+            "CKKitDs1302.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "Rtc by Makuna",
+          "version": "2.5.0",
+          "headers": [
+            "RtcDS1302.h",
+            "ThreeWire.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitDs1302.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "DS1302 日期有效且时钟运行",
+            "template": "ckKitRtcValid()"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_ds1302_valid-example",
+          "title": "DS1302 日期有效且时钟运行",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

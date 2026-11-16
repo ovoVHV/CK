@@ -1,0 +1,15 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_common_hc_sr04_distance",
+      "kind": "expression",
+      "template": "ckKitHcSr04({{field:TRIG}}, {{field:ECHO}})",
+      "includes": {
+        "driver": "#include <CKKitHcSr04.h>"
+      },
+      "order": 0
+    }
+  ]
+}

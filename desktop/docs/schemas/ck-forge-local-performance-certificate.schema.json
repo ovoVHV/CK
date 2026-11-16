@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-forge-local-performance-certificate.schema.json",
+  "title": "CK Forge local read-only performance certificate v2",
+  "description": "Local envelope for one exact-source, source-bound sample qualification. It does not grant board-wide Fast status.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaId",
+    "schemaVersion",
+    "candidateSha256",
+    "reportSha256",
+    "artifactManifestSha256"
+  ],
+  "properties": {
+    "schemaId": { "const": "ck.forge.local-performance-certificate" },
+    "schemaVersion": { "const": 2 },
+    "candidateSha256": { "$ref": "#/$defs/sha256" },
+    "reportSha256": { "$ref": "#/$defs/sha256" },
+    "artifactManifestSha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

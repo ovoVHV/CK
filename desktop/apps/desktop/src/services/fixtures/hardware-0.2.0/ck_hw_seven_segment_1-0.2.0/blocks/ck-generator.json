@@ -1,0 +1,38 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_seven_segment_1_begin",
+      "kind": "statement",
+      "template": "ckKitSegment1Begin({{field:COMMON}}, {{field:RESISTORS}}, {{field:A}}, {{field:B}}, {{field:C}}, {{field:D}}, {{field:E}}, {{field:F}}, {{field:G}}, {{field:DP}}, {{field:DIGIT1}});",
+      "includes": {
+        "driver": "#include <CKKitSegment1.h>"
+      }
+    },
+    {
+      "type": "ck_hw_seven_segment_1_number",
+      "kind": "statement",
+      "template": "ckKitSegment1Number({{value:NUMBER}}, {{field:DECIMALS}});",
+      "includes": {
+        "driver": "#include <CKKitSegment1.h>"
+      }
+    },
+    {
+      "type": "ck_hw_seven_segment_1_refresh",
+      "kind": "statement",
+      "template": "ckKitSegment1Refresh();",
+      "includes": {
+        "driver": "#include <CKKitSegment1.h>"
+      }
+    },
+    {
+      "type": "ck_hw_seven_segment_1_blank",
+      "kind": "statement",
+      "template": "ckKitSegment1Blank();",
+      "includes": {
+        "driver": "#include <CKKitSegment1.h>"
+      }
+    }
+  ]
+}

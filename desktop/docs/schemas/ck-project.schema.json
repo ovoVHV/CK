@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-project-v1.schema.json",
+  "title": "CK Project Format v1",
+  "description": "Editable, single-file CK project. Generated source is retained for portability but remains derived from the block workspace.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "format",
+    "schema_version",
+    "migration_version",
+    "name",
+    "board",
+    "xml"
+  ],
+  "properties": {
+    "format": {
+      "const": "ck-project"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "migration_version": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "board": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Selected board target or FQBN base. Combine it with the explicit options payload to reconstruct the effective compile FQBN; legacy display identifiers remain readable during migration."
+    },
+    "board_package_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Concrete CK board package identity. It may differ from board when packages share an FQBN."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "xml": {
+      "type": "string",
+      "description": "Blockly XML or serialized Blockly workspace payload used by the editor."
+    },
+    "code": {
+      "type": "string",
+      "description": "Last generated Arduino/C++ source. This is derived evidence, not a build history."
+    },
+    "options": {
+      "type": "string",
+      "description": "JSON-encoded full effective board options, including defaults when build_target.optionsComplete is true. Legacy projects may contain only explicit overrides."
+    },
+    "ck_block_packages": {
+      "$ref": "#/$defs/blockPackageInventory"
+    },
+    "build_target": {
+      "$ref": "#/$defs/buildTarget"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^(?:sha256:)?[A-Fa-f0-9]{64}$"
+    },
+    "blockPackageRecord": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "version",
+        "content_sha256"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_inventory_observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "provenance": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "blockPackageInventory": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "packages"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "inventory_semantics": {
+          "const": "enabled-declarative-runtime-packages"
+        },
+        "inventory_recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "packages": {
+          "type": "object",
+          "maxProperties": 256,
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/blockPackageRecord"
+          }
+        }
+      }
+    },
+    "buildTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "board",
+        "boardPackageId",
+        "coreId",
+        "coreVersion",
+        "fqbn",
+        "options",
+        "optionsComplete"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "board": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$"
+        },
+        "boardPackageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coreId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coreVersion": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "fqbn": {
+          "type": "string",
+          "minLength": 1
+        },
+        "options": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          }
+        },
+        "optionsComplete": {
+          "type": "boolean"
+        }
+      },
+      "description": "Saved build configuration, not a dependency-content lock or cache authority. Board/options/FQBN consistency is additionally checked by the application."
+    }
+  }
+}

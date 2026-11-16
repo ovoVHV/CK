@@ -1,0 +1,15 @@
+{
+  "name": "ck-build-engine",
+  "version": "9.1.0-alpha.46",
+  "private": true,
+  "license": "Apache-2.0",
+  "author": "jackchen",
+  "repository": { "type": "git", "url": "https://github.com/ovoVHV/CK.git" },
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "start": "node src/server.mjs"
+  }
+}

@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+const root=path.dirname(fileURLToPath(import.meta.url)),repo=path.resolve(root,'../..');
+const app=path.join(repo,'desktop/apps/desktop');
+const require=createRequire(path.join(app,'package.json'));
+const {build}=require('esbuild');
+const out=path.join(repo,'local/ck-lab-visuals-20261109/capture');fs.mkdirSync(out,{recursive:true});
+await build({entryPoints:[path.join(root,'fixture.tsx')],bundle:true,format:'esm',outfile:path.join(out,'fixture.js'),jsx:'automatic',nodePaths:[path.join(app,'node_modules')],alias:{'@tauri-apps/api/event':path.join(root,'sample-events.ts')},define:{'import.meta.env.DEV':'false'},logLevel:'warning'});
+const css=fs.readdirSync(path.join(app,'dist/assets')).find(x=>/^index-.*\.css$/.test(x));
+fs.copyFileSync(path.join(app,'dist/assets',css),path.join(out,'desktop.css'));
+fs.cpSync(path.join(app,'public/blockly'),path.join(out,'blockly'),{recursive:true});
+fs.writeFileSync(path.join(out,'index.html'),`<!doctype html><html lang="zh-CN" class="dark"><head><meta charset="UTF-8"><link rel="stylesheet" href="/desktop.css"><link rel="stylesheet" href="/fixture.css"><style>body{margin:0;background:#101725}.sample-ribbon{position:fixed;top:0;left:0;right:0;z-index:12000;height:25px;text-align:center;background:#9a3412;color:white;font:12px/25px 'Segoe UI','Microsoft YaHei',sans-serif}.sample-shell{padding:28px;max-width:1400px;margin:auto}.sample-heading{display:flex;justify-content:space-between;align-items:center;padding:14px 0 24px;color:#e2e8f0}.sample-heading b{font-size:24px}.sample-heading span{display:block;color:#aeb9c9;margin-top:7px;font-size:13px}.sample-heading button{padding:10px 16px;border:1px solid #64748b;border-radius:8px;color:#e2e8f0;font-size:13px}.plot-shell{height:650px;background:#0f172a;border:1px solid #334155;border-radius:12px;overflow:hidden}.ck-serial-plotter{height:100%}</style></head><body><div id="root"></div><script type="module" src="/fixture.js"></script></body></html>`);
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.mp3':'audio/mpeg'};
+http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost'),file=path.resolve(out,'.'+(url.pathname==='/'?'/index.html':url.pathname));if(!file.startsWith(out+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404).end();return;}res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});fs.createReadStream(file).pipe(res);}).listen(4180,'127.0.0.1',()=>console.log('Local screenshot fixture http://127.0.0.1:4180'));

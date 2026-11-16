@@ -1,0 +1,240 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_74hc595",
+  "display_name": "CK 74HC595 移位寄存器",
+  "description": "74HC595 移位寄存器独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_74hc595",
+    "74HC595 移位寄存器",
+    "74HC595 Shift Register"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_74hc595_write",
+      "display_name": "74HC595 写入字节",
+      "description": "74HC595 写入字节",
+      "category": "74HC595 移位寄存器",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_74hc595",
+        "74HC595 移位寄存器",
+        "74HC595 Shift Register"
+      ],
+      "semantics": {
+        "purpose": "74HC595 写入字节",
+        "behavior": "74HC595 写入字节。软件 shiftOut，不是硬件 SPI。DATA=SER、CLOCK=SRCLK、LATCH=RCLK。/OE 接低电平、/SRCLR 接高电平。输出经 RCLK 锁存；外接 LED 必须限流。每次写 8 位，级联需要另行扩展，本版不声称支持。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_74hc595"
+        ]
+      },
+      "fields": [
+        {
+          "name": "DATA",
+          "kind": "number",
+          "description": "DATA",
+          "required": true,
+          "default": 2
+        },
+        {
+          "name": "CLOCK",
+          "kind": "number",
+          "description": "CLOCK",
+          "required": true,
+          "default": 3
+        },
+        {
+          "name": "LATCH",
+          "kind": "number",
+          "description": "LATCH",
+          "required": true,
+          "default": 4
+        },
+        {
+          "name": "ORDER",
+          "kind": "dropdown",
+          "description": "位序",
+          "required": true,
+          "default": "MSBFIRST",
+          "options": [
+            {
+              "label": "高位先",
+              "value": "MSBFIRST"
+            },
+            {
+              "label": "低位先",
+              "value": "LSBFIRST"
+            }
+          ]
+        }
+      ],
+      "inputs": [
+        {
+          "name": "BYTE",
+          "kind": "value",
+          "description": "字节 0–255",
+          "required": true,
+          "check": "Number",
+          "default": 85
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKit595.h",
+          "headers": [
+            "CKKit595.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "data",
+            "source": {
+              "kind": "field",
+              "name": "DATA"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: DATA"
+          },
+          {
+            "kind": "gpio",
+            "id": "clock",
+            "source": {
+              "kind": "field",
+              "name": "CLOCK"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: CLOCK"
+          },
+          {
+            "kind": "gpio",
+            "id": "latch",
+            "source": {
+              "kind": "field",
+              "name": "LATCH"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: LATCH"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "data-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "DATA",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "clock-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "CLOCK",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "latch-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "LATCH",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKit595.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "74HC595 写入字节",
+            "template": "ckKit595Write({{field:DATA}}, {{field:CLOCK}}, {{field:LATCH}}, {{value:BYTE}}, {{field:ORDER}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_74hc595_write-example",
+          "title": "74HC595 写入字节",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "DATA": 2,
+            "CLOCK": 3,
+            "LATCH": 4,
+            "ORDER": "MSBFIRST"
+          },
+          "input_values": {
+            "BYTE": 85
+          },
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

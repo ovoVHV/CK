@@ -1,0 +1,355 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_74hc164",
+  "display_name": "CK 74HC164 移位寄存器",
+  "description": "74HC164 移位寄存器独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_74hc164",
+    "74HC164 移位寄存器",
+    "74HC164 Shift Register"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_74hc164_write",
+      "display_name": "74HC164 写入字节",
+      "description": "74HC164 写入字节",
+      "category": "74HC164 移位寄存器",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_74hc164",
+        "74HC164 移位寄存器",
+        "74HC164 Shift Register"
+      ],
+      "semantics": {
+        "purpose": "74HC164 写入字节",
+        "behavior": "74HC164 写入字节。软件 shiftOut，不是硬件 SPI，也不是 74HC595。DATA 接 A，B 拉高；或互换 A/B。/MR 接配置的 CLEAR 管脚。没有输出锁存，移位时输出会变化，不适合要求无毛刺的控制。每次写 8 位。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_74hc164"
+        ]
+      },
+      "fields": [
+        {
+          "name": "DATA",
+          "kind": "number",
+          "description": "DATA",
+          "required": true,
+          "default": 2
+        },
+        {
+          "name": "CLOCK",
+          "kind": "number",
+          "description": "CLOCK",
+          "required": true,
+          "default": 3
+        },
+        {
+          "name": "CLEAR",
+          "kind": "number",
+          "description": "CLEAR",
+          "required": true,
+          "default": 4
+        },
+        {
+          "name": "ORDER",
+          "kind": "dropdown",
+          "description": "位序",
+          "required": true,
+          "default": "MSBFIRST",
+          "options": [
+            {
+              "label": "高位先",
+              "value": "MSBFIRST"
+            },
+            {
+              "label": "低位先",
+              "value": "LSBFIRST"
+            }
+          ]
+        }
+      ],
+      "inputs": [
+        {
+          "name": "BYTE",
+          "kind": "value",
+          "description": "字节 0–255",
+          "required": true,
+          "check": "Number",
+          "default": 85
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKit164.h",
+          "headers": [
+            "CKKit164.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "data",
+            "source": {
+              "kind": "field",
+              "name": "DATA"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: DATA"
+          },
+          {
+            "kind": "gpio",
+            "id": "clock",
+            "source": {
+              "kind": "field",
+              "name": "CLOCK"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: CLOCK"
+          },
+          {
+            "kind": "gpio",
+            "id": "clear",
+            "source": {
+              "kind": "field",
+              "name": "CLEAR"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: CLEAR"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "data-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "DATA",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "clock-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "CLOCK",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "clear-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "CLEAR",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKit164.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "74HC164 写入字节",
+            "template": "ckKit164Write({{field:DATA}}, {{field:CLOCK}}, {{field:CLEAR}}, {{value:BYTE}}, {{field:ORDER}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_74hc164_write-example",
+          "title": "74HC164 写入字节",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "DATA": 2,
+            "CLOCK": 3,
+            "CLEAR": 4,
+            "ORDER": "MSBFIRST"
+          },
+          "input_values": {
+            "BYTE": 85
+          },
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_74hc164_clear",
+      "display_name": "复位 74HC164 输出",
+      "description": "复位 74HC164 输出",
+      "category": "74HC164 移位寄存器",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_74hc164",
+        "74HC164 移位寄存器",
+        "74HC164 Shift Register"
+      ],
+      "semantics": {
+        "purpose": "复位 74HC164 输出",
+        "behavior": "复位 74HC164 输出。软件 shiftOut，不是硬件 SPI，也不是 74HC595。DATA 接 A，B 拉高；或互换 A/B。/MR 接配置的 CLEAR 管脚。没有输出锁存，移位时输出会变化，不适合要求无毛刺的控制。每次写 8 位。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_74hc164"
+        ]
+      },
+      "fields": [
+        {
+          "name": "CLEAR",
+          "kind": "number",
+          "description": "CLEAR",
+          "required": true,
+          "default": 4
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKit164.h",
+          "headers": [
+            "CKKit164.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "clear",
+            "source": {
+              "kind": "field",
+              "name": "CLEAR"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: CLEAR"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "clear-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "CLEAR",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKit164.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "复位 74HC164 输出",
+            "template": "ckKit164Clear({{field:CLEAR}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_74hc164_clear-example",
+          "title": "复位 74HC164 输出",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "CLEAR": 4
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

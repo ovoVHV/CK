@@ -1,0 +1,75 @@
+[
+  {
+    "type": "ck_hw_74hc164_write",
+    "message0": "74HC164 写入字节 DATA %1 CLOCK %2 CLEAR %3 位序 %4 字节 0–255 %5",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "DATA",
+        "value": 2,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "CLOCK",
+        "value": 3,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "CLEAR",
+        "value": 4,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_dropdown",
+        "name": "ORDER",
+        "options": [
+          [
+            "高位先",
+            "MSBFIRST"
+          ],
+          [
+            "低位先",
+            "LSBFIRST"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "BYTE",
+        "check": "Number"
+      }
+    ],
+    "colour": 190,
+    "tooltip": "74HC164 写入字节",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_74hc164_clear",
+    "message0": "复位 74HC164 输出 CLEAR %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "CLEAR",
+        "value": 4,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "复位 74HC164 输出",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  }
+]

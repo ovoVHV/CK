@@ -1,0 +1,163 @@
+[
+  {
+    "id": "compile",
+    "width": 1536,
+    "height": 1152,
+    "title": "桌面编译进度与实时日志",
+    "alt": "CK 编译界面显示准备、编译、链接、产物阶段和持续输出的任务日志。",
+    "caption": "桌面预览版实拍；截图中的计时仅表示拍摄时状态，不是性能成绩。",
+    "kind": "desktop-capture",
+    "sourceSha256": "d951131dc5cabbdfdfba783ab416a27a9377a437c30a69ed3b2caf840cd44489",
+    "crop": null
+  },
+  {
+    "id": "recovery",
+    "width": 1280,
+    "height": 720,
+    "title": "恢复前，先看清积木差异",
+    "alt": "恢复稿与正式版本左右对比：延时由 500 改为 250 毫秒，并新增一条串口输出。",
+    "caption": "CK 实际恢复组件 · 示例工程。绿色标记新增积木，黄色标记修改。",
+    "kind": "component-sample",
+    "sourceSha256": "3c1ae15e468bfecd369e0a4eb3515c457139b85228d23c5a393260a4804ad255",
+    "crop": null
+  },
+  {
+    "id": "serial",
+    "width": 1280,
+    "height": 806,
+    "title": "串口数据，变成能观察的曲线",
+    "alt": "串口曲线展示温度与湿度两个示例系列，以及阈值和触发前后时间窗设置。",
+    "caption": "CK 实际串口组件 · 合成示例数据，未连接硬件。",
+    "kind": "component-sample",
+    "sourceSha256": "7669284b45816bcbc9398fd86948af6e4542d9dc98b02cb58575926ed40b0e1b",
+    "crop": null
+  },
+  {
+    "id": "pins",
+    "width": 1266,
+    "height": 978,
+    "title": "积木里的引脚，检查里看得见",
+    "alt": "超声波积木填写 TRIG 5 和 ECHO 6，工程检查列出两个引脚的用途与引用。",
+    "caption": "桌面预览版截图；按已声明能力检查，未覆盖项会明确提示。",
+    "kind": "desktop-capture",
+    "sourceSha256": "169ebd22a688f0d087a171947619cd69c11db347ce5e3eda8241c4ece846d5f5",
+    "crop": [
+      270,
+      90,
+      1536,
+      1068
+    ]
+  },
+  {
+    "id": "debug",
+    "width": 1266,
+    "height": 1062,
+    "title": "停在积木上，继续或单步",
+    "alt": "积木断点高亮，调试面板提供继续、单步和结束调试操作。",
+    "caption": "真实桌面 UI + 模拟串口回执；仅演示界面，不代表实体板验证。",
+    "kind": "simulated-transport",
+    "sourceSha256": "c02d0d1e48e008fd5cbd910d03515a634e022a51e6c6268167d51d974ac605cd",
+    "crop": [
+      270,
+      90,
+      1536,
+      1152
+    ]
+  },
+  {
+    "id": "trace",
+    "width": 1266,
+    "height": 1062,
+    "title": "运行轨迹与覆盖范围",
+    "alt": "运行轨迹面板列出命中过的积木及已纳入采样的范围。",
+    "caption": "真实桌面 UI + 模拟串口数据；图中覆盖比例只属于该测试示例。",
+    "kind": "simulated-transport",
+    "sourceSha256": "ef3b1d475b8cec5f8aface54954f555c61a810f019f3bee9503cf031ec1eeff0",
+    "crop": [
+      270,
+      90,
+      1536,
+      1152
+    ]
+  },
+  {
+    "id": "core",
+    "width": 1052,
+    "height": 901,
+    "title": "核心包与版本，在一处管理",
+    "alt": "Core 管理器列出 Arduino AVR 与 ESP32 核心包，支持选版本、刷新和安装。",
+    "caption": "Core 管理器实拍；可用版本为拍摄时状态，以软件实时列表为准。",
+    "kind": "desktop-capture",
+    "sourceSha256": "5c2f222449c44f21092292039ed07202c5542af1123e785d5c6112d0ce381adc",
+    "crop": [
+      242,
+      126,
+      1294,
+      1027
+    ]
+  },
+  {
+    "id": "quick-select",
+    "width": 760,
+    "height": 651,
+    "title": "快速选积木与关键词搜索",
+    "alt": "Ctrl+K 搜索串口积木，列表展示积木预览、固定按钮和键盘操作。",
+    "caption": "CK 实际组件 · 内置积木示例；搜索与插入可操作。",
+    "kind": "component-sample",
+    "sourceSha256": "7766142b57c2fade72a288ad66b01bf132ed5bfcf199c942f308457a4e820dd4",
+    "crop": [
+      260,
+      125,
+      1020,
+      776
+    ]
+  },
+  {
+    "id": "quick-insert",
+    "width": 565,
+    "height": 260,
+    "title": "选择积木的插入位置",
+    "alt": "选中串口打印积木后点加号，可以选择值输入或在后面添加语句。",
+    "caption": "CK 实际组件 · 选中积木后的 + 和插入位置菜单。",
+    "kind": "component-sample",
+    "sourceSha256": "184ac8d0e7af063c8a08145ad38b8562793539a4b6da9abe791bb7768f728160",
+    "crop": [
+      65,
+      165,
+      630,
+      425
+    ]
+  },
+  {
+    "id": "quick-insert-filter",
+    "width": 760,
+    "height": 651,
+    "title": "搜索可接入的积木",
+    "alt": "快速插入列表显示只接入在后面添加的位置，搜索延时积木。",
+    "caption": "CK 实际组件 · 按连接类型筛选，不表示硬件兼容性验证。",
+    "kind": "component-sample",
+    "sourceSha256": "70b8ce793acc99786efe02b54e8e4af8e474930c1c38ebc1f561dc0fb63b69ce",
+    "crop": [
+      260,
+      125,
+      1020,
+      776
+    ]
+  },
+  {
+    "id": "block-errors",
+    "width": 1240,
+    "height": 535,
+    "title": "编译报错积木的红色提示与定位",
+    "alt": "积木红色轮廓和感叹号，下方错误卡片包含定位积木按钮。",
+    "caption": "CK 实际组件 · 重现 alpha.31 已通过真实 Uno 编译验证的错误示例；配图页面不执行编译。",
+    "kind": "component-sample",
+    "sourceSha256": "9385220aa6144abae63146751e9b538b9241930955bde04c0cb4c17ac57bb373",
+    "crop": [
+      20,
+      125,
+      1260,
+      660
+    ]
+  }
+]

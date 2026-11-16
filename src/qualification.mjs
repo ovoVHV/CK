@@ -1,0 +1,7 @@
+import {cliDirectories} from './cli-directories.mjs';
+import fs from 'node:fs';import path from 'node:path';
+import {parseFqbn,platformVersionSupported} from './targets.mjs';
+export const fixedFqbn='esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB';
+export function requestScope(c,environment=process.env){if(!parseFqbn(c.fqbn))return {qualified:false,reason:'Invalid native FQBN'};for(const name of ['CPATH','C_INCLUDE_PATH','CPLUS_INCLUDE_PATH','GCC_EXEC_PREFIX','LIBRARY_PATH','COMPILER_PATH','GCC_COMPARE_DEBUG'])if(environment[name])return {qualified:false,reason:'external search environment: '+name};for(const value of c.buildProperties??[])if(!/^compiler\.cpp\.extra_flags=-DCK_ROUTE=[12]$/.test(value))return {qualified:false,reason:'build property outside measured macro contract'};
+ const yaml=fs.readFileSync(c.cliConfig,'utf8'),{data,user}=cliDirectories(yaml);if(!data||!user||path.resolve(data)!==path.resolve(c.sysroot)||path.resolve(user,'libraries')!==path.resolve(c.userLibraries))return {qualified:false,reason:'configuration root mapping differs'};return {qualified:true};}
+export function propertyScope(p){if(path.resolve(p['build.core.platform.path'])!==path.resolve(p['runtime.platform.path']))return {qualified:false,reason:'referenced platform libraries not qualified'};if(!platformVersionSupported(p['build.arch']?.toLowerCase(),path.basename(p['runtime.platform.path'])))return {qualified:false,reason:'unqualified platform version'};return {qualified:true};}

@@ -1,0 +1,17 @@
+[
+  {
+    "kind": "category",
+    "name": "4×4 薄膜键盘",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_keypad4x4_begin"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_keypad4x4_key"
+      }
+    ]
+  }
+]

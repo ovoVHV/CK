@@ -1,0 +1,26 @@
+export const complexAcceptance = {
+ version:1,
+ requirements:[
+  {id:'upper',text:'中值≥650时打开D9，低值关闭',method:'simulation'},
+  {id:'hysteresis',text:'中间区间保留输出状态',method:'simulation'},
+  {id:'stop',text:'D2急停优先关闭D9',method:'simulation'},
+  {id:'sampling',text:'急停期间继续采样，释放后使用最新中值',method:'simulation'},
+  {id:'heartbeat',text:'D13独立250ms心跳不中断',method:'simulation'},
+  {id:'serial',text:'串口仍按周期输出实际中值',method:'simulation'},
+  {id:'precision',text:'偶数窗口小数精度与millis回绕需进一步核对',method:'review'},
+  {id:'hardware',text:'实际接线、电气特性及外围设备',method:'hardware'},
+ ],
+ scenarios:[{id:'control',name:'采样、滞回、急停、心跳和串口',durationMs:1100,
+  inputs:[{atMs:0,pin:'A0',value:675},{atMs:0,pin:'D2',value:1},{atMs:130,pin:'D2',value:0},{atMs:150,pin:'A0',value:200},{atMs:260,pin:'D2',value:1},{atMs:300,pin:'A0',value:900},{atMs:410,pin:'A0',value:500},{atMs:550,pin:'A0',value:200}],
+  assertions:[
+   {id:'upper_on',requirement:'upper',kind:'pin',atMs:100,pin:'D9',value:1},
+   {id:'emergency_off',requirement:'stop',kind:'pin',atMs:135,pin:'D9',value:0},
+   {id:'fresh_samples',requirement:'sampling',kind:'pin',atMs:275,pin:'D9',value:0},
+   {id:'resume_on',requirement:'upper',kind:'pin',atMs:380,pin:'D9',value:1},
+   {id:'hold_between',requirement:'hysteresis',kind:'pin',atMs:500,pin:'D9',value:1},
+   {id:'lower_off',requirement:'upper',kind:'pin',atMs:650,pin:'D9',value:0},
+   {id:'heartbeat_count',requirement:'heartbeat',kind:'edges',fromMs:100,toMs:1100,pin:'D13',min:4,max:4},
+   {id:'serial_high',requirement:'serial',kind:'serial',fromMs:390,toMs:430,contains:'900.00'},
+   {id:'serial_low',requirement:'serial',kind:'serial',fromMs:790,toMs:830,contains:'200.00'},
+  ]}],
+};

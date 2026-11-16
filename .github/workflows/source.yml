@@ -1,0 +1,40 @@
+name: Source checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.13.0
+          cache: npm
+          cache-dependency-path: desktop/apps/desktop/package-lock.json
+      - name: Prepare pinned Windows tools
+        run: node scripts/prepare-source.mjs
+      - name: Install frontend dependencies
+        run: npm ci --prefix desktop/apps/desktop
+      - name: Prepare native dependencies
+        run: cargo fetch --locked --manifest-path native/Cargo.toml
+      - name: Build native helpers
+        run: ./scripts/Build-Native.ps1 -TargetDir "$env:RUNNER_TEMP/ck-native"
+      - name: Check engine modules
+        run: node scripts/check.mjs
+      - name: Engine unit tests
+        run: node --test tests/*.test.mjs
+      - name: AI service tests
+        run: node --test desktop/apps/desktop/src/services/ai*.test.mjs
+      - name: Build frontend
+        run: npm --prefix desktop/apps/desktop run build:web
+      - name: Check desktop Rust source
+        run: cargo check --locked --manifest-path desktop/apps/desktop/src-tauri/Cargo.toml --features custom-protocol

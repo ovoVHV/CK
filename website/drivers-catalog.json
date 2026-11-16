@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "checked": "2026-11-09",
+  "packages": [
+    {
+      "id": "ch340",
+      "title": "CH340 / CH341",
+      "vendor": "WCH · 沁恒",
+      "version": "4.0",
+      "driverVersion": "4.0.2026.02",
+      "date": "2026-06-26",
+      "file": "CH341SER-4.0.ZIP",
+      "originalFile": "CH341SER.ZIP",
+      "system": "Windows 11（x64） / 10（x86、x64）",
+      "chips": "CH340G / C / N / K / E / B / T，CH341A / F / T / B / C / U",
+      "hint": "确认 USB 芯片为 CH340 或 CH341 的 Uno、经典 Nano、Mega 兼容板及 USB 转串口模块。",
+      "install": "解压后打开 CH341SER 文件夹，运行 SETUP.EXE，按原厂安装器提示安装。",
+      "sourcePage": "https://www.wch.cn/downloads/CH341SER_ZIP.html",
+      "sourceUrl": "https://file.wch.cn/download/file?id=5",
+      "signature": "安装器与驱动目录签名均验证有效",
+      "ids": [
+        "VID_1A86&PID_7523",
+        "VID_1A86&PID_5523"
+      ],
+      "notes": "这是串口驱动，不是 CH341 编程器或其他工作模式的通用驱动。",
+      "bytes": 713322,
+      "sha256": "59967d9ce371d0bf3df02dec0b66c8dfbf9ca576da0572ff4404148a7c381807",
+      "url": "/downloads/drivers/CH341SER-4.0.ZIP",
+      "checked": "2026-11-09"
+    },
+    {
+      "id": "ch343",
+      "title": "CH343 / CH9102 及同系列",
+      "vendor": "WCH · 沁恒",
+      "version": "2.2",
+      "driverVersion": "2.2.2026.05",
+      "date": "2026-06-26",
+      "file": "CH343SER-2.2.ZIP",
+      "originalFile": "CH343SER.ZIP",
+      "system": "Windows 11（x64） / 10（x86、x64）",
+      "chips": "CH342 / 343 / 344 / 346 / 347，CH9101 / 9102 / 9103 / 9104 / 9105，CH9111 / 9114 / 9143 / 9149 / 9433",
+      "hint": "部分 ESP32 开发板和高速 USB 转串口模块；以板上实际芯片为准。",
+      "install": "解压后进入 CH343SER → Driver，运行 SETUP.EXE，按原厂安装器提示安装。",
+      "sourcePage": "https://www.wch.cn/downloads/CH343SER_ZIP.html",
+      "sourceUrl": "https://file.wch.cn/download/file?id=314",
+      "signature": "安装器与驱动目录签名均验证有效",
+      "ids": [
+        "VID_1A86&PID_55D4"
+      ],
+      "notes": "不要仅因开发板名称包含 ESP32 就选择此包；使用 CP210x 或原生 USB 的接口另行判断。",
+      "bytes": 635034,
+      "sha256": "6084fd47cc2a6bf27eb3df3a6f57430ec8a3fa69d8f32dc9c6f6807816a15e57",
+      "url": "/downloads/drivers/CH343SER-2.2.ZIP",
+      "checked": "2026-11-09"
+    },
+    {
+      "id": "pl2303",
+      "title": "PL2303 / PL2323",
+      "vendor": "Prolific · 旺玖",
+      "version": "4.10.0.0 安装包",
+      "driverVersion": "Windows 11: G 5.2.12.0 / HXD 3.9.7.0",
+      "date": "2026-07-16",
+      "file": "PL23XX-M-4.10.0.0.zip",
+      "originalFile": "PL23XX-M_LogoDriver_Setup_41000_20260716.zip",
+      "system": "Windows 11（x64） / 10（x86、x64）；ARM64 见包内说明",
+      "chips": "PL2303 G 系列、HXD / EA / RA / SA，以及 PL2323；不同系统的支持范围不同",
+      "hint": "常见 USB 转 TTL / RS232 串口线和串口模块，安装前核对芯片修订版。",
+      "install": "解压后运行包内 PL23XX-M_LogoDriver_Setup_41000_20260716.exe；安装说明与版本记录随包保留。",
+      "sourcePage": "https://www.prolific.com.tw/portfolio-item/pl2303ge/",
+      "sourceUrl": "https://www.prolific.com.tw/wp-content/uploads/2026/10/PL23XX-M_LogoDriver_Setup_41000_20260716.zip",
+      "signature": "Prolific 原厂安装器签名验证有效",
+      "ids": [
+        "VID_067B&PID_2303"
+      ],
+      "notes": "不要把此包当作所有 PL2303 旧芯片的修复工具；HXA / XA 等旧型号及 TA / TB 的支持受系统版本限制，先看原厂说明。",
+      "bytes": 13532085,
+      "sha256": "15bcbc7837600bc037d9c08e1fb180252553eee673ff92c4d3a391c264a3bced",
+      "url": "/downloads/drivers/PL23XX-M-4.10.0.0.zip",
+      "checked": "2026-11-09"
+    }
+  ],
+  "external": [
+    {
+      "id": "cp210x",
+      "title": "CP210x / CP2102 / CP2102N",
+      "vendor": "Silicon Labs",
+      "version": "11.6.0",
+      "system": "Windows 10 1803+（x86、x64） / 11（x64）",
+      "url": "https://www.silabs.com/documents/public/software/CP210x_Universal_Windows_Driver.zip",
+      "sourcePage": "https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers",
+      "label": "下载原厂 ZIP",
+      "reason": "直接下载 Silicon Labs 原厂 ZIP，无需进入厂商页面查找。按原厂许可使用；本站不再分发此文件。",
+      "install": "解压整个文件夹。右键 silabser.inf → 安装；Windows 11 可先点“显示更多选项”。也可在设备管理器中选择设备 → 更新驱动程序 → 浏览我的电脑，指定解压目录并勾选“包括子文件夹”。",
+      "bytes": 292464,
+      "sha256": "6d9259475219c8c6cc19512053e96d435ebbada3d90457fba7d49ee8d524ba98",
+      "checked": "2026-11-09",
+      "file": "CP210x_Universal_Windows_Driver.zip"
+    },
+    {
+      "id": "ftdi",
+      "title": "FT232 / FT231X / FT2232 / FT4232",
+      "vendor": "FTDI",
+      "version": "2.12.36.20",
+      "system": "Windows 11（x64） / 10（x86、x64）",
+      "url": "https://www.ftdichip.cn/Drivers/CDM/CDM-v2.12.36.20-WHQL-Certified.zip",
+      "sourcePage": "https://www.ftdichip.cn/Drivers/VCP.htm",
+      "label": "下载原厂 ZIP",
+      "reason": "直接下载 FTDI 官方中文站 ZIP，已核对两个驱动目录签名。按包内许可用于正版 FTDI 芯片；本站不再分发此文件。",
+      "install": "解压完整 ZIP。在设备管理器中选择对应设备 → 更新驱动程序 → 浏览我的电脑，指定解压目录并勾选“包括子文件夹”。若随后仍出现未识别的 USB Serial Port，对该设备重复一次；请勿删除或修改 INF / CAT 文件。",
+      "bytes": 1628167,
+      "sha256": "e8ebf401d06994183694d78e5855ed5ab026bdfa8c3d4e4ccde09ec238a0eaf1",
+      "checked": "2026-11-09",
+      "file": "CDM-v2.12.36.20-WHQL-Certified.zip"
+    }
+  ],
+  "bundle": {
+    "file": "CK-USB-Drivers-Windows-20261109.zip",
+    "url": "/downloads/drivers/CK-USB-Drivers-Windows-20261109.zip",
+    "bytes": 14882238,
+    "sha256": "c32bca361b2bb75103cd7f852d40d3e5e868a79a27d27bd97c3c7119e2d666fd"
+  }
+}

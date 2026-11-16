@@ -1,0 +1,53 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { build } from 'esbuild';
+import { fileURLToPath } from 'node:url';
+import { unlink } from 'node:fs/promises';
+import { JSDOM } from 'jsdom';
+import React, { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import i18next from 'i18next';
+import { initReactI18next } from 'react-i18next';
+await i18next.use(initReactI18next).init({ lng: 'en-US', resources: { 'en-US': { health: { codePreview: { resize: 'Resize code preview' } } } } });
+const out = new URL(`./.code-preview-test-${process.pid}.mjs`, import.meta.url);
+await build({ entryPoints: [fileURLToPath(new URL('./CodePreviewDock.tsx', import.meta.url))], bundle: true, platform: 'node', format: 'esm', packages: 'external', outfile: fileURLToPath(out) });
+let module;
+try { module = await import(out.href); } finally { await unlink(out); }
+test('code width clamps both directions and reserves 360 pixels for Blockly', () => {
+    const clamp = module.clampCodePreviewWidth;
+    assert.equal(clamp(340, 1024), 340);
+    assert.equal(clamp(450, 1024), 450);
+    assert.equal(clamp(300, 1024), 300);
+    assert.equal(clamp(100, 1024), 260);
+    assert.equal(clamp(2000, 1920), 900);
+    for (const available of [500, 674, 1024, 1366, 1920]) assert.ok(available - clamp(2000, available) >= 360);
+});
+
+test('pointer drag and keyboard resize relayout the dock without changing its source', async () => {
+    const dom = new JSDOM('<div id="root"></div>');
+    globalThis.window = dom.window; globalThis.document = dom.window.document;
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    globalThis.MutationObserver = dom.window.MutationObserver;
+    globalThis.ResizeObserver = class { observe() {} disconnect() {} };
+    const host = document.getElementById('root');
+    Object.defineProperty(host, 'clientWidth', { value: 1024 });
+    const root = createRoot(host);
+    let layouts = 0;
+    const code = 'pinMode(13, OUTPUT);';
+    await act(async () => root.render(React.createElement(module.CodePreviewDock, { onLayout: () => layouts++ }, React.createElement('pre', null, code))));
+    const dock = host.querySelector('aside');
+    const handle = host.querySelector('[role="separator"]');
+    handle.setPointerCapture = () => {}; handle.hasPointerCapture = () => false;
+    const pointer = async (type, x) => act(async () => handle.dispatchEvent(new dom.window.MouseEvent(type, { bubbles: true, clientX: x, button: 0 })));
+    assert.equal(dock.style.width, '340px');
+    await pointer('pointerdown', 700); await pointer('pointermove', 600); await pointer('pointerup', 600);
+    assert.equal(dock.style.width, '440px');
+    await pointer('pointerdown', 600); await pointer('pointermove', 900); await pointer('pointerup', 900);
+    assert.equal(dock.style.width, '260px');
+    await act(async () => handle.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'End', bubbles: true })));
+    assert.equal(dock.style.width, '664px');
+    assert.equal(host.querySelector('pre').textContent, code);
+    assert.ok(layouts >= 3);
+    await act(async () => root.unmount());
+    dom.window.close();
+});

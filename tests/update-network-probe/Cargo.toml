@@ -1,0 +1,10 @@
+[package]
+name = "ck-update-network-probe"
+version = "0.1.0"
+edition = "2021"
+[workspace]
+[dependencies]
+reqwest = { version = "=0.12.28", features = ["json", "stream", "rustls-tls"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+serde_json = "1"
+ck-update-protocol = { path = "../../update-protocol" }

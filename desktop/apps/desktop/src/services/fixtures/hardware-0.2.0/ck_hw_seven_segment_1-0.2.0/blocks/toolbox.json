@@ -1,0 +1,25 @@
+[
+  {
+    "kind": "category",
+    "name": "1 位裸数码管",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_seven_segment_1_begin"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_seven_segment_1_number"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_seven_segment_1_refresh"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_seven_segment_1_blank"
+      }
+    ]
+  }
+]

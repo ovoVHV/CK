@@ -1,0 +1,2 @@
+# Preserve the byte identities of the frozen source and imported resources.
+* -text

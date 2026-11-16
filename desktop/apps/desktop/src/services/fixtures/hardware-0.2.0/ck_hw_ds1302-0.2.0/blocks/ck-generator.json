@@ -1,0 +1,40 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_ds1302_begin",
+      "kind": "statement",
+      "template": "ckKitRtcBegin({{field:IO}}, {{field:CLK}}, {{field:CE}});",
+      "includes": {
+        "driver": "#include <CKKitDs1302.h>"
+      }
+    },
+    {
+      "type": "ck_hw_ds1302_set",
+      "kind": "statement",
+      "template": "ckKitRtcSet({{field:YEAR}}, {{field:MONTH}}, {{field:DAY}}, {{field:HOUR}}, {{field:MINUTE}}, {{field:SECOND}});",
+      "includes": {
+        "driver": "#include <CKKitDs1302.h>"
+      }
+    },
+    {
+      "type": "ck_hw_ds1302_read",
+      "kind": "expression",
+      "template": "ckKitRtcRead({{field:ITEM}})",
+      "includes": {
+        "driver": "#include <CKKitDs1302.h>"
+      },
+      "order": 0
+    },
+    {
+      "type": "ck_hw_ds1302_valid",
+      "kind": "expression",
+      "template": "ckKitRtcValid()",
+      "includes": {
+        "driver": "#include <CKKitDs1302.h>"
+      },
+      "order": 0
+    }
+  ]
+}

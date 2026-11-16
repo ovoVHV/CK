@@ -1,0 +1,844 @@
+[
+  {
+    "identity": {
+      "coreVersion": "1.8.8",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:nano:cpu=atmega328",
+      "mcu": "atmega328p",
+      "options": {
+        "cpu": "atmega328"
+      },
+      "variant": "eightanaloginputs"
+    },
+    "digital": 20,
+    "analog": 8,
+    "ports": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "analogGpio": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      -1,
+      -1
+    ],
+    "analogPins": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ],
+    "timers": [
+      {
+        "pin": 0,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 1,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 2,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 3,
+        "timer": "TIMER2B"
+      },
+      {
+        "pin": 4,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 5,
+        "timer": "TIMER0B"
+      },
+      {
+        "pin": 6,
+        "timer": "TIMER0A"
+      },
+      {
+        "pin": 7,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 8,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 9,
+        "timer": "TIMER1A"
+      },
+      {
+        "pin": 10,
+        "timer": "TIMER1B"
+      },
+      {
+        "pin": 11,
+        "timer": "TIMER2A"
+      },
+      {
+        "pin": 12,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 13,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 14,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 15,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 16,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 17,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 18,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 19,
+        "timer": "NOT_ON_TIMER"
+      }
+    ],
+    "toneTimer": "TIMER2",
+    "led": 13,
+    "spi": {
+      "ss": 10,
+      "sck": 13,
+      "mosi": 11,
+      "miso": 12
+    },
+    "i2c": {
+      "sda": 18,
+      "scl": 19
+    },
+    "runtimePreprocessedHashes": {
+      "wiring.c": "7c1cec06f4ad3180421c7aad27a99a06de5ea3ef98248c434253d374c766f1bc",
+      "wiring_analog.c": "56c629ff15ba44eebb1f8a01edc76235733c12327eff17b38372acfb65cba588",
+      "HardwareSerial0.cpp": "89dd9a2d2bff312f19d7fa73216441e234d51a691bf41133eacc538387e06d9c",
+      "Tone.cpp": "5d29bb4a2a4f81ecff8b7441bf5686b28743654a973599fb91346d9d297c9784"
+    },
+    "evidence": [
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/boards.txt",
+        "sha256": "e49283dc7a276291e24e91d04b883ea4e884ea2375ed80ede0d69cbf25d40a5d"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/platform.txt",
+        "sha256": "afc8745a57fcb6e88a818aebfdee241bf758c2f665cfd6541f00472809c5522a"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs/pins_arduino.h",
+        "sha256": "f781478ed9f9507b6553e44dc90873103ea84e654528dc0e34901a32bfee3149"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+        "sha256": "d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/Arduino.h",
+        "sha256": "335f45c59532cd7df39ce1435fbf1abf8d503d42ac6085a92e0f2ff75f5fffac"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+        "sha256": "586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+        "sha256": "af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial0.cpp",
+        "sha256": "388bd9bcd3ff9c2b30a1d6d9a14a4b61a5ab070cc8000f186138c0d15565adf6"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/Tone.cpp",
+        "sha256": "7c902769f0950fc26a1032258f526775d25ae61aca97de2036653459172f3d00"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.c",
+        "sha256": "846c0a685d1796990c8c5d06df4364fcf8d4657c2221161a613f8cafb232301d"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/libraries/SPI/src/SPI.cpp",
+        "sha256": "adae94aae5f04be3225a568a1ed932a917160c0859e51ee3850fa0da4cf4e345"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/io.h",
+        "sha256": "9f2e5d7f9b6251424bb0c52365bafda3a777c156479f11a4f1b44798a0c6331f"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/iom328p.h",
+        "sha256": "3613a1da7610c4afb1f9a774b88e066b5b555a791814ae9b89be84ec1f525837"
+      }
+    ]
+  },
+  {
+    "identity": {
+      "coreVersion": "1.8.8",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:nano:cpu=atmega328old",
+      "mcu": "atmega328p",
+      "options": {
+        "cpu": "atmega328old"
+      },
+      "variant": "eightanaloginputs"
+    },
+    "digital": 20,
+    "analog": 8,
+    "ports": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "analogGpio": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      -1,
+      -1
+    ],
+    "analogPins": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ],
+    "timers": [
+      {
+        "pin": 0,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 1,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 2,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 3,
+        "timer": "TIMER2B"
+      },
+      {
+        "pin": 4,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 5,
+        "timer": "TIMER0B"
+      },
+      {
+        "pin": 6,
+        "timer": "TIMER0A"
+      },
+      {
+        "pin": 7,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 8,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 9,
+        "timer": "TIMER1A"
+      },
+      {
+        "pin": 10,
+        "timer": "TIMER1B"
+      },
+      {
+        "pin": 11,
+        "timer": "TIMER2A"
+      },
+      {
+        "pin": 12,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 13,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 14,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 15,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 16,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 17,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 18,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 19,
+        "timer": "NOT_ON_TIMER"
+      }
+    ],
+    "toneTimer": "TIMER2",
+    "led": 13,
+    "spi": {
+      "ss": 10,
+      "sck": 13,
+      "mosi": 11,
+      "miso": 12
+    },
+    "i2c": {
+      "sda": 18,
+      "scl": 19
+    },
+    "runtimePreprocessedHashes": {
+      "wiring.c": "7c1cec06f4ad3180421c7aad27a99a06de5ea3ef98248c434253d374c766f1bc",
+      "wiring_analog.c": "56c629ff15ba44eebb1f8a01edc76235733c12327eff17b38372acfb65cba588",
+      "HardwareSerial0.cpp": "89dd9a2d2bff312f19d7fa73216441e234d51a691bf41133eacc538387e06d9c",
+      "Tone.cpp": "5d29bb4a2a4f81ecff8b7441bf5686b28743654a973599fb91346d9d297c9784"
+    },
+    "evidence": [
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/boards.txt",
+        "sha256": "e49283dc7a276291e24e91d04b883ea4e884ea2375ed80ede0d69cbf25d40a5d"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/platform.txt",
+        "sha256": "afc8745a57fcb6e88a818aebfdee241bf758c2f665cfd6541f00472809c5522a"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs/pins_arduino.h",
+        "sha256": "f781478ed9f9507b6553e44dc90873103ea84e654528dc0e34901a32bfee3149"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+        "sha256": "d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/Arduino.h",
+        "sha256": "335f45c59532cd7df39ce1435fbf1abf8d503d42ac6085a92e0f2ff75f5fffac"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+        "sha256": "586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+        "sha256": "af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial0.cpp",
+        "sha256": "388bd9bcd3ff9c2b30a1d6d9a14a4b61a5ab070cc8000f186138c0d15565adf6"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/Tone.cpp",
+        "sha256": "7c902769f0950fc26a1032258f526775d25ae61aca97de2036653459172f3d00"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.c",
+        "sha256": "846c0a685d1796990c8c5d06df4364fcf8d4657c2221161a613f8cafb232301d"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/libraries/SPI/src/SPI.cpp",
+        "sha256": "adae94aae5f04be3225a568a1ed932a917160c0859e51ee3850fa0da4cf4e345"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/io.h",
+        "sha256": "9f2e5d7f9b6251424bb0c52365bafda3a777c156479f11a4f1b44798a0c6331f"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/iom328p.h",
+        "sha256": "3613a1da7610c4afb1f9a774b88e066b5b555a791814ae9b89be84ec1f525837"
+      }
+    ]
+  },
+  {
+    "identity": {
+      "coreVersion": "1.8.8",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:nano:cpu=atmega168",
+      "mcu": "atmega168",
+      "options": {
+        "cpu": "atmega168"
+      },
+      "variant": "eightanaloginputs"
+    },
+    "digital": 20,
+    "analog": 8,
+    "ports": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "analogGpio": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      -1,
+      -1
+    ],
+    "analogPins": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ],
+    "timers": [
+      {
+        "pin": 0,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 1,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 2,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 3,
+        "timer": "TIMER2B"
+      },
+      {
+        "pin": 4,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 5,
+        "timer": "TIMER0B"
+      },
+      {
+        "pin": 6,
+        "timer": "TIMER0A"
+      },
+      {
+        "pin": 7,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 8,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 9,
+        "timer": "TIMER1A"
+      },
+      {
+        "pin": 10,
+        "timer": "TIMER1B"
+      },
+      {
+        "pin": 11,
+        "timer": "TIMER2A"
+      },
+      {
+        "pin": 12,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 13,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 14,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 15,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 16,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 17,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 18,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 19,
+        "timer": "NOT_ON_TIMER"
+      }
+    ],
+    "toneTimer": "TIMER2",
+    "led": 13,
+    "spi": {
+      "ss": 10,
+      "sck": 13,
+      "mosi": 11,
+      "miso": 12
+    },
+    "i2c": {
+      "sda": 18,
+      "scl": 19
+    },
+    "runtimePreprocessedHashes": {
+      "wiring.c": "a67f5bc0534cd19831315be7fee09ca3907882db5bcabbf21d0f306882124f22",
+      "wiring_analog.c": "045f91a6ddf564115cab73858631a9b07ffe9a68806b97b49e6a861ede9e691a",
+      "HardwareSerial0.cpp": "f7372e6909541455958577ac3860975fc9c75bb48b3ea62cae50943d157837a1",
+      "Tone.cpp": "7d1b33f9f9683026c885ae2ca06038e2523c2daf4f1bb237d142d2d6a8eb0ad4"
+    },
+    "evidence": [
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/boards.txt",
+        "sha256": "e49283dc7a276291e24e91d04b883ea4e884ea2375ed80ede0d69cbf25d40a5d"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/platform.txt",
+        "sha256": "afc8745a57fcb6e88a818aebfdee241bf758c2f665cfd6541f00472809c5522a"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs/pins_arduino.h",
+        "sha256": "f781478ed9f9507b6553e44dc90873103ea84e654528dc0e34901a32bfee3149"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+        "sha256": "d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/Arduino.h",
+        "sha256": "335f45c59532cd7df39ce1435fbf1abf8d503d42ac6085a92e0f2ff75f5fffac"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+        "sha256": "586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+        "sha256": "af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial0.cpp",
+        "sha256": "388bd9bcd3ff9c2b30a1d6d9a14a4b61a5ab070cc8000f186138c0d15565adf6"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/Tone.cpp",
+        "sha256": "7c902769f0950fc26a1032258f526775d25ae61aca97de2036653459172f3d00"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.c",
+        "sha256": "846c0a685d1796990c8c5d06df4364fcf8d4657c2221161a613f8cafb232301d"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/libraries/SPI/src/SPI.cpp",
+        "sha256": "adae94aae5f04be3225a568a1ed932a917160c0859e51ee3850fa0da4cf4e345"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/io.h",
+        "sha256": "9f2e5d7f9b6251424bb0c52365bafda3a777c156479f11a4f1b44798a0c6331f"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/iom168.h",
+        "sha256": "9e271eb6c400f9aed08e8b3964da97d36bc75d40b41db78340b2e16e0b83336b"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/iomx8.h",
+        "sha256": "9436c39f0bba0220dbf1e4e456e58964ae340f75f9b358f677bf301bcaf02326"
+      }
+    ]
+  },
+  {
+    "identity": {
+      "coreVersion": "1.8.8",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:nano",
+      "mcu": "atmega328p",
+      "options": {},
+      "variant": "eightanaloginputs"
+    },
+    "digital": 20,
+    "analog": 8,
+    "ports": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "analogGpio": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      -1,
+      -1
+    ],
+    "analogPins": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ],
+    "timers": [
+      {
+        "pin": 0,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 1,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 2,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 3,
+        "timer": "TIMER2B"
+      },
+      {
+        "pin": 4,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 5,
+        "timer": "TIMER0B"
+      },
+      {
+        "pin": 6,
+        "timer": "TIMER0A"
+      },
+      {
+        "pin": 7,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 8,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 9,
+        "timer": "TIMER1A"
+      },
+      {
+        "pin": 10,
+        "timer": "TIMER1B"
+      },
+      {
+        "pin": 11,
+        "timer": "TIMER2A"
+      },
+      {
+        "pin": 12,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 13,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 14,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 15,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 16,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 17,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 18,
+        "timer": "NOT_ON_TIMER"
+      },
+      {
+        "pin": 19,
+        "timer": "NOT_ON_TIMER"
+      }
+    ],
+    "toneTimer": "TIMER2",
+    "led": 13,
+    "spi": {
+      "ss": 10,
+      "sck": 13,
+      "mosi": 11,
+      "miso": 12
+    },
+    "i2c": {
+      "sda": 18,
+      "scl": 19
+    },
+    "runtimePreprocessedHashes": {
+      "wiring.c": "7c1cec06f4ad3180421c7aad27a99a06de5ea3ef98248c434253d374c766f1bc",
+      "wiring_analog.c": "56c629ff15ba44eebb1f8a01edc76235733c12327eff17b38372acfb65cba588",
+      "HardwareSerial0.cpp": "89dd9a2d2bff312f19d7fa73216441e234d51a691bf41133eacc538387e06d9c",
+      "Tone.cpp": "5d29bb4a2a4f81ecff8b7441bf5686b28743654a973599fb91346d9d297c9784"
+    },
+    "evidence": [
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/boards.txt",
+        "sha256": "e49283dc7a276291e24e91d04b883ea4e884ea2375ed80ede0d69cbf25d40a5d"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/platform.txt",
+        "sha256": "afc8745a57fcb6e88a818aebfdee241bf758c2f665cfd6541f00472809c5522a"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs/pins_arduino.h",
+        "sha256": "f781478ed9f9507b6553e44dc90873103ea84e654528dc0e34901a32bfee3149"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+        "sha256": "d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/Arduino.h",
+        "sha256": "335f45c59532cd7df39ce1435fbf1abf8d503d42ac6085a92e0f2ff75f5fffac"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+        "sha256": "586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+        "sha256": "af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial0.cpp",
+        "sha256": "388bd9bcd3ff9c2b30a1d6d9a14a4b61a5ab070cc8000f186138c0d15565adf6"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/cores/arduino/Tone.cpp",
+        "sha256": "7c902769f0950fc26a1032258f526775d25ae61aca97de2036653459172f3d00"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.c",
+        "sha256": "846c0a685d1796990c8c5d06df4364fcf8d4657c2221161a613f8cafb232301d"
+      },
+      {
+        "path": "packages/arduino/hardware/avr/1.8.8/libraries/SPI/src/SPI.cpp",
+        "sha256": "adae94aae5f04be3225a568a1ed932a917160c0859e51ee3850fa0da4cf4e345"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/io.h",
+        "sha256": "9f2e5d7f9b6251424bb0c52365bafda3a777c156479f11a4f1b44798a0c6331f"
+      },
+      {
+        "path": "packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include/avr/iom328p.h",
+        "sha256": "3613a1da7610c4afb1f9a774b88e066b5b555a791814ae9b89be84ec1f525837"
+      }
+    ]
+  }
+]

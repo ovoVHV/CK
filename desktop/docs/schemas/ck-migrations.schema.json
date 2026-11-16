@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-migrations-v1.schema.json",
+  "title": "CK Declarative Blockly Package Migrations v1",
+  "description": "Deterministic, data-only Blockly workspace migrations. Executable code and unknown properties are forbidden.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "package_id", "migrations"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "package_id": { "$ref": "#/$defs/packageId" },
+    "migrations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/migration" }
+    }
+  },
+  "$defs": {
+    "packageId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    },
+    "versionSelector": {
+      "description": "An exact SemVer or a whitespace-separated AND set of explicit SemVer comparators. OR, wildcard, hyphen, caret and tilde ranges are intentionally unsupported in v1.",
+      "anyOf": [
+        { "$ref": "#/$defs/semver" },
+        {
+          "type": "string",
+          "pattern": "^(?:(?:<=|>=|<|>|=)(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-(?:(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+(?:[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?)(?:\\s+(?:(?:<=|>=|<|>|=)(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-(?:(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+(?:[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?))*$"
+        }
+      ]
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "blockType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+    },
+    "fieldName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^\\S(?:[\\s\\S]*\\S)?$"
+    },
+    "jsonScalar": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "null" }
+      ]
+    },
+    "enumMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "$ref": "#/$defs/jsonScalar" },
+        "to": { "$ref": "#/$defs/jsonScalar" }
+      }
+    },
+    "renameBlockType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "from", "to"],
+      "properties": {
+        "op": { "const": "renameBlockType" },
+        "from": { "$ref": "#/$defs/blockType" },
+        "to": { "$ref": "#/$defs/blockType" }
+      }
+    },
+    "renameField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "block_type", "from", "to"],
+      "properties": {
+        "op": { "const": "renameField" },
+        "block_type": { "$ref": "#/$defs/blockType" },
+        "from": { "$ref": "#/$defs/fieldName" },
+        "to": { "$ref": "#/$defs/fieldName" }
+      }
+    },
+    "mapEnum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "block_type", "field", "mappings"],
+      "properties": {
+        "op": { "const": "mapEnum" },
+        "block_type": { "$ref": "#/$defs/blockType" },
+        "field": { "$ref": "#/$defs/fieldName" },
+        "mappings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/enumMapping" }
+        }
+      }
+    },
+    "operation": {
+      "oneOf": [
+        { "$ref": "#/$defs/renameBlockType" },
+        { "$ref": "#/$defs/renameField" },
+        { "$ref": "#/$defs/mapEnum" }
+      ]
+    },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "operations"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "from": { "$ref": "#/$defs/versionSelector" },
+        "to": { "$ref": "#/$defs/semver" },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": { "$ref": "#/$defs/operation" }
+        }
+      }
+    }
+  }
+}

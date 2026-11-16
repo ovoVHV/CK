@@ -1,0 +1,750 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_seven_segment_1",
+  "display_name": "CK 1 位裸数码管",
+  "description": "1 位裸数码管独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_seven_segment_1",
+    "1 位裸数码管",
+    "1-Digit Bare Seven-Segment Display"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [
+    {
+      "kind": "arduino-library",
+      "id": "SevSeg",
+      "version": "3.7.0",
+      "headers": [
+        "SevSeg.h"
+      ],
+      "optional": false,
+      "reason": "Pinned upstream implementation; installed separately."
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_seven_segment_1_begin",
+      "display_name": "初始化 1 位数码管",
+      "description": "初始化 1 位数码管",
+      "category": "1 位裸数码管",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_seven_segment_1",
+        "1 位裸数码管",
+        "1-Digit Bare Seven-Segment Display"
+      ],
+      "semantics": {
+        "purpose": "初始化 1 位数码管",
+        "behavior": "初始化 1 位数码管。这是 1 位裸数码管，不是 TM1637/MAX7219。初始化须选择共阳/共阴，按 a,b,c,d,e,f,g,dp 和位选配线，不猜器件脚号。所有段必须限流，位选电流需要时加驱动。循环中必须调用刷新，delay/阻塞会闪烁。本包控制一个显示器。",
+        "side_effects": [
+          "Explicit initialization of user-configured pins / peripheral."
+        ],
+        "concepts": [
+          "ck_hw_seven_segment_1"
+        ]
+      },
+      "fields": [
+        {
+          "name": "COMMON",
+          "kind": "dropdown",
+          "description": "公共极",
+          "required": true,
+          "default": "COMMON_CATHODE",
+          "options": [
+            {
+              "label": "共阴",
+              "value": "COMMON_CATHODE"
+            },
+            {
+              "label": "共阳",
+              "value": "COMMON_ANODE"
+            }
+          ]
+        },
+        {
+          "name": "RESISTORS",
+          "kind": "dropdown",
+          "description": "电阻位置",
+          "required": true,
+          "default": "1",
+          "options": [
+            {
+              "label": "每段",
+              "value": "1"
+            },
+            {
+              "label": "每位",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "name": "A",
+          "kind": "number",
+          "description": "A",
+          "required": true,
+          "default": 2
+        },
+        {
+          "name": "B",
+          "kind": "number",
+          "description": "B",
+          "required": true,
+          "default": 3
+        },
+        {
+          "name": "C",
+          "kind": "number",
+          "description": "C",
+          "required": true,
+          "default": 4
+        },
+        {
+          "name": "D",
+          "kind": "number",
+          "description": "D",
+          "required": true,
+          "default": 5
+        },
+        {
+          "name": "E",
+          "kind": "number",
+          "description": "E",
+          "required": true,
+          "default": 6
+        },
+        {
+          "name": "F",
+          "kind": "number",
+          "description": "F",
+          "required": true,
+          "default": 7
+        },
+        {
+          "name": "G",
+          "kind": "number",
+          "description": "G",
+          "required": true,
+          "default": 8
+        },
+        {
+          "name": "DP",
+          "kind": "number",
+          "description": "DP",
+          "required": true,
+          "default": 9
+        },
+        {
+          "name": "DIGIT1",
+          "kind": "number",
+          "description": "DIGIT1",
+          "required": true,
+          "default": 10
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitSegment1.h",
+          "headers": [
+            "CKKitSegment1.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "SevSeg",
+          "version": "3.7.0",
+          "headers": [
+            "SevSeg.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "a",
+            "source": {
+              "kind": "field",
+              "name": "A"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: A"
+          },
+          {
+            "kind": "gpio",
+            "id": "b",
+            "source": {
+              "kind": "field",
+              "name": "B"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: B"
+          },
+          {
+            "kind": "gpio",
+            "id": "c",
+            "source": {
+              "kind": "field",
+              "name": "C"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C"
+          },
+          {
+            "kind": "gpio",
+            "id": "d",
+            "source": {
+              "kind": "field",
+              "name": "D"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: D"
+          },
+          {
+            "kind": "gpio",
+            "id": "e",
+            "source": {
+              "kind": "field",
+              "name": "E"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: E"
+          },
+          {
+            "kind": "gpio",
+            "id": "f",
+            "source": {
+              "kind": "field",
+              "name": "F"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: F"
+          },
+          {
+            "kind": "gpio",
+            "id": "g",
+            "source": {
+              "kind": "field",
+              "name": "G"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: G"
+          },
+          {
+            "kind": "gpio",
+            "id": "dp",
+            "source": {
+              "kind": "field",
+              "name": "DP"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: DP"
+          },
+          {
+            "kind": "gpio",
+            "id": "digit1",
+            "source": {
+              "kind": "field",
+              "name": "DIGIT1"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: DIGIT1"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "a-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "A",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "b-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "B",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "d-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "D",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "e-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "E",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "f-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "F",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "g-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "G",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "dp-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "DP",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "digit1-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "DIGIT1",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitSegment1.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "初始化 1 位数码管",
+            "template": "ckKitSegment1Begin({{field:COMMON}}, {{field:RESISTORS}}, {{field:A}}, {{field:B}}, {{field:C}}, {{field:D}}, {{field:E}}, {{field:F}}, {{field:G}}, {{field:DP}}, {{field:DIGIT1}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_seven_segment_1_begin-example",
+          "title": "初始化 1 位数码管",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "COMMON": "COMMON_CATHODE",
+            "RESISTORS": "1",
+            "A": 2,
+            "B": 3,
+            "C": 4,
+            "D": 5,
+            "E": 6,
+            "F": 7,
+            "G": 8,
+            "DP": 9,
+            "DIGIT1": 10
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_seven_segment_1_number",
+      "display_name": "1 位数码管显示数字",
+      "description": "1 位数码管显示数字",
+      "category": "1 位裸数码管",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_seven_segment_1",
+        "1 位裸数码管",
+        "1-Digit Bare Seven-Segment Display"
+      ],
+      "semantics": {
+        "purpose": "1 位数码管显示数字",
+        "behavior": "1 位数码管显示数字。这是 1 位裸数码管，不是 TM1637/MAX7219。初始化须选择共阳/共阴，按 a,b,c,d,e,f,g,dp 和位选配线，不猜器件脚号。所有段必须限流，位选电流需要时加驱动。循环中必须调用刷新，delay/阻塞会闪烁。本包控制一个显示器。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_seven_segment_1"
+        ]
+      },
+      "fields": [
+        {
+          "name": "DECIMALS",
+          "kind": "number",
+          "description": "小数位数",
+          "required": true,
+          "default": 0
+        }
+      ],
+      "inputs": [
+        {
+          "name": "NUMBER",
+          "kind": "value",
+          "description": "数字",
+          "required": true,
+          "check": "Number",
+          "default": 8
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitSegment1.h",
+          "headers": [
+            "CKKitSegment1.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "SevSeg",
+          "version": "3.7.0",
+          "headers": [
+            "SevSeg.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitSegment1.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "1 位数码管显示数字",
+            "template": "ckKitSegment1Number({{value:NUMBER}}, {{field:DECIMALS}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_seven_segment_1_number-example",
+          "title": "1 位数码管显示数字",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "DECIMALS": 0
+          },
+          "input_values": {
+            "NUMBER": 8
+          },
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_seven_segment_1_refresh",
+      "display_name": "刷新 1 位数码管（循环调用）",
+      "description": "刷新 1 位数码管（循环调用）",
+      "category": "1 位裸数码管",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_seven_segment_1",
+        "1 位裸数码管",
+        "1-Digit Bare Seven-Segment Display"
+      ],
+      "semantics": {
+        "purpose": "刷新 1 位数码管（循环调用）",
+        "behavior": "刷新 1 位数码管（循环调用）。这是 1 位裸数码管，不是 TM1637/MAX7219。初始化须选择共阳/共阴，按 a,b,c,d,e,f,g,dp 和位选配线，不猜器件脚号。所有段必须限流，位选电流需要时加驱动。循环中必须调用刷新，delay/阻塞会闪烁。本包控制一个显示器。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_seven_segment_1"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitSegment1.h",
+          "headers": [
+            "CKKitSegment1.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "SevSeg",
+          "version": "3.7.0",
+          "headers": [
+            "SevSeg.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitSegment1.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "刷新 1 位数码管（循环调用）",
+            "template": "ckKitSegment1Refresh();"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_seven_segment_1_refresh-example",
+          "title": "刷新 1 位数码管（循环调用）",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_seven_segment_1_blank",
+      "display_name": "熄灭 1 位数码管",
+      "description": "熄灭 1 位数码管",
+      "category": "1 位裸数码管",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_seven_segment_1",
+        "1 位裸数码管",
+        "1-Digit Bare Seven-Segment Display"
+      ],
+      "semantics": {
+        "purpose": "熄灭 1 位数码管",
+        "behavior": "熄灭 1 位数码管。这是 1 位裸数码管，不是 TM1637/MAX7219。初始化须选择共阳/共阴，按 a,b,c,d,e,f,g,dp 和位选配线，不猜器件脚号。所有段必须限流，位选电流需要时加驱动。循环中必须调用刷新，delay/阻塞会闪烁。本包控制一个显示器。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_seven_segment_1"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitSegment1.h",
+          "headers": [
+            "CKKitSegment1.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "SevSeg",
+          "version": "3.7.0",
+          "headers": [
+            "SevSeg.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitSegment1.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "熄灭 1 位数码管",
+            "template": "ckKitSegment1Blank();"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_seven_segment_1_blank-example",
+          "title": "熄灭 1 位数码管",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

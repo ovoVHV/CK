@@ -1,0 +1,726 @@
+{
+  "common": {
+    "actions": {
+      "cancel": "Cancel",
+      "close": "Close",
+      "confirm": "Confirm",
+      "gotIt": "Got it",
+      "save": "Save",
+      "delete": "Delete",
+      "rename": "Rename",
+      "more": "More actions",
+      "copyPath": "Copy path",
+      "openFolder": "Show in folder",
+      "back": "Back",
+      "remove": "Remove",
+      "refresh": "Refresh"
+    },
+    "status": {
+      "loading": "Loading…",
+      "processing": "Processing…",
+      "error": "Error"
+    }
+  },
+  "dialog": {
+    "confirm": {
+      "title": "Confirm action",
+      "warningTitle": "Confirm risk",
+      "dangerTitle": "Confirm dangerous action"
+    },
+    "message": {
+      "infoTitle": "Notice",
+      "successTitle": "Action completed",
+      "warningTitle": "Please note",
+      "errorTitle": "Something went wrong",
+      "inputLabel": "Input"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "openAria": "Open settings",
+    "language": {
+      "title": "Language",
+      "description": "Choose the interface and block display languages separately.",
+      "interfaceLanguage": "Interface language",
+      "interfaceLabel": "Interface language",
+      "blockLanguage": "Block language",
+      "blockLabel": "Block language",
+      "simplifiedChinese": "Simplified Chinese",
+      "english": "English",
+      "options": {
+        "zhCN": "Simplified Chinese",
+        "enUS": "English"
+      },
+      "followInterface": "Follow interface language",
+      "blockLanguageComingSoon": "Block language switching will be available in a future release",
+      "blockDeferred": "Independent selection will be available later",
+      "blockDescription": "Changes block presentation only; project meaning and generated code stay unchanged."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "menuTitle": "Appearance…",
+      "menuDescription": "Interface theme and block skin",
+      "subtitle": "Configure interface brightness and block skins separately. These settings do not change projects or generated code.",
+      "closeAria": "Close appearance settings",
+      "interfaceTheme": {
+        "title": "Interface theme",
+        "current": "Controls the app interface and workspace background. Currently {{theme}}.",
+        "triggerTitle": "Interface theme: {{selected}} (currently {{resolved}})",
+        "selectAria": "Select interface theme",
+        "options": {
+          "light": {
+            "label": "Light",
+            "description": "Bright and clear for daytime use"
+          },
+          "dark": {
+            "label": "Dark",
+            "description": "Reduces brightness for nighttime use"
+          },
+          "system": {
+            "label": "Use system setting",
+            "description": "Matches the Windows appearance automatically"
+          }
+        }
+      },
+      "blockSkin": {
+        "title": "Block skin",
+        "changed": "Block skin changed to {{skin}}",
+        "description": "Applies to the workspace, toolbox categories, Quick Blocks, recently used blocks, and pinned previews.",
+        "selectAria": "Select a block skin",
+        "styles": {
+          "original": {
+            "label": "Original CK",
+            "description": "Uses CK’s default colors and clean edge treatment"
+          },
+          "pastel": {
+            "label": "Pastel candy",
+            "description": "Soft, clean colors and rounded light fields for teaching and everyday creation"
+          },
+          "arcade": {
+            "label": "Retro arcade",
+            "description": "Stepped highlights, hard outlines, and chunky pixel-toy depth"
+          },
+          "sticker": {
+            "label": "Scrapbook collage",
+            "description": "Paper grain, fine stitching, and warm shadows with multicolor categories"
+          },
+          "neon": {
+            "label": "Neon glow",
+            "description": "Dark blocks with glowing edges, without harsh full-surface highlights"
+          },
+          "mono": {
+            "label": "Graphite grayscale",
+            "description": "Low-distraction grayscale for focused code reading"
+          }
+        }
+      },
+      "footer": "Changes apply immediately and are saved automatically. You do not need to reopen the project."
+    }
+  },
+  "dashboard": {
+    "header": {
+      "subtitle": "Hardware development workspace · {{itemCount}}",
+      "projectCount_one": "{{count}} project",
+      "projectCount_other": "{{count}} projects",
+      "caseCount_one": "{{count}} example",
+      "caseCount_other": "{{count}} examples",
+      "connectDevice": "Connect device"
+    },
+    "search": {
+      "placeholder": "Search projects or boards…"
+    },
+    "sidebar": {
+      "resourceManager": "Resource manager",
+      "myProjects": "My projects",
+      "componentLibrary": "Blocks & libraries",
+      "recentlyOpened": "Recently opened",
+      "hardwareEcosystem": "Learn & support",
+      "communityExamples": "Example projects",
+      "wiki": "Getting started",
+      "driverDownloads": "USB & drivers"
+    },
+    "release": {
+      "openAria": "View release notes",
+      "title": "Release notes",
+      "latestTitle": "Classroom Beta: Project Health, Serial Monitor, and workspace updates",
+      "summary": "Breakpoints now support AVR, ESP32, and ESP8266, with continue, step, and reliable stop controls.",
+      "viewDetails": "View details"
+    },
+    "hero": {
+      "eyebrow": "Workspace",
+      "continueTitle": "Continue: {{projectName}}",
+      "startTitle": "Start a new project",
+      "lastModified": "{{boardName}} · Last modified {{date}}",
+      "startDescription": "Create, import, or open a project to start building hardware logic."
+    },
+    "actions": {
+      "continueProject": "Continue project",
+      "newProject": "New project",
+      "newProjectDescription": "Create a new project",
+      "openExamplesFolder": "Open examples folder",
+      "exitMultiSelect": "Exit multi-select",
+      "selectMultiple": "Select multiple",
+      "deselectAll": "Deselect all",
+      "selectAllCurrent": "Select all shown",
+      "loadMore_one": "Load more ({{count}} remaining)",
+      "loadMore_other": "Load more ({{count}} remaining)"
+    },
+    "pinned": {
+      "title": "Pinned projects",
+      "open": "Open pinned project: {{projectName}}",
+      "count_one": "{{count}} pinned",
+      "count_other": "{{count}} pinned"
+    },
+    "view": {
+      "switchToList": "Switch to list view",
+      "switchToGrid": "Switch to grid view",
+      "list": "List",
+      "grid": "Grid"
+    },
+    "selection": {
+      "selected_one": "{{count}} item selected",
+      "selected_other": "{{count}} items selected"
+    },
+    "empty": {
+      "noProjects": "No projects found",
+      "noExamples": "No local examples yet. Explore CK LAB to get started."
+    },
+    "table": {
+      "select": "Select",
+      "projectName": "Project name",
+      "board": "Board",
+      "lastModified": "Last modified",
+      "actions": "Actions"
+    },
+    "dialog": {
+      "bulkDelete": {
+        "title": "Delete projects",
+        "message_one": "Are you sure you want to delete the selected {{count}} project?\nThis action cannot be undone.",
+        "message_other": "Are you sure you want to delete the selected {{count}} projects?\nThis action cannot be undone.",
+        "partialFailure": "Some projects could not be deleted"
+      }
+    },
+    "project": {
+      "missing": "Missing",
+      "boardMissing": "Board missing",
+      "pinned": "Pinned",
+      "pin": "Pin project",
+      "unpin": "Unpin project",
+      "unpinShort": "Unpin",
+      "pinNamed": "Pin {{projectName}}",
+      "unpinNamed": "Unpin {{projectName}}",
+      "pathCopied": "Path copied to the clipboard",
+      "copiedTitle": "Copied"
+    },
+    "storage": {
+      "title": "Project storage locations",
+      "openAria": "Open project storage locations",
+      "closeAria": "Close project storage locations",
+      "subtitle": "Manage dashboard scan locations and the default folder for new projects",
+      "description": "The dashboard scans every folder below. The first folder is used for new projects and as the default location for Open Project and Save As.",
+      "chooseFolder": "Select project folder",
+      "loadingRoots": "Loading project folders…",
+      "empty": "No project folders. Add one to continue.",
+      "default": "Default",
+      "folderIndex": "Folder {{index}}",
+      "openInExplorer": "Show in Explorer: {{path}}",
+      "makeDefault": "Make default",
+      "removeHint": "Remove this folder from CK without deleting project files",
+      "removeAria": "Remove project folder: {{path}}",
+      "removeExplanation": "Removing a folder only hides its projects from CK. Files on disk are not deleted.",
+      "addFolder": "Add folder",
+      "saving": "Saving…",
+      "errors": {
+        "readRoots": "Could not read project folders: {{cause}}",
+        "readDiagnostics": "Could not read diagnostic paths: {{cause}}",
+        "chooseFolder": "Could not select the folder: {{cause}}",
+        "keepOne": "Keep at least one project folder.",
+        "saveRoots": "Could not save project folders: {{cause}}",
+        "openPath": "Could not open path: {{cause}}"
+      },
+      "diagnostics": {
+        "title": "Advanced diagnostics",
+        "subtitle": "View the key runtime paths currently used by CK",
+        "notice": "This view is read-only. The former Defender allowlist accelerator was disabled because its result could not be verified reliably and its exclusions were too broad. CK does not change Windows security settings here.",
+        "pathsTitle": "Key runtime paths",
+        "pathsDescription": "Select an available path to show it in Explorer.",
+        "recheck": "Check again",
+        "loading": "Loading diagnostic paths…",
+        "empty": "No diagnostic paths to display.",
+        "openPath": "Open: {{path}}",
+        "missingPath": "Path not found: {{path}}",
+        "backToStorage": "Back to storage locations"
+      }
+    },
+    "actionModal": {
+      "deleteTitle": "Delete project",
+      "renameTitle": "Rename project",
+      "deletePrompt": "Delete {{projectName}}?",
+      "irreversible": "This action cannot be undone.",
+      "newName": "New name",
+      "confirmDelete": "Delete",
+      "saveChanges": "Save changes"
+    },
+    "resources": {
+      "labSubtitle": "Turn ideas into working hardware.",
+      "examplesHint": "Local .ck / .maker projects from your examples folder.",
+      "onlineExamples": "Explore CK LAB examples",
+      "readOnline": "Read the full CK LAB guide",
+      "openFailed": "Could not open the browser:",
+      "browserBlocked": "The browser blocked the new window. Allow the link to open.",
+      "guide": {
+        "title": "Start with your first block",
+        "intro": "Create, compile, and upload a project. This guide works offline. Always match the exact board and configuration to your hardware.",
+        "createTitle": "Create a project and choose a board",
+        "createBody": "Select New project, choose the actual board, and save. ESP32, S3, and C3 are different targets. For Nano, check the processor and bootloader options.",
+        "coreTitle": "Install the matching Core",
+        "coreBody": "Open Core manager from the new-project board screen. CK recommends 3.3.6-cn for ESP32; AVR uses Arduino AVR Boards. Compilation can detect the environment immediately after installation.",
+        "blocksTitle": "Build logic and inspect generated code",
+        "blocksBody": "Add setup and loop blocks, then input, output, or control logic. Manage extensions in Blocks & libraries. Compatibility of third-party blocks depends on the library declaration.",
+        "buildTitle": "Compile before uploading",
+        "buildBody": "Select Compile and inspect live output. The first build prepares dependencies. Later reuse depends on source, board configuration, toolchain, and cache validation.",
+        "uploadTitle": "Choose a port and upload",
+        "uploadBody": "Connect a data-capable USB cable, select the matching port, and upload. Set the serial monitor baud rate to the value used by the program.",
+        "helpTitle": "Keep diagnostics when something fails",
+        "helpBody": "Check the board, Core version, complete configuration, and port. Keep the first error and export diagnostics from the build panel. Review files before sharing. A successful compile is separate from physical hardware verification."
+      },
+      "drivers": {
+        "title": "Connect your board to CK",
+        "intro": "USB drivers depend on the USB chip on your board, not just a board name such as Uno or ESP32. Check the connection before selecting a driver.",
+        "beforeTitle": "Check the connection first",
+        "beforeBody": "Try a known data-capable USB cable, connect directly to the computer, and watch Device Manager while connecting the board. If a working port already appears, a driver reinstall is usually unnecessary.",
+        "openOfficial": "Open manufacturer page",
+        "note": "CP210x and FTDI download directly from their vendors; other links are mirrors of original packages. Nothing installs automatically. Native USB boards may need no extra driver. Windows may request permission to install a driver.",
+        "installGuide": "Need help? Illustrated installation guide",
+        "downloadZip": "Download driver ZIP",
+        "howToInstall": "How to install",
+        "officialSource": "Official vendor download",
+        "ckSource": "Original package mirrored by CK",
+        "downloadTitle": "Identify the USB chip",
+        "downloadBody": "Choose by the USB chip or Device Manager entry. You do not need every driver.",
+        "extractTitle": "Right-click → Extract All",
+        "extractBody": "A ZIP is an archive. Extract it to a folder before running the installer.",
+        "installTitle": "Install and check the port",
+        "installBody": "Follow the method for your chip below, reconnect the board, then refresh and select its COM port in CK.",
+        "methods": {
+          "ch340": "Extract → CH341SER → SETUP.EXE → INSTALL.",
+          "ch343": "Extract → CH343SER → Driver → SETUP.EXE → INSTALL.",
+          "pl2303": "Extract and run the PL23XX-M_LogoDriver_Setup installer. Check support for older chips first.",
+          "cp210x": "Extract, then right-click silabser.inf and choose Install (Show more options on Windows 11). Alternatively, update the driver from this folder in Device Manager.",
+          "ftdi": "In Device Manager, update the driver from the extracted folder with subfolders included. USB Serial Converter and USB Serial Port may each need this step."
+        }
+      }
+    }
+  },
+  "app": {
+    "projectOpen": {
+      "editorNotReady": "The editor did not become ready to open the project. Try again.",
+      "appClosed": "CK closed the project-open flow.",
+      "cannotOpenTitle": "Could not open project"
+    },
+    "drop": {
+      "releaseToOpen": "Release to open {{fileName}}",
+      "projectFallback": "project",
+      "validationDescription": "CK will check project integrity first and ask before replacing unsaved changes.",
+      "unsupportedTitle": "This file cannot be opened directly",
+      "supportedFilesHint": "Drop a .ck or .maker project.",
+      "cannotOpenTitle": "Could not open dropped project",
+      "noticeAria": "Project file drop notice. Click or press Escape to close.",
+      "closeAria": "Close file drop notice",
+      "footer": "Supports .ck and .maker · Drag outside the window or press Esc to cancel"
+    }
+  },
+  "deviceSelector": {
+    "title": "Connect device",
+    "subtitle": "Choose a hardware device to connect",
+    "closeAria": "Close device selection",
+    "connected": "Connected",
+    "disconnect": "Disconnect",
+    "notConnected": "No device connected",
+    "availablePorts_one": "Available port ({{count}})",
+    "availablePorts_other": "Available ports ({{count}})",
+    "emptyTitle": "No devices detected",
+    "emptyDescription": "Connect a USB cable, then select Refresh",
+    "usbSerialDevice": "USB serial device"
+  },
+  "changelog": {
+    "title": "Release notes",
+    "closeAria": "Close release notes",
+    "supportScope": "Validation and support",
+    "hardwareVerified": "Hardware verified",
+    "usageNotes": "Usage notes",
+    "footer": "Future improvements will be recorded here."
+  },
+  "errorBoundary": {
+    "title": "Something went wrong 😢",
+    "reload": "Reload"
+  },
+  "boardSelector": {
+    "category": {
+      "all": "All",
+      "custom": "Custom",
+      "esp32": "ESP32",
+      "arduino": "Arduino",
+      "other": "Other"
+    },
+    "header": {
+      "back": "Back",
+      "backTitle": "Back to project list",
+      "newProject": "New project",
+      "hardwareTarget": "Hardware target",
+      "thirdPartyBoards": "Third-party boards",
+      "coreManager": "Core manager",
+      "catalogLabel": "Board catalog",
+      "selectTarget": "Select target board",
+      "searchPlaceholder": "Search board model…"
+    },
+    "empty": {
+      "scanning": "Scanning boards…",
+      "noMatch": "No matching board packages",
+      "noDescription": "No description",
+      "notDeclared": "Real FQBN not declared",
+      "notProvided": "Not provided",
+      "pendingInfo": "Board information pending"
+    },
+    "filters": {
+      "title": "Passport filters",
+      "deviceVerified": "Hardware verified",
+      "deviceVerifiedTitle": "Show only boards with real-device verification evidence",
+      "environmentUsable": "Environment usable (warnings included)",
+      "environmentUsableTitle": "Warnings remain usable; only blocking environments are excluded",
+      "recommendedCore": "Using recommended Core",
+      "recommendedCoreTitle": "Show boards whose installed Core matches the package recommendation",
+      "showExpired": "Show expired certifications",
+      "showExpiredTitle": "Turn off to hide boards that need revalidation",
+      "reset": "Reset passport filters"
+    },
+    "activity": {
+      "title": "Local success history",
+      "scope": "Green indicates success recorded for the current Core and these exact configurations, not all configurations, hardware features, or acceleration. Missing legacy records are not inferred.",
+      "noRecord": "No recorded success; this does not mean failure.",
+      "loading": "Loading history",
+      "error": "History unavailable",
+      "compilePassed": "Compiled locally · {{count}} configurations",
+      "compilePending": "No compile record for current Core",
+      "uploadPassed": "Uploaded successfully · {{count}} configurations",
+      "uploadPending": "No upload record for current Core"
+    },
+    "passport": {
+      "details": "Board status details",
+      "sourceCustom": "User-imported third-party board package",
+      "sourceBundled": "Board definition bundled with CK",
+      "sourceUndeclared": "Source not declared",
+      "flfe": "Acceleration qualification",
+      "forge": {
+        "certified": "Acceleration evidence available",
+        "revalidation": "Acceleration not qualified",
+        "unavailable": "No acceleration evidence",
+        "certifiedDetail": "Matching acceleration evidence: {{versions}}. Separate from ordinary compile and upload history.",
+        "revalidationDetail": "No matching acceleration evidence for {{version}}. Ordinary uploads do not grant this qualification or imply the board is unusable.",
+        "unavailableDetail": "No acceleration evidence for this board; available compilation routes still apply."
+      },
+      "completeFqbn": "Complete FQBN",
+      "package": "Board package",
+      "currentCore": "Current Core",
+      "recommendedCore": "Recommended Core",
+      "verifiedCore": "Verified Core",
+      "lastVerified": "Last verified",
+      "deviceModel": "Device model",
+      "pinCatalog": "Pin catalog",
+      "cacheCredential": "Cache credential",
+      "notDeclared": "Not declared",
+      "versionNotDeclared": "Version not declared",
+      "notInstalled": "Not installed or not detected",
+      "revalidateOther": "Not declared; other versions may work but require revalidation",
+      "noDeviceRecord": "No local verification record",
+      "noVerificationTime": "No verification time",
+      "noDeviceEvidence": "No real-device model evidence",
+      "loadedPins": "{{count}} loaded",
+      "expired": "Certification expired",
+      "blocked": "Creation blocked",
+      "revalidateNotice": "This configuration may be used, but needs an automatic compile revalidation. A successful check will update ck.lock.",
+      "stage": {
+        "structure": {
+          "passed": "Structure checked",
+          "warning": "Structure has notes",
+          "failed": "Structure check failed",
+          "pending": "Structure pending"
+        },
+        "environment": {
+          "passed": "Environment ready",
+          "warning": "Environment usable · revalidation needed",
+          "failed": "Environment unavailable",
+          "pending": "Checking environment"
+        },
+        "compile": {
+          "passed": "Passed · profile compile certification",
+          "warning": "Needs review · profile compile certification",
+          "failed": "Failed · profile compile certification",
+          "pending": "No record · profile compile certification"
+        },
+        "device": {
+          "passed": "Passed · device qualification",
+          "warning": "Needs review · device qualification",
+          "failed": "Failed · device qualification",
+          "pending": "No record · device qualification"
+        }
+      },
+      "expiration": {
+        "installed_content_changed": "Board package or bundled library content changed",
+        "menu_schema_changed": "Board configuration menu changed",
+        "manifest_version_changed": "Board package version changed",
+        "core_requirement_changed": "Core compatibility policy changed",
+        "core_version_changed": "Installed Core version changed",
+        "toolchain_changed": "Compiler toolchain identity changed",
+        "core_missing": "The Core used for the last certification is not installed",
+        "core_below_minimum": "Installed Core is below the package minimum",
+        "core_known_incompatible": "Installed Core matches a known incompatible range",
+        "installed_content_check_failed": "Installed board package content could not be confirmed",
+        "unknown": "Certification environment changed: {{reason}}"
+      },
+      "qualification": {
+        "title": "Declared profile validation",
+        "running": "Validating",
+        "passed": "Passed",
+        "failed": "Failed",
+        "warning": "Note",
+        "compiling": "Compiling",
+        "pending": "Waiting",
+        "installCore": "Install Core",
+        "installRecommended": "Install recommended version",
+        "verifyRunning": "Automatic validation…",
+        "verify": "Validate declared profiles",
+        "verifyTitle": "Compile and validate profiles declared by this board package",
+        "fixFirstTitle": "Complete the structure check and repair the Core environment first",
+        "refresh": "Refresh certification"
+      }
+    },
+    "actions": {
+      "deleteCustomBoard": "Delete custom board"
+    },
+    "status": {
+      "unavailable": "Unavailable"
+    },
+    "meta": {
+      "pinCount": "{{count}} pins"
+    },
+    "footer": {
+      "targetBoard": "Target board",
+      "notSelected": "Not selected",
+      "projectName": "Project name",
+      "chooseBoardFirst": "Select a board first",
+      "nameExample": "Example: MyRobot01",
+      "resolvePassport": "Resolve blocking passport items first",
+      "cancel": "Cancel",
+      "create": "Create project"
+    },
+    "import": {
+      "refreshingBoards": "Refreshing board list…",
+      "dependencyCheck": "Checking Core dependency: {{package}}…",
+      "importCloud": "Importing board package from the cloud…",
+      "importLocal": "Importing local board package…",
+      "importThirdParty": "Import third-party board",
+      "repository": "Repository: {{url}}",
+      "close": "Close",
+      "qualityTitle": "Automatic quality checks:",
+      "qualityDescription": "Local ZIPs and repository packages use the same directory, path-safety, dependency, license, compatibility, and content-hash rules. Deterministic errors block import; passes and warnings only describe local static checks, not CK endorsement or hardware certification.",
+      "providerAuto": "Auto",
+      "refreshList": "Refresh list",
+      "loading": "Loading…",
+      "selectZip": "Choose local ZIP",
+      "importing": "Importing…",
+      "searchPlaceholder": "Search package name / ID / FQBN",
+      "found": "{{count}} board packages found",
+      "subpath": "Subpath: {{path}}",
+      "installing": "Installing…",
+      "installed": "Installed",
+      "install": "Install",
+      "noMatch": "No matching board packages",
+      "noDescription": "No description",
+      "unknownId": "unknown ID",
+      "invalidRegistry": "The repository returned an invalid format",
+      "registryEmpty": "No installable board packages found in the repository",
+      "fillRepository": "Enter a repository URL first",
+      "repositoryPlaceholder": "Enter repository URL",
+      "boardPackageFilter": "Board package",
+      "compatibility": {
+        "legacyInstalled": "The legacy backend can only confirm that the Core is installed; revalidation is still required",
+        "coreMissing": "Core is not installed",
+        "unavailable": "Compatibility check unavailable: {{error}}",
+        "installFailedSuffix": ", but the recommended Core failed to install; retry from the passport",
+        "importedCoreFailed": "Board structure imported, but Core {{package}} failed to install: {{error}}",
+        "missingRecommended": ", {{message}}; install a usable version manually",
+        "coreUnsuitable": "Core {{package}} does not meet the environment requirements",
+        "noRecommended": "Board structure imported, but the package declares no recommended Core version, so it could not be repaired automatically",
+        "knownIncompatibleSuffix": ", the current Core is known to be incompatible; choose the recommended version in the passport",
+        "knownIncompatible": "The current Core is known to be incompatible and was not replaced",
+        "revalidateSuffix": ", warning: this Core version may be used but needs automatic revalidation",
+        "revalidate": "Core {{package}} may be used but needs automatic revalidation",
+        "unusableSuffix": ", the Core environment is unavailable; see the board passport",
+        "unusable": "Core {{package}} is unavailable",
+        "unknownError": "Unknown error"
+      }
+    },
+    "progress": {
+      "initializing": "Initializing…",
+      "startingInstall": "Starting Core installation…",
+      "downloading": "Downloading Core…",
+      "downloadingFile": "Downloading {{file}}…",
+      "downloadBytes": "Downloading Core… {{mb}} MB",
+      "downloadPercent": "Downloading Core… {{percent}}% ({{mb}}/{{totalMb}} MB)",
+      "installing": "Installing…",
+      "installingPackage": "Installing package…",
+      "terminal": "Terminal output",
+      "running": "Running…",
+      "waiting": "Waiting for process response…",
+      "forceClose": "Force close"
+    },
+    "toast": {
+      "importSuccess": "Board '{{id}}' imported successfully{{warning}}{{compatibility}}",
+      "qualityWarning": ", with {{count}} structure note(s)",
+      "qualityPassed": ", structure check passed",
+      "compatibilityReady": "Core compatibility is ready: {{package}}",
+      "coreInstallSuccess": "Core '{{package}}' installed",
+      "coreInstallFailed": "Core installation failed: {{error}}",
+      "coreUninstallSuccess": "Core '{{package}}' uninstalled",
+      "coreUninstallFailed": "Uninstall failed: {{error}}",
+      "refreshPassport": "Refreshing board passport…",
+      "passportRefreshed": "Board passport refreshed",
+      "localBoardRefreshed": "Local board status refreshed",
+      "deleteSuccess": "'{{name}}' deleted",
+      "deleteWarning": "Board deleted, but cleanup reported warnings: {{summary}}",
+      "deleteFailed": "Delete failed: {{error}}",
+      "deleteRunning": "Deleting '{{name}}'…",
+      "importFailed": "Import failed: {{error}}",
+      "installCore": "Installing Core: {{package}}…",
+      "uninstallCore": "Uninstalling Core: {{package}}…",
+      "qualifyRunning": "Automatically compiling declared board profiles…",
+      "qualifySuccess": "Declared board profiles validated",
+      "qualifyWarning": "Declared profiles can be used, but need revalidation",
+      "qualifyFailed": "Profile validation finished with failures",
+      "qualifyCommandMissing": "The current backend does not provide automatic validation; the profile remains pending revalidation",
+      "qualifyFailedWithError": "Automatic validation failed: {{error}}"
+    },
+    "dialog": {
+      "boardUnavailable": "Board unavailable",
+      "boardUnavailableMessage": "The selected board is no longer in the catalog. Refresh and try again.",
+      "passportBlocked": "Board passport has blocking items",
+      "passportBlockedMessage": "Resolve the board environment or structure issues before creating a project.",
+      "unsupportedEnvironment": "Unsupported environment",
+      "unsupportedEnvironmentMessage": "Local project creation is unavailable in browser mode. Use the desktop app.",
+      "createFailed": "Could not create project",
+      "createFailedMessage": "Could not create the project: {{error}}",
+      "deleteBoard": "Delete board",
+      "deletePrompt": "Delete '{{name}}'? This cannot be undone.",
+      "uninstallCore": "Uninstall Core",
+      "uninstallAction": "Uninstall",
+      "uninstallPrompt": "Uninstall Core '{{package}}' (board: '{{board}}')?"
+    }
+  },
+  "projectCreation": {
+    "empty": {
+      "name": "Empty project",
+      "description": "Create a blank Arduino project"
+    },
+    "blink": {
+      "name": "Blink example",
+      "description": "Blink the onboard LED"
+    },
+    "servo": {
+      "name": "Servo control",
+      "description": "Control a servo with a knob"
+    },
+    "title": "New project",
+    "projectName": "Project name",
+    "board": "Board",
+    "searchBoard": "Search boards…",
+    "starterTemplate": "Starter template",
+    "noBoards": "No boards available.",
+    "create": "Create project",
+    "cancel": "Cancel",
+    "customBoard": "Custom"
+  },
+  "packageQuality": {
+    "title": "Automatic quality checks",
+    "sourceUndeclared": "Source not declared",
+    "checking": "Checking",
+    "passed": "Checks passed",
+    "warning": "Checks passed with notes",
+    "blocked": "Import blocked",
+    "unknown": "Not checked",
+    "blockedCount": "{{count}} blocked",
+    "warningCount": "{{count}} note(s)",
+    "source": "Package source",
+    "metadata": "Metadata",
+    "contentHash": "Content hash",
+    "validator": "Validator",
+    "ruleset": "Ruleset",
+    "evidenceLevel": "Evidence level",
+    "generatedAt": "Generated",
+    "rulesHash": "Rules hash",
+    "viewChecks": "View {{count}} checks",
+    "hideChecks": "Hide checks",
+    "localStaticNotice": "Local static checks do not represent CK endorsement, publisher signatures, or hardware verification.",
+    "localStatic": "Local static check",
+    "checkCompleted": "Check completed",
+    "notRecorded": "Not recorded",
+    "pathPlaceholder": "[local path]",
+    "checkPassed": "Passed",
+    "checkWarning": "Note",
+    "checkBlocked": "Blocked",
+    "checkPending": "Pending"
+  },
+  "workspacePerformance": {
+    "overview": "Overview · Zoom in or double-click a stack to edit",
+    "loading": "Opening large project",
+    "loadProgress": "Loaded {{completed}} / {{total}} blocks",
+    "preparingCode": "Blocks loaded. Preparing code preview…",
+    "cancelLoad": "Cancel loading",
+    "loadCancelled": "Loading cancelled. Saving is disabled; your original project file is unchanged.",
+    "previewUpdating": "Updating code preview in the background…",
+    "previewFailed": "Code preview could not update. Displayed code is out of date."
+  },
+  "i18nTest": {
+    "welcome": "Welcome, {{name}}",
+    "projectCount_one": "{{count}} project",
+    "projectCount_other": "{{count}} projects"
+  },
+  "updates": {
+    "title": "Software update",
+    "current": "Current version: {{version}}",
+    "check": "Check for updates",
+    "suppress": "Do not remind me about updates",
+    "manualHint": "You can still check for updates here manually.",
+    "close": "Close update dialog",
+    "newVersion": "Version {{version}} is available",
+    "checking": "Checking for updates…",
+    "latest": "You are up to date.",
+    "downloading": "Downloading installer…",
+    "verifying": "Verifying installer…",
+    "installing": "Closing CK and installing. CK will reopen when complete.",
+    "ready": "Download verified. Installation will close CK. Your projects and Arduino cores will be preserved.",
+    "cancel": "Cancel download",
+    "later": "Not now",
+    "download": "Download update",
+    "retry": "Retry",
+    "install": "Quit and install"
+  },
+  "storage": {
+    "title": "Data storage",
+    "description": "Keep cores, toolchains, build cache, downloads and logs in the selected data folder.",
+    "current": "CK data folder",
+    "assets": "Cores and toolchains",
+    "build": "Build temporary folder",
+    "projects": "Default project folder",
+    "destination": "Move to (a dedicated empty folder)",
+    "choose": "Choose a data folder",
+    "includeExternal": "Also copy the external cores, toolchains and libraries",
+    "externalHint": "Leave unchecked to keep using their current location. Copying preserves the originals for other applications.",
+    "migrationHint": "CK closes, shows copy and verification progress, then reopens. Originals are kept and build caches are rebuilt. Independently selected project folders stay in place.",
+    "plan": "Copy {{files}} files ({{size}} GB). Available space: {{available}} GB.",
+    "inspect": "Check folder and required space",
+    "restart": "Close CK, migrate and restart",
+    "previous": "Original folders kept after migration:",
+    "restarting": "Closing CK before migration. Please wait…"
+  }
+}

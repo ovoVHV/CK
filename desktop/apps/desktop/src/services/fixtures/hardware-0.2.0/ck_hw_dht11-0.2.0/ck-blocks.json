@@ -1,0 +1,190 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_dht11",
+  "display_name": "CK DHT11 温湿度",
+  "description": "DHT11 温湿度独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_dht11",
+    "DHT11 温湿度",
+    "DHT11 Temperature and Humidity"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [
+    {
+      "kind": "arduino-library",
+      "id": "DHTlib",
+      "version": "0.1.37",
+      "headers": [
+        "dht.h"
+      ],
+      "optional": false,
+      "reason": "Pinned upstream implementation; installed separately."
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_common_dht11_read",
+      "display_name": "读取 DHT11",
+      "description": "读取 DHT11",
+      "category": "DHT11 温湿度",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_dht11",
+        "DHT11 温湿度",
+        "DHT11 Temperature and Humidity"
+      ],
+      "semantics": {
+        "purpose": "读取 DHT11",
+        "behavior": "读取 DHT11。DHT 双向单线握手及中断影响未声明完整；资源覆盖保持 partial。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_dht11"
+        ]
+      },
+      "fields": [
+        {
+          "name": "PIN",
+          "kind": "number",
+          "description": "PIN",
+          "required": true,
+          "default": 2
+        },
+        {
+          "name": "VALUE",
+          "kind": "dropdown",
+          "description": "项目",
+          "required": true,
+          "default": "0",
+          "options": [
+            {
+              "label": "温度 °C",
+              "value": "0"
+            },
+            {
+              "label": "湿度 %",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Number"
+        ],
+        "description": "读取 DHT11"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitDht11.h",
+          "headers": [
+            "CKKitDht11.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "DHTlib",
+          "version": "0.1.37",
+          "headers": [
+            "dht.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "pin",
+            "source": {
+              "kind": "field",
+              "name": "PIN"
+            },
+            "access": "read-write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input",
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: PIN"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "pin-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "PIN",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "DHT 双向单线握手及中断影响未声明完整；资源覆盖保持 partial。",
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitDht11.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "读取 DHT11",
+            "template": "ckKitDht11({{field:PIN}}, {{field:VALUE}})"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_common_dht11_read-example",
+          "title": "读取 DHT11",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "PIN": 2,
+            "VALUE": "0"
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+.product-visual{margin:26px 0 35px;min-width:0}
+.visual-open{display:block;position:relative;overflow:hidden;border:1px solid #c8c8bd;border-radius:10px;background:#0d1525;cursor:zoom-in;box-shadow:0 12px 32px #232c3012}
+.visual-open img{display:block;width:100%;height:auto;transition:filter .2s}
+.visual-open:hover img{filter:brightness(1.07)}
+.visual-zoom{position:absolute;right:12px;bottom:12px;padding:7px 11px;border:1px solid #ffffff4a;border-radius:5px;background:#0d1525ed;color:#fff;font-size:11px;line-height:1.5;pointer-events:none}
+.product-visual figcaption{display:flex;gap:10px;align-items:baseline;margin-top:12px;color:#66665b;font-size:11px;line-height:1.8}
+.visual-source{flex-shrink:0;font-size:10px;letter-spacing:.3px;color:#a34210;border-left:2px solid #b64a13;padding-left:8px}
+.speed-layout{grid-template-columns:.7fr 1.3fr;gap:50px}
+.speed-layout .product-visual{margin:0}
+.build-paths-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:38px}
+.build-paths-grid article{border-bottom:0;gap:12px}
+.build-paths-grid h3{font-size:16px}
+.build-paths-grid p{font-size:12px}
+.recovery-section .product-visual{max-width:1080px;margin:0 auto 40px}
+.recovery-section .visual-open{border-color:#6a6c62;box-shadow:0 20px 50px #0004}
+.recovery-section figcaption{color:#c2c3b2}
+.recovery-section .visual-source{color:#f5aa79;border-color:#f5aa79}
+.visual-stories{display:grid;grid-template-columns:1fr 1fr;gap:45px 30px;margin-bottom:55px}
+.visual-story{min-width:0}
+.visual-story .product-visual{margin:0}
+.visual-story .visual-open{height:auto;aspect-ratio:1.44;display:flex;align-items:center;background:#11192a}
+.visual-story .visual-open img{height:100%;object-fit:contain}
+.visual-story figcaption{min-height:40px;display:block;margin-top:10px;font-size:10px}
+.visual-story .visual-source{margin-right:8px}
+.visual-story-copy{padding-top:14px}
+.visual-story-copy h3{font-size:23px;letter-spacing:-.5px;line-height:1.5;margin-bottom:10px}
+.visual-story-copy p{font-size:13px;color:#6c6c5e;margin-bottom:14px;max-width:500px}
+.feature-detail .product-visual{margin:25px 0 30px}
+.observe-gallery{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.observe-gallery figcaption{display:block}
+.observe-gallery .visual-source{display:block;margin-bottom:5px}
+.visual-is-open{overflow:hidden}
+.visual-dialog{width:min(1400px,calc(100vw - 40px));max-width:none;max-height:calc(100dvh - 40px);padding:0;border:1px solid #60685f;border-radius:12px;color:#f1f1e8;background:#171c25;box-shadow:0 25px 100px #0008;overflow:hidden}
+.visual-dialog[open]{display:flex;flex-direction:column}
+.visual-dialog::backdrop{background:#080b11de;backdrop-filter:blur(7px)}
+.visual-dialog-bar{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 20px;border-bottom:1px solid #3c4247;flex-shrink:0}
+.visual-dialog-bar h2{font-size:16px;line-height:1.5;margin:0}
+.visual-dialog-bar button{padding:8px 13px;border:1px solid #646b6c;border-radius:5px;background:#252c35;color:#fff;white-space:nowrap;font-size:12px}
+.visual-dialog-scroll{overflow:auto;min-height:0;text-align:center;background:#0d1525}
+.visual-dialog-scroll img{width:auto;height:auto;display:block;max-width:100%;max-height:calc(100dvh - 180px);object-fit:contain;margin:auto}
+.visual-dialog-caption{font-size:12px;line-height:1.7;margin:0;padding:13px 20px;color:#bfc6c9;flex-shrink:0}
+@media(max-width:1000px){.speed-layout{gap:30px}.build-paths-grid{gap:20px}.visual-stories{gap:35px 24px}}
+@media(max-width:760px){.speed-layout,.build-paths-grid,.visual-stories,.observe-gallery{grid-template-columns:1fr}.build-paths-grid{gap:0;margin-top:20px}.build-paths-grid article{border-bottom:1px solid #d5d5c8;padding:20px 0}.product-visual figcaption{display:block}.visual-source{margin-right:8px}.recovery-section .product-visual{margin-bottom:30px}.visual-stories{gap:32px}.visual-story figcaption{min-height:0}.visual-story-copy h3{font-size:22px}.visual-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}.visual-dialog-bar{padding:12px}.visual-dialog-bar h2{font-size:13px}.visual-dialog-caption{padding:12px;font-size:11px}.visual-dialog-scroll img{max-width:none;min-width:100%;width:900px;max-height:none}.visual-dialog-scroll{overscroll-behavior:contain}.visual-zoom{bottom:8px;right:8px;font-size:10px;padding:5px 8px}}
+@media(prefers-reduced-motion:reduce){.visual-open img{transition:none}}

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-resource-claims-v1.schema.json",
+  "title": "CK declarative resource claims",
+  "type": "object", "additionalProperties": false,
+  "required": ["version", "coverage", "templates"],
+  "properties": {
+    "version": { "const": 1 },
+    "coverage": { "enum": ["full", "partial", "unknown"] },
+    "templates": { "type": "array", "maxItems": 128, "items": { "$ref": "#/$defs/claim" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$", "maxLength": 128, "not": { "pattern": "[^A-Za-z0-9_.:/-]" } },
+    "operand": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "valueType"],
+      "properties": {
+        "kind": { "enum": ["fixed", "field", "input"] },
+        "valueType": { "enum": ["id", "integer", "boolean"] },
+        "name": { "$ref": "#/$defs/id" },
+        "value": { "type": ["string", "integer", "boolean"], "maxLength": 128, "minimum": -9007199254740991, "maximum": 9007199254740991 }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "fixed" } } }, "then": { "required": ["value"], "not": { "required": ["name"] } }, "else": { "required": ["name"], "not": { "required": ["value"] } } },
+        { "if": { "properties": { "valueType": { "const": "id" } } }, "then": { "properties": { "value": { "$ref": "#/$defs/id" } } } },
+        { "if": { "properties": { "valueType": { "const": "integer" } } }, "then": { "properties": { "value": { "type": "integer" } } } },
+        { "if": { "properties": { "valueType": { "const": "boolean" } } }, "then": { "properties": { "value": { "type": "boolean" } } } }
+      ]
+    },
+    "idOperand": { "allOf": [{ "$ref": "#/$defs/operand" }, { "properties": { "valueType": { "const": "id" } } }] },
+    "operandMap": { "type": "object", "maxProperties": 32, "propertyNames": { "$ref": "#/$defs/id" }, "additionalProperties": { "$ref": "#/$defs/operand" } },
+    "claim": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "resource", "role"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "role": { "$ref": "#/$defs/id" },
+        "resource": { "$ref": "#/$defs/idOperand" }, "owner": { "$ref": "#/$defs/idOperand" },
+        "exclusive": { "type": "boolean" }, "discriminator": { "$ref": "#/$defs/operand" },
+        "configuration": { "$ref": "#/$defs/operandMap" },
+        "signals": { "type": "object", "maxProperties": 32, "propertyNames": { "$ref": "#/$defs/id" }, "additionalProperties": { "$ref": "#/$defs/idOperand" } }
+      }
+    }
+  }
+}

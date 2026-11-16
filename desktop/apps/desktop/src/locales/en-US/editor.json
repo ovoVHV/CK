@@ -1,0 +1,76 @@
+{
+  "discovery": {
+    "requires": "Declared resources",
+    "undeclared": "Not declared",
+    "declaredTargets": "Package-declared targets",
+    "dependencies": "Dependencies",
+    "controllers": "Board controllers",
+    "noController": "None listed in the available results; check coverage",
+    "insert": "Insert block",
+    "context": {
+      "unresolved": "Board resources await resolution. Compatibility is not verified.",
+      "undeclared": "Resource requirements are not declared. Check the package documentation.",
+      "review": "Capability only, not a binding or compatibility guarantee. Check fields and resource results after insertion; no pins are assigned automatically."
+    },
+    "kind": { "gpio": "GPIO", "adc": "ADC", "pwm": "PWM", "i2c": "I2C", "spi": "SPI", "uart": "UART", "timer": "Timer", "interrupt": "Interrupt", "network": "Network", "filesystem": "File system", "flash": "Flash", "ram": "RAM", "other": "Other" }
+  },
+  "blockDock": {
+    "source": {
+      "all": "All blocks",
+      "logic": "Logic",
+      "recent": "Recent",
+      "pinned": "Pinned"
+    },
+    "target": {
+      "value": "Value",
+      "statement": "Statement",
+      "insertInto": "Insert into",
+      "condition": "Condition",
+      "statementInput": "Statement input",
+      "insertBefore": "Insert before the block below",
+      "appendAfter": "Append after",
+      "choosePosition": "Choose an insertion position",
+      "compatibleTitle": "{{target}}: show compatible blocks only",
+      "quickInsertAria": "{{target}}, quick insert a block"
+    },
+    "search": {
+      "placeholder": "Search Chinese or English names, libraries, or features",
+      "compatiblePlaceholder": "Search blocks compatible with “{{target}}”",
+      "aria": "Quick block search",
+      "compatibleAria": "{{target}}: quick block insert",
+      "close": "Close quick insert",
+      "compatibleOnly": "Compatible blocks only · {{target}}",
+      "emptyCompatible": "No matching compatible blocks at this position",
+      "empty": "No matching blocks found",
+      "insert": "Insert",
+      "enterInsert": "Enter to insert",
+      "command": "Search",
+      "pin": "Pin {{label}}",
+      "unpin": "Unpin {{label}}",
+      "pinnedTitle": "Unpin from Block Dock",
+      "pinTitle": "Pin “{{label}}” to Block Dock",
+      "helpSelect": "↑↓ Select",
+      "helpInsert": "Enter Insert",
+      "helpClose": "Esc Close",
+      "dockAria": "Block programming dock",
+      "logicTitle": "Logic (pinned)",
+      "recentTitle": "Recently used",
+      "globalTitle": "Search all blocks (Ctrl+K)"
+    },
+    "count": "{{count}}",
+    "notice": {
+      "inserted": "Inserted “{{label}}”"
+    },
+    "blockSearch": {
+      "aria": "Search all blocks",
+      "placeholder": "Search all blocks",
+      "resultCount": "{{count}} blocks found",
+      "clear": "Clear search",
+      "source": "Source · {{source}}",
+      "noResults": "No matching blocks"
+    },
+    "toolbox": {
+      "loading": "Loading toolbox..."
+    }
+  }
+}

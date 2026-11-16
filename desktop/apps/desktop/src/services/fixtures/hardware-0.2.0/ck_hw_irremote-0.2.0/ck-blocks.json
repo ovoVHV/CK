@@ -1,0 +1,507 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_irremote",
+  "display_name": "CK 红外接收器",
+  "description": "红外接收器独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_irremote",
+    "红外接收器",
+    "IR Receiver"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [
+    {
+      "kind": "arduino-library",
+      "id": "IRremote",
+      "version": "4.6.1",
+      "headers": [
+        "IRremote.hpp"
+      ],
+      "optional": false,
+      "reason": "Pinned upstream implementation; installed separately."
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_irremote_begin",
+      "display_name": "初始化红外接收器",
+      "description": "初始化红外接收器",
+      "category": "红外接收器",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_irremote",
+        "红外接收器",
+        "IR Receiver"
+      ],
+      "semantics": {
+        "purpose": "初始化红外接收器",
+        "behavior": "初始化红外接收器。单个接收器。先初始化，再在循环中调用“收到新红外帧”，确认 true 后读取地址/命令/协议/重复帧标记。读取值不会再次 decode 或清除数据。不假定遥控器按键码。库的 Timer/中断使用保持 partial，不宣称无冲突。",
+        "side_effects": [
+          "Explicit initialization of user-configured pins / peripheral."
+        ],
+        "concepts": [
+          "ck_hw_irremote"
+        ]
+      },
+      "fields": [
+        {
+          "name": "PIN",
+          "kind": "number",
+          "description": "PIN",
+          "required": true,
+          "default": 2
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitIrReceiver.h",
+          "headers": [
+            "CKKitIrReceiver.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "IRremote",
+          "version": "4.6.1",
+          "headers": [
+            "IRremote.hpp"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "pin",
+            "source": {
+              "kind": "field",
+              "name": "PIN"
+            },
+            "access": "read",
+            "sharing": "shared",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input"
+            ],
+            "description": "Explicit GPIO binding: PIN"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "pin-gpio",
+              "role": "digital-input",
+              "resource": {
+                "kind": "field",
+                "name": "PIN",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitIrReceiver.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "初始化红外接收器",
+            "template": "ckKitIrBegin({{field:PIN}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_irremote_begin-example",
+          "title": "初始化红外接收器",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "PIN": 2
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_irremote_poll",
+      "display_name": "收到新红外帧",
+      "description": "收到新红外帧",
+      "category": "红外接收器",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_irremote",
+        "红外接收器",
+        "IR Receiver"
+      ],
+      "semantics": {
+        "purpose": "收到新红外帧",
+        "behavior": "收到新红外帧。单个接收器。先初始化，再在循环中调用“收到新红外帧”，确认 true 后读取地址/命令/协议/重复帧标记。读取值不会再次 decode 或清除数据。不假定遥控器按键码。库的 Timer/中断使用保持 partial，不宣称无冲突。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_irremote"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Boolean"
+        ],
+        "description": "收到新红外帧"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitIrReceiver.h",
+          "headers": [
+            "CKKitIrReceiver.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "IRremote",
+          "version": "4.6.1",
+          "headers": [
+            "IRremote.hpp"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitIrReceiver.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "收到新红外帧",
+            "template": "ckKitIrPoll()"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_irremote_poll-example",
+          "title": "收到新红外帧",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_irremote_value",
+      "display_name": "读取红外帧",
+      "description": "读取红外帧",
+      "category": "红外接收器",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_irremote",
+        "红外接收器",
+        "IR Receiver"
+      ],
+      "semantics": {
+        "purpose": "读取红外帧",
+        "behavior": "读取红外帧。单个接收器。先初始化，再在循环中调用“收到新红外帧”，确认 true 后读取地址/命令/协议/重复帧标记。读取值不会再次 decode 或清除数据。不假定遥控器按键码。库的 Timer/中断使用保持 partial，不宣称无冲突。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_irremote"
+        ]
+      },
+      "fields": [
+        {
+          "name": "ITEM",
+          "kind": "dropdown",
+          "description": "项目",
+          "required": true,
+          "default": "0",
+          "options": [
+            {
+              "label": "命令",
+              "value": "0"
+            },
+            {
+              "label": "地址",
+              "value": "1"
+            },
+            {
+              "label": "协议编号",
+              "value": "2"
+            },
+            {
+              "label": "重复帧标记",
+              "value": "3"
+            }
+          ]
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Number"
+        ],
+        "description": "读取红外帧"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitIrReceiver.h",
+          "headers": [
+            "CKKitIrReceiver.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "IRremote",
+          "version": "4.6.1",
+          "headers": [
+            "IRremote.hpp"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitIrReceiver.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "读取红外帧",
+            "template": "ckKitIrValue({{field:ITEM}})"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_irremote_value-example",
+          "title": "读取红外帧",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "ITEM": "0"
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_common_irremote_command",
+      "display_name": "读取红外命令（旧工程兼容）",
+      "description": "读取红外命令（旧工程兼容）",
+      "category": "红外接收器",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_irremote",
+        "红外接收器",
+        "IR Receiver"
+      ],
+      "semantics": {
+        "purpose": "读取红外命令（旧工程兼容）",
+        "behavior": "读取红外命令（旧工程兼容）。单个接收器。先初始化，再在循环中调用“收到新红外帧”，确认 true 后读取地址/命令/协议/重复帧标记。读取值不会再次 decode 或清除数据。不假定遥控器按键码。库的 Timer/中断使用保持 partial，不宣称无冲突。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_irremote"
+        ]
+      },
+      "fields": [
+        {
+          "name": "PIN",
+          "kind": "number",
+          "description": "PIN",
+          "required": true,
+          "default": 2
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Number"
+        ],
+        "description": "读取红外命令（旧工程兼容）"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitIrReceiver.h",
+          "headers": [
+            "CKKitIrReceiver.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "IRremote",
+          "version": "4.6.1",
+          "headers": [
+            "IRremote.hpp"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "pin",
+            "source": {
+              "kind": "field",
+              "name": "PIN"
+            },
+            "access": "read",
+            "sharing": "shared",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input"
+            ],
+            "description": "Explicit GPIO binding: PIN"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "pin-gpio",
+              "role": "digital-input",
+              "resource": {
+                "kind": "field",
+                "name": "PIN",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitIrReceiver.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "读取红外命令（旧工程兼容）",
+            "template": "ckKitIrLegacyCommand({{field:PIN}})"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_common_irremote_command-example",
+          "title": "读取红外命令（旧工程兼容）",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "PIN": 2
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

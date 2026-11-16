@@ -1,0 +1,157 @@
+[
+  {
+    "type": "ck_hw_seven_segment_1_begin",
+    "message0": "初始化 1 位数码管 公共极 %1 电阻位置 %2 A %3 B %4 C %5 D %6 E %7 F %8 G %9 DP %10 DIGIT1 %11",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "COMMON",
+        "options": [
+          [
+            "共阴",
+            "COMMON_CATHODE"
+          ],
+          [
+            "共阳",
+            "COMMON_ANODE"
+          ]
+        ]
+      },
+      {
+        "type": "field_dropdown",
+        "name": "RESISTORS",
+        "options": [
+          [
+            "每段",
+            "1"
+          ],
+          [
+            "每位",
+            "0"
+          ]
+        ]
+      },
+      {
+        "type": "field_number",
+        "name": "A",
+        "value": 2,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "B",
+        "value": 3,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "C",
+        "value": 4,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "D",
+        "value": 5,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "E",
+        "value": 6,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "F",
+        "value": 7,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "G",
+        "value": 8,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "DP",
+        "value": 9,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "DIGIT1",
+        "value": 10,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "初始化 1 位数码管",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_seven_segment_1_number",
+    "message0": "1 位数码管显示数字 小数位数 %1 数字 %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "DECIMALS",
+        "value": 0,
+        "min": 0,
+        "max": 1,
+        "precision": 1
+      },
+      {
+        "type": "input_value",
+        "name": "NUMBER",
+        "check": "Number"
+      }
+    ],
+    "colour": 190,
+    "tooltip": "1 位数码管显示数字",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_seven_segment_1_refresh",
+    "message0": "刷新 1 位数码管（循环调用）",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "刷新 1 位数码管（循环调用）",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_seven_segment_1_blank",
+    "message0": "熄灭 1 位数码管",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "熄灭 1 位数码管",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  }
+]

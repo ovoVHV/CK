@@ -1,0 +1,145 @@
+[
+  {
+    "type": "ck_hw_ds1302_begin",
+    "message0": "初始化 DS1302 IO %1 CLK %2 CE %3",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "IO",
+        "value": 4,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "CLK",
+        "value": 5,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "CE",
+        "value": 6,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "初始化 DS1302",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_ds1302_set",
+    "message0": "设置 DS1302 日期时间 年 %1 月 %2 日 %3 时 %4 分 %5 秒 %6",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "YEAR",
+        "value": 2026,
+        "min": 2000,
+        "max": 2099,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "MONTH",
+        "value": 1,
+        "min": 1,
+        "max": 12,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "DAY",
+        "value": 1,
+        "min": 1,
+        "max": 31,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "HOUR",
+        "value": 0,
+        "min": 0,
+        "max": 23,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "MINUTE",
+        "value": 0,
+        "min": 0,
+        "max": 59,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "SECOND",
+        "value": 0,
+        "min": 0,
+        "max": 59,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "设置 DS1302 日期时间",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_ds1302_read",
+    "message0": "读取 DS1302 项目 %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "ITEM",
+        "options": [
+          [
+            "年",
+            "0"
+          ],
+          [
+            "月",
+            "1"
+          ],
+          [
+            "日",
+            "2"
+          ],
+          [
+            "时",
+            "3"
+          ],
+          [
+            "分",
+            "4"
+          ],
+          [
+            "秒",
+            "5"
+          ]
+        ]
+      }
+    ],
+    "colour": 190,
+    "tooltip": "读取 DS1302",
+    "helpUrl": "",
+    "output": "Number"
+  },
+  {
+    "type": "ck_hw_ds1302_valid",
+    "message0": "DS1302 日期有效且时钟运行",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "DS1302 日期有效且时钟运行",
+    "helpUrl": "",
+    "output": "Boolean"
+  }
+]

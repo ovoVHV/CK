@@ -1,0 +1,58 @@
+{
+  "fqbn": "esp32:esp32:esp32c3",
+  "options": {},
+  "mcu": "esp32c3",
+  "variant": "esp32c3",
+  "coreVersion": "3.3.6",
+  "fCpu": "160000000L",
+  "validGpio": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],
+  "inputOnlyGpio": [],
+  "adc1": { "0": 0, "1": 1, "2": 2, "3": 3, "4": 4 },
+  "adc2": { "0": 5 },
+  "evidence": [
+    { "id": "boards", "path": "packages/esp32/hardware/esp32/3.3.6/boards.txt", "sha256": "e5a076af9323d82ceae6287479f2aa3ec44db9ffda509c2b86815b642c3446a3", "locator": "esp32c3 build.mcu/build.variant/build.f_cpu and menu definitions", "confidence": "verified" },
+    { "id": "platform", "path": "packages/esp32/hardware/esp32/3.3.6/platform.txt", "sha256": "660002bf705069e84c7e451b6ae683bf2a5a998154e0f9b01413064fb3e54816", "locator": "ARDUINO_USB_MODE and ARDUINO_USB_CDC_ON_BOOT flags", "confidence": "verified" },
+    { "id": "variant", "path": "packages/esp32/hardware/esp32/3.3.6/variants/esp32c3/pins_arduino.h", "sha256": "d8d56d687a293fa3a63a9f4ef1cd8f1eb2d9ff8f69424e60c37291e0f6eff7e0", "locator": "C3 Arduino aliases and default UART/SPI/I2C pins", "confidence": "verified" },
+    { "id": "soc-caps", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/include/soc/soc_caps.h", "sha256": "5ff90a4f986ae9991bd7afabe04feb1106353014b3c4fcf175095a6fb11c7e7f", "locator": "C3 GPIO/ADC/UART/SPI/I2C/LEDC/RMT/TWAI/timer/USB capability macros", "confidence": "verified" },
+    { "id": "gpio", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/include/soc/gpio_num.h", "sha256": "fb3897bb4dcbffccc69baca95be22ec38b4b97b6b4f4ba8858ac9b9e36b74b0a", "locator": "GPIO0..21 validity and output mask", "confidence": "verified" },
+    { "id": "adc", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/include/soc/adc_channel.h", "sha256": "c79100bb8e2203294080930c104488ae0e680acbc793383f9e9cc3286ae66258", "locator": "ADC1 GPIO0..4 and ADC2 GPIO5 channel mapping", "confidence": "verified" },
+    { "id": "uart", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/include/soc/uart_pins.h", "sha256": "71c5571dc164aabe588c1348ded026aea3a79d0a51258bc351a78fa8d0c7ea8c", "locator": "UART0 IOMUX defaults GPIO20/21; UART1 no IOMUX defaults", "confidence": "verified" },
+    { "id": "uart-core", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/HardwareSerial.h", "sha256": "ef106136cb13a67968a1363a1b287960718ce6201f2c631226180d52dd115fea", "locator": "C3 SOC_RX0/SOC_TX0 and RX1/TX1 convenience defaults", "confidence": "verified" },
+    { "id": "uart-hal", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-uart.c", "sha256": "6548ea2687f72625c518588099133f573a9ee396d25498894a52720af8228698", "locator": "GPIO-matrix UART signal attachment", "confidence": "verified" },
+    { "id": "spi", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/include/soc/spi_pins.h", "sha256": "c0e51fcd72a4ec38ebef9cc8593283e04f44434c57ec1bef200141c596b8edf4", "locator": "MSPI flash pins and GPSPI2 IOMUX pins", "confidence": "verified" },
+    { "id": "spi-core", "path": "packages/esp32/hardware/esp32/3.3.6/libraries/SPI/src/SPI.cpp", "sha256": "56bd839008c808f34defc2af715b76810f54f844c0643a6fbc9f2d8f3bda00a8", "locator": "Arduino SPI defaults to FSPI/GPSPI2 on non-classic targets", "confidence": "verified" },
+    { "id": "wire", "path": "packages/esp32/hardware/esp32/3.3.6/libraries/Wire/src/Wire.cpp", "sha256": "6d2154a1ec032733082f45e334025ad7745d449596c47825bc81f24bf5f62661", "locator": "Wire bus 0 uses variant SDA/SCL; Wire1 requires WIRE1_PIN_DEFINED", "confidence": "verified" },
+    { "id": "gpio-matrix", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/include/soc/gpio_sig_map.h", "sha256": "88cb507e4cfe8b53e95dd965bcaafb4d25647167bd51cca3b89c065f547296af", "locator": "C3 GPIO matrix signal identifiers", "confidence": "verified" },
+    { "id": "usb-pads", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/register/soc/io_mux_reg.h", "sha256": "bb45d201fad3f433da44cb7a1fd28511cd5158fcad1d8c5c70048e70c3f4ac6e", "locator": "USB Serial/JTAG DM GPIO18 and DP GPIO19", "confidence": "verified" },
+    { "id": "usb-core", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/hal/esp32c3/include/hal/gpio_ll.h", "sha256": "a0a6de23abf6afd333bedc5f5ce127c98e391fcbc3b6e61f8ceb5307cb2367cb", "locator": "USB pad ownership is disabled when GPIO18/19 are repurposed", "confidence": "verified" },
+    { "id": "usb-register", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/register/soc/usb_serial_jtag_reg.h", "sha256": "95f3e77503afc172908377fa1f749f3da40c01a4f62bb762281208b3e826a5a0", "locator": "C3 USB Serial/JTAG controller register block", "confidence": "verified" },
+    { "id": "ledc", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-ledc.c", "sha256": "a046c1ecc237d05565f6e73f606f3b2772656d229399088ffa2f4566f2f245d7", "locator": "LEDC channel count and dynamic timer/channel allocation", "confidence": "verified" },
+    { "id": "rmt", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-rmt.c", "sha256": "54035da3a11ef9e233ca00df638ea146e687555321fcc2f00dfe22e42f6623e7", "locator": "RMT dynamic TX/RX channel allocation", "confidence": "verified" },
+    { "id": "timer", "path": "packages/esp32/hardware/esp32/3.3.6/cores/esp32/esp32-hal-timer.c", "sha256": "334ef3d4b485cd1ab608c70b19a9d34b9e4461388f85a5fcffbe8898da58c9ea", "locator": "Arduino timerBegin GPTimer API", "confidence": "verified" },
+    { "id": "boot-mode", "path": "packages/esp32/tools/esp32c3-libs/3.3.6/include/soc/esp32c3/include/soc/boot_mode.h", "sha256": "c3fc15690f8aead0936bfdaab9b144c190c4a3a31625e745cc1385fe50bb939a", "locator": "C3 strap register and ROM boot mode predicates; pin-level board reservations remain board-contract evidence", "confidence": "verified" },
+    { "id": "official-gpio-doc", "path": "https://docs.espressif.com/projects/esp-idf/en/v5.2.3/esp32c3/api-reference/peripherals/gpio.html", "sha256": "", "locator": "GPIO summary: GPIO2, GPIO8, GPIO9 are strapping pins; GPIO12..17 are SPI0/1; GPIO18/19 are USB-JTAG", "confidence": "verified" },
+    { "id": "board-contract", "path": "apps/desktop/src/config/boards.json", "sha256": "6086acaf2af0248e9739e16809547fdfea20d896e6a661659c16f63c75058124", "locator": "CK current ESP32-C3 board definition: GPIO2/GPIO9 boot warnings, GPIO18/19 USB, GPIO20/21 upload, GPIO8 LED; GPIO8 strapping classification comes from official C3 GPIO evidence", "confidence": "declared" }
+  ],
+  "capabilities": {
+    "gpio": { "count": 22, "inputOnly": [], "deepSleepWakePins": [0,1,2,3,4,5], "digitalPadPins": [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21] },
+    "adc": { "units": 2, "channels": 6, "resolutionBits": 12, "arbiter": "soc-adc-arbiter-present; no classic ESP32 Wi-Fi-priority claim", "routes": { "adc1.0": 0, "adc1.1": 1, "adc1.2": 2, "adc1.3": 3, "adc1.4": 4, "adc2.0": 5 } },
+    "uart": { "controllers": 2, "fifoBytes": 128, "maxBitrate": 5000000, "defaults": { "Serial": { "rx": 20, "tx": 21 }, "Serial1": { "rx": 18, "tx": 19 } }, "selectable": true, "ctsRts": true },
+    "usbSerialJtag": { "supported": true, "dm": 18, "dp": 19, "usbOtg": false, "distinctFromUart0": true },
+    "spi": { "userControllers": 1, "userController": "spi2", "systemMspiPins": [12,13,14,15,16,17], "arduinoDefaults": { "sck": 4, "miso": 5, "mosi": 6, "cs": 7 }, "selectable": true },
+    "i2c": { "controllers": 1, "default": { "sda": 8, "scl": 9 }, "wire1": false, "selectable": true },
+    "ledc": { "groups": 1, "channels": 6, "timers": 4, "maxResolutionBits": 14, "allocation": "dynamic", "timerSharing": "frequency-and-resolution" },
+    "rmt": { "groups": 1, "channels": 4, "txCandidates": 2, "rxCandidates": 2, "allocation": "dynamic" },
+    "twai": { "controllers": 1, "selectableRoutes": true },
+    "hardwareTimers": { "groups": 2, "timersPerGroup": 1, "total": 2, "counterBits": 54 }
+  },
+  "boardExposure": {
+    "aliases": { "LED_BUILTIN": 30, "RGB_BUILTIN": 30, "SDA": 8, "SCL": 9, "SS": 7, "MOSI": 6, "MISO": 5, "SCK": 4, "TX": 21, "RX": 20, "A0": 0, "A1": 1, "A2": 2, "A3": 3, "A4": 4, "A5": 5 },
+    "flashReservedPins": [12,13,14,15,16,17],
+    "boardWarningPins": { "strapping": [2,8,9], "led": [8], "uploadUart": [20,21] }
+  },
+  "menus": {
+    "resourceAffecting": ["CDCOnBoot", "JTAGAdapter"],
+    "buildOnly": ["CPUFreq", "FlashMode", "FlashFreq", "FlashSize", "PartitionScheme", "UploadSpeed", "DebugLevel", "EraseFlash", "ZigbeeMode"],
+    "unsupported": ["USBMode", "PSRAM"]
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-project-package.schema.json",
+  "title": "CK project.ckpkg manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "format",
+    "kind",
+    "generatedBy",
+    "generatedAt",
+    "sourceScope",
+    "sourceDisclosureAcknowledged",
+    "networkUsed",
+    "uploadPerformed",
+    "summary",
+    "files"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "format": { "const": "ck-project-package" },
+    "kind": { "const": "project-submission" },
+    "generatedBy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product", "version", "component"],
+      "properties": {
+        "product": { "const": "CK Desktop" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "component": { "const": "project-submission-exporter" }
+      }
+    },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "sourceScope": {
+      "enum": ["no_source", "editable_project", "generated_source", "editable_and_generated"]
+    },
+    "sourceDisclosureAcknowledged": { "type": "boolean" },
+    "networkUsed": { "const": false },
+    "uploadPerformed": { "const": false },
+    "summary": { "$ref": "#/$defs/summary" },
+    "files": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/file" },
+      "allOf": [
+        { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "report/project-acceptance.json" } } }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "report/project-acceptance.html" } } }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "project/workspace.json" } } }, "minContains": 0, "maxContains": 1 },
+        { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "source/generated.ino" } } }, "minContains": 0, "maxContains": 1 },
+        { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "environment/ck.lock" } } }, "minContains": 0, "maxContains": 1 },
+        { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "evidence/build-summary.json" } } }, "minContains": 0, "maxContains": 1 }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": { "required": ["sourceScope"], "properties": { "sourceScope": { "const": "no_source" } } },
+      "then": {
+        "properties": {
+          "sourceDisclosureAcknowledged": { "const": false },
+          "files": {
+            "not": {
+              "contains": {
+                "type": "object",
+                "required": ["path"],
+                "properties": { "path": { "enum": ["project/workspace.json", "source/generated.ino"] } }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "required": ["sourceScope"], "properties": { "sourceScope": { "const": "editable_project" } } },
+      "then": {
+        "properties": {
+          "sourceDisclosureAcknowledged": { "const": true },
+          "files": {
+            "allOf": [
+              { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "project/workspace.json" } } }, "minContains": 1, "maxContains": 1 },
+              { "not": { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "source/generated.ino" } } } } }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": { "required": ["sourceScope"], "properties": { "sourceScope": { "const": "generated_source" } } },
+      "then": {
+        "properties": {
+          "sourceDisclosureAcknowledged": { "const": true },
+          "files": {
+            "allOf": [
+              { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "source/generated.ino" } } }, "minContains": 1, "maxContains": 1 },
+              { "not": { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "project/workspace.json" } } } } }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": { "required": ["sourceScope"], "properties": { "sourceScope": { "const": "editable_and_generated" } } },
+      "then": {
+        "properties": {
+          "sourceDisclosureAcknowledged": { "const": true },
+          "files": {
+            "allOf": [
+              { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "project/workspace.json" } } }, "minContains": 1, "maxContains": 1 },
+              { "contains": { "type": "object", "required": ["path"], "properties": { "path": { "const": "source/generated.ino" } } }, "minContains": 1, "maxContains": 1 }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "nullableString": { "type": ["string", "null"], "maxLength": 16384 },
+    "nullableDateTime": { "type": ["string", "null"], "format": "date-time", "maxLength": 64 },
+    "nullableInteger": { "type": ["integer", "null"], "minimum": 0 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "nullableSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectName", "blockCount", "workspaceSha256", "generatedCodeSha256",
+        "boardName", "boardId", "boardPackageId", "fqbn", "coreId", "coreVersion",
+        "compileState", "compileRecordedAt", "flashUsedBytes", "flashTotalBytes",
+        "ramUsedBytes", "ramTotalBytes", "dependencyLockAvailable", "dependencyLockSha256",
+        "dependencyCount", "dependenciesAllVersioned", "hardwareState", "hardwareChip",
+        "hardwareFlashBytes", "hardwarePsramBytes", "checkpointCount", "healthSummary",
+        "healthPassCount", "healthWarningCount", "healthErrorCount", "healthInfoCount"
+      ],
+      "properties": {
+        "projectName": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "blockCount": { "type": "integer", "minimum": 0 },
+        "workspaceSha256": { "$ref": "#/$defs/sha256" },
+        "generatedCodeSha256": { "$ref": "#/$defs/sha256" },
+        "boardName": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "boardId": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "boardPackageId": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "fqbn": { "type": "string", "pattern": "^[^:]+:[^:]+:[^:]+(?::.*)?$", "maxLength": 16384 },
+        "coreId": { "type": "string", "pattern": "^[^:]+:[^:]+$", "maxLength": 16384 },
+        "coreVersion": { "$ref": "#/$defs/nullableString" },
+        "compileState": { "enum": ["passed", "failed", "not-run", "unverified-target"] },
+        "compileRecordedAt": { "$ref": "#/$defs/nullableDateTime" },
+        "flashUsedBytes": { "$ref": "#/$defs/nullableInteger" },
+        "flashTotalBytes": { "$ref": "#/$defs/nullableInteger" },
+        "ramUsedBytes": { "$ref": "#/$defs/nullableInteger" },
+        "ramTotalBytes": { "$ref": "#/$defs/nullableInteger" },
+        "dependencyLockAvailable": { "type": "boolean" },
+        "dependencyLockSha256": { "$ref": "#/$defs/nullableSha256" },
+        "dependencyCount": { "type": "integer", "minimum": 0 },
+        "dependenciesAllVersioned": { "type": "boolean" },
+        "hardwareState": { "enum": ["verified", "partial", "failed", "not-checked", "unsupported"] },
+        "hardwareChip": { "$ref": "#/$defs/nullableString" },
+        "hardwareFlashBytes": { "$ref": "#/$defs/nullableInteger" },
+        "hardwarePsramBytes": { "$ref": "#/$defs/nullableInteger" },
+        "checkpointCount": { "type": "integer", "minimum": 0 },
+        "healthSummary": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "healthPassCount": { "type": "integer", "minimum": 0 },
+        "healthWarningCount": { "type": "integer", "minimum": 0 },
+        "healthErrorCount": { "type": "integer", "minimum": 0 },
+        "healthInfoCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "role", "size", "sha256", "redacted"],
+      "properties": {
+        "path": {
+          "enum": [
+            "report/project-acceptance.json",
+            "report/project-acceptance.html",
+            "project/workspace.json",
+            "source/generated.ino",
+            "environment/ck.lock",
+            "evidence/build-summary.json"
+          ]
+        },
+        "role": {
+          "enum": [
+            "acceptance_report", "printable_report", "editable_project",
+            "generated_source", "dependency_lock", "build_evidence"
+          ]
+        },
+        "size": { "type": "integer", "minimum": 1, "maximum": 16777216 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "redacted": { "type": "boolean" }
+      },
+      "allOf": [
+        { "if": { "properties": { "path": { "const": "report/project-acceptance.json" } } }, "then": { "properties": { "role": { "const": "acceptance_report" }, "redacted": { "const": true }, "size": { "maximum": 2097152 } } } },
+        { "if": { "properties": { "path": { "const": "report/project-acceptance.html" } } }, "then": { "properties": { "role": { "const": "printable_report" }, "redacted": { "const": true }, "size": { "maximum": 4194304 } } } },
+        { "if": { "properties": { "path": { "const": "project/workspace.json" } } }, "then": { "properties": { "role": { "const": "editable_project" }, "redacted": { "const": false }, "size": { "maximum": 16777216 } } } },
+        { "if": { "properties": { "path": { "const": "source/generated.ino" } } }, "then": { "properties": { "role": { "const": "generated_source" }, "redacted": { "const": false }, "size": { "maximum": 4194304 } } } },
+        { "if": { "properties": { "path": { "const": "environment/ck.lock" } } }, "then": { "properties": { "role": { "const": "dependency_lock" }, "redacted": { "const": true }, "size": { "maximum": 2097152 } } } },
+        { "if": { "properties": { "path": { "const": "evidence/build-summary.json" } } }, "then": { "properties": { "role": { "const": "build_evidence" }, "redacted": { "const": true }, "size": { "maximum": 2097152 } } } }
+      ]
+    }
+  }
+}

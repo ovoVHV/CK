@@ -1,0 +1,80 @@
+[
+  {
+    "type": "ck_hw_irremote_begin",
+    "message0": "初始化红外接收器 PIN %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 2,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "初始化红外接收器",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_irremote_poll",
+    "message0": "收到新红外帧",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "收到新红外帧",
+    "helpUrl": "",
+    "output": "Boolean"
+  },
+  {
+    "type": "ck_hw_irremote_value",
+    "message0": "读取红外帧 项目 %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "ITEM",
+        "options": [
+          [
+            "命令",
+            "0"
+          ],
+          [
+            "地址",
+            "1"
+          ],
+          [
+            "协议编号",
+            "2"
+          ],
+          [
+            "重复帧标记",
+            "3"
+          ]
+        ]
+      }
+    ],
+    "colour": 190,
+    "tooltip": "读取红外帧",
+    "helpUrl": "",
+    "output": "Number"
+  },
+  {
+    "type": "ck_common_irremote_command",
+    "message0": "读取红外命令（旧工程兼容） PIN %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 2,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "读取红外命令（旧工程兼容）",
+    "helpUrl": "",
+    "output": "Number"
+  }
+]

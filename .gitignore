@@ -1,34 +1,50 @@
-# Rust
-/target/
-**/target/
-
-# Node / frontend
+# Dependencies and generated output
 node_modules/
-dist/
-dist-ssr/
-*.local
+**/target/
+**/dist/
+**/dist-ssr/
+*.tsbuildinfo
+__pycache__/
+*.pyc
 *.log
+/bin/
+/runtime/
+/local/
+/test-results/
+/provenance/
+/installer/*.exe
+/desktop/bin/
+/apps/
+/desktop/tools/*.exe
+/desktop/apps/desktop/src-tauri/bin/*.exe
+/desktop/apps/desktop/src-tauri/state/qualifications/*
+!/desktop/apps/desktop/src-tauri/state/qualifications/.gitkeep
+/website/downloads/
+/website/build-meta.json
 
-# CK runtime data and generated evidence
+# User data, credentials, and local reports
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.local
 /packages/
 /cache/
 /state/
 /artifacts/
-/bin/
-/prebuilt_cores/
 /sketchbook/
-/empty_sketchbook/
 /tmp/
-/tmp_sketch/
-apps/desktop/src-tauri/state/qualifications/*
-!apps/desktop/src-tauri/state/qualifications/.gitkeep
-
-# Arduino indexes and local configuration
 /arduino-cli*.yaml
-/library_index.json*
 /package*_index*.json*
+/library_index.json*
+/docs/audits/
+*.msi
+*-Setup-*.exe
 
-# Editors and OS files
+# Editor and OS files
 .idea/
 .vscode/*
 !.vscode/extensions.json
@@ -36,8 +52,3 @@ apps/desktop/src-tauri/state/qualifications/*
 Thumbs.db
 *.suo
 *.user
-
-# Packaging output
-*.msi
-*-setup.exe
-

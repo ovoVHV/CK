@@ -1,0 +1,281 @@
+{
+  "schema_version": 2,
+  "id": "ck_ai_736b8b7dd8f8",
+  "display_name": "5点中值滤波（保留小数）",
+  "description": "5点窗口中值滤波，样本与中值以 double 保存，偶数个样本取中间两数平均并保留小数（301、800 得 550.5），不足5个按实际样本数计算。",
+  "license": {
+    "spdx_id": "LicenseRef-User-Review",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "arduino:avr:uno"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_ai_736b8b7dd8f8_reset",
+      "display_name": "清空5点中值滤波缓冲（double 版本）",
+      "description": "清空5点中值滤波缓冲（double 版本）",
+      "category": "5点中值滤波（保留小数）",
+      "kind": "statement",
+      "keywords": [],
+      "semantics": {
+        "behavior": "样本数归零、写入位置归零；之后读取中值返回 0.0，直到重新加入样本。",
+        "concepts": [
+          "5点窗口中值滤波",
+          "缓冲复位"
+        ],
+        "purpose": "在启动或需要丢弃历史样本时复位滤波窗口。",
+        "side_effects": [
+          "重置本滤波器的静态缓冲与计数",
+          "影响同一程序中 ckMedian5fValue() 的返回值"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": []
+      },
+      "dependencies": [],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "unknown",
+          "templates": []
+        },
+        "notes": [
+          "资源占用尚未完整声明，不代表没有占用"
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "清空5点中值滤波缓冲（double 版本）",
+            "template": "ckMedian5fReset();\n"
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "description": "库内使用单一静态窗口，多个积木共享同一缓冲。",
+          "id": "single-instance",
+          "message": "整机只有一份中值滤波窗口，不要同时用于两条独立通道。",
+          "recovery": "需要多通道时建立多个独立滤波实例的库。",
+          "severity": "warning"
+        }
+      ],
+      "examples": [
+        {
+          "boards": [
+            "arduino:avr:uno"
+          ],
+          "description": "清空缓冲，依次加入 301 和 800，读取中值应为 550.5。",
+          "expected_behavior": "返回 550.5，而不是被截断的 550。",
+          "id": "reset-then-push",
+          "title": "清空后加入两个样本"
+        }
+      ],
+      "errors": [
+        {
+          "cause": "缓冲从未加入样本或刚被清空，sampleCount 为 0。",
+          "code": "NO_SAMPLES",
+          "message": "未加入任何样本时读取得到 0.0。",
+          "recovery": "先加入至少一个样本再读取，或自行记录样本数区分“无样本”与“样本为0”。",
+          "severity": "info"
+        }
+      ]
+    },
+    {
+      "type": "ck_ai_736b8b7dd8f8_push",
+      "display_name": "向5点小数中值滤波窗口加入一个样本",
+      "description": "向5点小数中值滤波窗口加入一个样本",
+      "category": "5点中值滤波（保留小数）",
+      "kind": "statement",
+      "keywords": [],
+      "semantics": {
+        "behavior": "写入当前写入位置后写入位置前移；样本数未满5时递增，满5后覆盖最旧样本。样本按 double 保存。",
+        "concepts": [
+          "环形缓冲",
+          "最近5个样本",
+          "小数样本"
+        ],
+        "purpose": "把每个采样周期的读数送入中值滤波窗口。",
+        "side_effects": [
+          "修改滤波器静态缓冲",
+          "可能改变 ckMedian5fValue() 的返回值"
+        ]
+      },
+      "fields": [],
+      "inputs": [
+        {
+          "name": "VALUE",
+          "kind": "value",
+          "description": "样本数值，通常为模拟输入读数（0–1023），会转换为 double 保存。",
+          "check": "Number"
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "unit": "样本单位与输入一致（A0 原始读数 0–1023）"
+      },
+      "dependencies": [],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "unknown",
+          "templates": []
+        },
+        "notes": [
+          "资源占用尚未完整声明，不代表没有占用"
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "向5点小数中值滤波窗口加入一个样本",
+            "template": "ckMedian5fPush((double)({{value:VALUE}}));\n"
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "description": "窗口容量固定为5个样本。",
+          "id": "window-5",
+          "message": "窗口固定5点，不能通过积木修改容量。",
+          "severity": "info"
+        },
+        {
+          "description": "库内使用单一静态窗口。",
+          "id": "single-instance",
+          "message": "同一缓冲被所有该库积木共享。",
+          "recovery": "多通道需独立实例。",
+          "severity": "warning"
+        }
+      ],
+      "examples": [
+        {
+          "boards": [
+            "arduino:avr:uno"
+          ],
+          "description": "依次加入 301、800 后读取中值。",
+          "expected_behavior": "读取返回 550.5。",
+          "id": "push-301-800",
+          "title": "两个样本"
+        }
+      ],
+      "errors": [
+        {
+          "cause": "输入为浮点或整数均可，但不会改变窗口容量。",
+          "code": "VALUE_CONVERTED",
+          "message": "样本被转换为 double 保存，输入类型不影响精度。",
+          "recovery": "如需要更高精度输入，请提供 double 数值。",
+          "severity": "info"
+        }
+      ]
+    },
+    {
+      "type": "ck_ai_736b8b7dd8f8_value",
+      "display_name": "读取当前5点窗口的中值，返回 double，不截断小数",
+      "description": "读取当前5点窗口的中值，返回 double，不截断小数",
+      "category": "5点中值滤波（保留小数）",
+      "kind": "value",
+      "keywords": [],
+      "semantics": {
+        "behavior": "复制实际样本数的数据做插入排序；奇数个取中间值，偶数个取中间两数平均并除以 2.0；0个样本返回 0.0。",
+        "concepts": [
+          "中值",
+          "插入排序",
+          "偶数取中间平均",
+          "小数精度"
+        ],
+        "purpose": "得到不受尖峰影响的稳定测量值，用于阈值判断和串口输出。",
+        "side_effects": [
+          "只读取缓冲，不修改样本"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Number"
+        ],
+        "unit": "与加入样本的单位一致"
+      },
+      "dependencies": [],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "unknown",
+          "templates": []
+        },
+        "notes": [
+          "资源占用尚未完整声明，不代表没有占用"
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "读取当前5点窗口的中值，返回 double，不截断小数",
+            "template": "ckMedian5fValue()"
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "description": "返回值类型为 double，偶数样本平均值保留 0.5 精度。",
+          "id": "no-truncation",
+          "message": "承接该值的变量应为 float/double，否则仍会被截断。",
+          "recovery": "把承接变量声明为 double。",
+          "severity": "info"
+        }
+      ],
+      "examples": [
+        {
+          "boards": [
+            "arduino:avr:uno"
+          ],
+          "description": "清空后加入 301、800，读取中值。",
+          "expected_behavior": "得到 550.5，证明未按整数截断。",
+          "id": "value-550-5",
+          "title": "偶数样本小数中值"
+        }
+      ],
+      "errors": [
+        {
+          "cause": "缓冲为空（从未加入样本或刚清空）。",
+          "code": "NO_SAMPLES",
+          "message": "无样本时返回 0.0，无法与真实 0 读数区分。",
+          "recovery": "需要区分时请自行维护样本计数。",
+          "severity": "info"
+        }
+      ]
+    }
+  ]
+}

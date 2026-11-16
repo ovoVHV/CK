@@ -1,0 +1,613 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_lcd1602_i2c",
+  "display_name": "CK I2C LCD1602",
+  "description": "I2C LCD1602独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_lcd1602_i2c",
+    "I2C LCD1602"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [
+    {
+      "kind": "arduino-library",
+      "id": "LiquidCrystal I2C",
+      "version": "1.1.2",
+      "headers": [
+        "LiquidCrystal_I2C.h"
+      ],
+      "optional": false,
+      "reason": "Pinned upstream implementation; installed separately."
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_lcd1602_i2c_begin",
+      "display_name": "初始化 I2C LCD1602",
+      "description": "初始化 I2C LCD1602",
+      "category": "I2C LCD1602",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_lcd1602_i2c",
+        "I2C LCD1602"
+      ],
+      "semantics": {
+        "purpose": "初始化 I2C LCD1602",
+        "behavior": "初始化 I2C LCD1602。单个 16×2 LCD，使用 LiquidCrystal I2C 1.1.2 所支持的 PCF8574 背包接法。地址可选 0x20–0x27 / 0x38–0x3F，不自动扫描或更换地址。先初始化。行列从 0 开始。字符 ROM 不保证支持中文。",
+        "side_effects": [
+          "Explicit initialization of user-configured pins / peripheral."
+        ],
+        "concepts": [
+          "ck_hw_lcd1602_i2c"
+        ]
+      },
+      "fields": [
+        {
+          "name": "ADDRESS",
+          "kind": "number",
+          "description": "7 位地址（十进制）",
+          "required": true,
+          "default": 39
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitLcd1602.h",
+          "headers": [
+            "CKKitLcd1602.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "LiquidCrystal I2C",
+          "version": "1.1.2",
+          "headers": [
+            "LiquidCrystal_I2C.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "i2c",
+            "id": "i2c",
+            "source": {
+              "kind": "board-default"
+            },
+            "access": "read-write",
+            "sharing": "shared",
+            "description": "Default Wire bus; explicitly configured device address."
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "i2c-device",
+              "role": "i2c-device",
+              "resource": {
+                "kind": "fixed",
+                "valueType": "id",
+                "value": "i2c"
+              },
+              "discriminator": {
+                "kind": "field",
+                "name": "ADDRESS",
+                "valueType": "integer"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitLcd1602.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "初始化 I2C LCD1602",
+            "template": "ckKitLcdBegin({{field:ADDRESS}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_lcd1602_i2c_begin-example",
+          "title": "初始化 I2C LCD1602",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "ADDRESS": 39
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_lcd1602_i2c_print",
+      "display_name": "LCD1602 显示内容",
+      "description": "LCD1602 显示内容",
+      "category": "I2C LCD1602",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_lcd1602_i2c",
+        "I2C LCD1602"
+      ],
+      "semantics": {
+        "purpose": "LCD1602 显示内容",
+        "behavior": "LCD1602 显示内容。单个 16×2 LCD，使用 LiquidCrystal I2C 1.1.2 所支持的 PCF8574 背包接法。地址可选 0x20–0x27 / 0x38–0x3F，不自动扫描或更换地址。先初始化。行列从 0 开始。字符 ROM 不保证支持中文。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_lcd1602_i2c"
+        ]
+      },
+      "fields": [
+        {
+          "name": "COL",
+          "kind": "number",
+          "description": "列",
+          "required": true,
+          "default": 0
+        },
+        {
+          "name": "ROW",
+          "kind": "number",
+          "description": "行",
+          "required": true,
+          "default": 0
+        }
+      ],
+      "inputs": [
+        {
+          "name": "TEXT",
+          "kind": "value",
+          "description": "内容",
+          "required": true,
+          "check": "String",
+          "default": "Hello CK"
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitLcd1602.h",
+          "headers": [
+            "CKKitLcd1602.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "LiquidCrystal I2C",
+          "version": "1.1.2",
+          "headers": [
+            "LiquidCrystal_I2C.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitLcd1602.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "LCD1602 显示内容",
+            "template": "ckKitLcdPrint({{field:COL}}, {{field:ROW}}, String({{value:TEXT}}));"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_lcd1602_i2c_print-example",
+          "title": "LCD1602 显示内容",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "COL": 0,
+            "ROW": 0
+          },
+          "input_values": {
+            "TEXT": "Hello CK"
+          },
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_lcd1602_i2c_clear",
+      "display_name": "清空 LCD1602",
+      "description": "清空 LCD1602",
+      "category": "I2C LCD1602",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_lcd1602_i2c",
+        "I2C LCD1602"
+      ],
+      "semantics": {
+        "purpose": "清空 LCD1602",
+        "behavior": "清空 LCD1602。单个 16×2 LCD，使用 LiquidCrystal I2C 1.1.2 所支持的 PCF8574 背包接法。地址可选 0x20–0x27 / 0x38–0x3F，不自动扫描或更换地址。先初始化。行列从 0 开始。字符 ROM 不保证支持中文。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_lcd1602_i2c"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitLcd1602.h",
+          "headers": [
+            "CKKitLcd1602.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "LiquidCrystal I2C",
+          "version": "1.1.2",
+          "headers": [
+            "LiquidCrystal_I2C.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitLcd1602.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "清空 LCD1602",
+            "template": "ckKitLcdClear();"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_lcd1602_i2c_clear-example",
+          "title": "清空 LCD1602",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_lcd1602_i2c_backlight",
+      "display_name": "LCD1602 背光",
+      "description": "LCD1602 背光",
+      "category": "I2C LCD1602",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_lcd1602_i2c",
+        "I2C LCD1602"
+      ],
+      "semantics": {
+        "purpose": "LCD1602 背光",
+        "behavior": "LCD1602 背光。单个 16×2 LCD，使用 LiquidCrystal I2C 1.1.2 所支持的 PCF8574 背包接法。地址可选 0x20–0x27 / 0x38–0x3F，不自动扫描或更换地址。先初始化。行列从 0 开始。字符 ROM 不保证支持中文。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_lcd1602_i2c"
+        ]
+      },
+      "fields": [
+        {
+          "name": "ON",
+          "kind": "dropdown",
+          "description": "背光",
+          "required": true,
+          "default": "1",
+          "options": [
+            {
+              "label": "开启",
+              "value": "1"
+            },
+            {
+              "label": "关闭",
+              "value": "0"
+            }
+          ]
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitLcd1602.h",
+          "headers": [
+            "CKKitLcd1602.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "LiquidCrystal I2C",
+          "version": "1.1.2",
+          "headers": [
+            "LiquidCrystal_I2C.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitLcd1602.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "LCD1602 背光",
+            "template": "ckKitLcdBacklight({{field:ON}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_lcd1602_i2c_backlight-example",
+          "title": "LCD1602 背光",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "ON": "1"
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_common_lcd1602_print",
+      "display_name": "LCD1602 显示文字（旧工程兼容）",
+      "description": "LCD1602 显示文字（旧工程兼容）",
+      "category": "I2C LCD1602",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_lcd1602_i2c",
+        "I2C LCD1602"
+      ],
+      "semantics": {
+        "purpose": "LCD1602 显示文字（旧工程兼容）",
+        "behavior": "LCD1602 显示文字（旧工程兼容）。单个 16×2 LCD，使用 LiquidCrystal I2C 1.1.2 所支持的 PCF8574 背包接法。地址可选 0x20–0x27 / 0x38–0x3F，不自动扫描或更换地址。先初始化。行列从 0 开始。字符 ROM 不保证支持中文。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_lcd1602_i2c"
+        ]
+      },
+      "fields": [
+        {
+          "name": "ADDRESS",
+          "kind": "dropdown",
+          "description": "地址",
+          "required": true,
+          "default": "0x27",
+          "options": [
+            {
+              "label": "0x27",
+              "value": "0x27"
+            },
+            {
+              "label": "0x3F",
+              "value": "0x3F"
+            }
+          ]
+        },
+        {
+          "name": "TEXT",
+          "kind": "text",
+          "description": "文本",
+          "required": true,
+          "default": "Hello CK"
+        },
+        {
+          "name": "COL",
+          "kind": "number",
+          "description": "列",
+          "required": true,
+          "default": 0
+        },
+        {
+          "name": "ROW",
+          "kind": "number",
+          "description": "行",
+          "required": true,
+          "default": 0
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitLcd1602.h",
+          "headers": [
+            "CKKitLcd1602.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "LiquidCrystal I2C",
+          "version": "1.1.2",
+          "headers": [
+            "LiquidCrystal_I2C.h"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitLcd1602.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "LCD1602 显示文字（旧工程兼容）",
+            "template": "ckKitLcdBegin({{field:ADDRESS}});\nckKitLcdPrint({{field:COL}}, {{field:ROW}}, String({{field_json:TEXT}}));"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_common_lcd1602_print-example",
+          "title": "LCD1602 显示文字（旧工程兼容）",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "ADDRESS": "0x27",
+            "TEXT": "Hello CK",
+            "COL": 0,
+            "ROW": 0
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

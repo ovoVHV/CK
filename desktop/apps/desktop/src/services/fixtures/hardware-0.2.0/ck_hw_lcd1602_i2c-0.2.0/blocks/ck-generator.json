@@ -1,0 +1,46 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_lcd1602_i2c_begin",
+      "kind": "statement",
+      "template": "ckKitLcdBegin({{field:ADDRESS}});",
+      "includes": {
+        "driver": "#include <CKKitLcd1602.h>"
+      }
+    },
+    {
+      "type": "ck_hw_lcd1602_i2c_print",
+      "kind": "statement",
+      "template": "ckKitLcdPrint({{field:COL}}, {{field:ROW}}, String({{value:TEXT}}));",
+      "includes": {
+        "driver": "#include <CKKitLcd1602.h>"
+      }
+    },
+    {
+      "type": "ck_hw_lcd1602_i2c_clear",
+      "kind": "statement",
+      "template": "ckKitLcdClear();",
+      "includes": {
+        "driver": "#include <CKKitLcd1602.h>"
+      }
+    },
+    {
+      "type": "ck_hw_lcd1602_i2c_backlight",
+      "kind": "statement",
+      "template": "ckKitLcdBacklight({{field:ON}});",
+      "includes": {
+        "driver": "#include <CKKitLcd1602.h>"
+      }
+    },
+    {
+      "type": "ck_common_lcd1602_print",
+      "kind": "statement",
+      "template": "ckKitLcdBegin({{field:ADDRESS}});\nckKitLcdPrint({{field:COL}}, {{field:ROW}}, String({{field_json:TEXT}}));",
+      "includes": {
+        "driver": "#include <CKKitLcd1602.h>"
+      }
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "uno-debounce",
+    "title": "Uno 按键去抖和心跳",
+    "board": "arduino:avr:uno",
+    "prompt": "D2按钮按下接地且上拉，持续稳定30ms才接受新状态，每次按下只翻转D9一次，长按不重复。D13每250ms独立翻转。上电输出低，串口115200打印按下计数。使用millis无符号时间差，处理回绕。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "D2按钮按下接地且上拉，持续稳定30ms才接受新状态，每次按下只翻转D9一次，长按不重复。D13每250ms独立翻转。上电输出低，串口115200打印按下计数。使用millis无符号时间差，处理回绕。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "hysteresis-safety",
+    "title": "Uno 双周期滞回控制",
+    "board": "arduino:avr:uno",
+    "prompt": "A0每100ms采样，>=700开D9，<=600关，中间保持。<=5或>=1018是故障必须关；D8上拉急停按下时每轮都关，放开后下一正常采样恢复控制。串口115200每1000ms独立打印值。启动输出关。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "A0每100ms采样，>=700开D9，<=600关，中间保持。<=5或>=1018是故障必须关；D8上拉急停按下时每轮都关，放开后下一正常采样恢复控制。串口115200每1000ms独立打印值。启动输出关。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "ring-buffer-filter",
+    "title": "Uno 环形缓冲均值",
+    "board": "arduino:avr:uno",
+    "prompt": "A0每20ms采样，用8槽数组和循环下标计算最近8次移动平均；不足8次时按实际样本数除，不得越界。均值>=600亮D13，<=400灭，中间保持。串口115200每200ms独立输出均值。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "A0每20ms采样，用8槽数组和循环下标计算最近8次移动平均；不足8次时按实际样本数除，不得越界。均值>=600亮D13，<=400灭，中间保持。串口115200每200ms独立输出均值。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "traffic-emergency",
+    "title": "Nano 交通灯状态机",
+    "board": "arduino:avr:nano",
+    "prompt": "D8红、D9黄、D10绿，高电平亮。启动红3s→绿4s→黄1s循环且恰好一灯亮。D2上拉急停按下立即红，松开后重新完整红3s。D13每250ms独立心跳。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "D8红、D9黄、D10绿，高电平亮。启动红3s→绿4s→黄1s循环且恰好一灯亮。D2上拉急停按下立即红，松开后重新完整红3s。D13每250ms独立心跳。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "nano-pwm",
+    "title": "Nano 平滑采样和PWM",
+    "board": "arduino:avr:nano",
+    "prompt": "A0每20ms采样，用整数公式filtered=(filtered*3+newValue)/4平滑；第一样本直接初始化避免初始零偏差。映射0..1023到D9的PWM 0..255。D2上拉按钮按下时强制PWM零但采样继续，释放恢复。串口每500ms输出filtered和PWM。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "A0每20ms采样，用整数公式filtered=(filtered*3+newValue)/4平滑；第一样本直接初始化避免初始零偏差。映射0..1023到D9的PWM 0..255。D2上拉按钮按下时强制PWM零但采样继续，释放恢复。串口每500ms输出filtered和PWM。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "mega-multisensor",
+    "title": "Mega 三路传感与故障锁存",
+    "board": "arduino:avr:mega",
+    "prompt": "每50ms读A0，每200ms读A1，每500ms读A2，三个独立周期。任一通道<=2或>=1021锁存故障，D8亮；三个通道都已收到有效值且D2上拉按钮产生按下沿才清故障。D9仅无故障时亮，启动先关闭。串口每1000ms输出三值和故障。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "每50ms读A0，每200ms读A1，每500ms读A2，三个独立周期。任一通道<=2或>=1021锁存故障，D8亮；三个通道都已收到有效值且D2上拉按钮产生按下沿才清故障。D9仅无故障时亮，启动先关闭。串口每1000ms输出三值和故障。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "mega-serial",
+    "title": "Mega 非阻塞串口命令",
+    "board": "arduino:avr:mega",
+    "prompt": "串口115200，每轮有字节就读一个。字符1开启D8，0关闭，?打印状态，其他忽略。连续5000ms未收到有效命令自动关闭D8，并只打印一次timeout；收到有效命令重新计时。D13每250ms心跳独立运行，启动D8关。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "串口115200，每轮有字节就读一个。字符1开启D8，0关闭，?打印状态，其他忽略。连续5000ms未收到有效命令自动关闭D8，并只打印一次timeout；收到有效命令重新计时。D13每250ms心跳独立运行，启动D8关。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "mega-edge-counter",
+    "title": "Mega 双路计数与报警",
+    "board": "arduino:avr:mega",
+    "prompt": "D2和D3上拉按钮分别用30ms非阻塞去抖，各自按下沿计数；D4上拉按下沿清两个计数。count2>=5并且count3>=3时D8亮，否则灭。每1000ms串口输出两计数，D13每200ms心跳，长按不得重复计数。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "D2和D3上拉按钮分别用30ms非阻塞去抖，各自按下沿计数；D4上拉按下沿清两个计数。count2>=5并且count3>=3时D8亮，否则灭。每1000ms串口输出两计数，D13每200ms心跳，长按不得重复计数。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "esp32-wifi",
+    "title": "ESP32 WiFi 重连状态机",
+    "board": "esp32:esp32:esp32s3",
+    "prompt": "WiFi账号TEST_NET密码TEST_PASS，只为编译测试。setup设STA并begin，loop连接成功首次打印IP；未连接每10s重试begin但不阻塞。GPIO4每250ms心跳，串口115200。每1000ms输出WiFi状态，不得用while等待连接。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "WiFi账号TEST_NET密码TEST_PASS，只为编译测试。setup设STA并begin，loop连接成功首次打印IP；未连接每10s重试begin但不阻塞。GPIO4每250ms心跳，串口115200。每1000ms输出WiFi状态，不得用while等待连接。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  },
+  {
+    "id": "esp32-filter",
+    "title": "ESP32 双通道采样控制",
+    "board": "esp32:esp32:esp32s3",
+    "prompt": "GPIO1和GPIO2每100ms读模拟量0..4095，分别保存采样。任一路>=3000打开GPIO4指示灯，两路都<=2500关闭，其余保持；任一路<=2或>=4093视作异常，强制关闭且打印fault一次，恢复正常打印recovered一次。串口115200每500ms输出两值，启动灯关。全部使用可编辑积木，保留现有setup/loop和无关积木。不得用自定义代码块、delay或阻塞等待；先列简短计划，分段搭建，完整候选编译通过再提交。没有连接实机，不宣称实机验证。",
+    "requirements": [
+      "GPIO1和GPIO2每100ms读模拟量0..4095，分别保存采样。任一路>=3000打开GPIO4指示灯，两路都<=2500关闭，其余保持；任一路<=2或>=4093视作异常，强制关闭且打印fault一次，恢复正常打印recovered一次。串口115200每500ms输出两值，启动灯关。",
+      "editable blocks",
+      "nonblocking",
+      "original preserved"
+    ]
+  }
+]

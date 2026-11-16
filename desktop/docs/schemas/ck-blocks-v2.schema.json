@@ -1,0 +1,609 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-blocks-v2.schema.json",
+  "title": "CK Blockly Library Package v2",
+  "description": "Machine-readable semantics, dependencies, hardware use and generation behavior for a CK Blockly library.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "display_name",
+    "description",
+    "license",
+    "entrypoints",
+    "blocks"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "defaultLocale": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$",
+      "description": "Optional presentation default; never part of block or generator identity."
+    },
+    "display_name": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "default": []
+    },
+    "license": { "$ref": "#/$defs/license" },
+    "compatibility": { "$ref": "#/$defs/compatibility" },
+    "dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dependency" },
+      "default": []
+    },
+    "entrypoints": { "$ref": "#/$defs/entrypoints" },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/block" }
+    }
+  },
+  "$defs": {
+    "resourceClaims": {
+      "title": "CK declarative resource claims",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "coverage",
+        "templates"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "coverage": {
+          "enum": [
+            "full",
+            "partial",
+            "unknown"
+          ]
+        },
+        "templates": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/resourceClaims/$defs/claim"
+          }
+        }
+      },
+      "$defs": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$",
+          "maxLength": 128,
+          "not": {
+            "pattern": "[^A-Za-z0-9_.:/-]"
+          }
+        },
+        "operand": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "valueType"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "fixed",
+                "field",
+                "input"
+              ]
+            },
+            "valueType": {
+              "enum": [
+                "id",
+                "integer",
+                "boolean"
+              ]
+            },
+            "name": {
+              "$ref": "#/$defs/resourceClaims/$defs/id"
+            },
+            "value": {
+              "type": [
+                "string",
+                "integer",
+                "boolean"
+              ],
+              "maxLength": 128,
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "kind": {
+                    "const": "fixed"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "value"
+                ],
+                "not": {
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "else": {
+                "required": [
+                  "name"
+                ],
+                "not": {
+                  "required": [
+                    "value"
+                  ]
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "valueType": {
+                    "const": "id"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "$ref": "#/$defs/resourceClaims/$defs/id"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "valueType": {
+                    "const": "integer"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "integer"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "valueType": {
+                    "const": "boolean"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "value": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "idOperand": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/resourceClaims/$defs/operand"
+            },
+            {
+              "properties": {
+                "valueType": {
+                  "const": "id"
+                }
+              }
+            }
+          ]
+        },
+        "operandMap": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "$ref": "#/$defs/resourceClaims/$defs/id"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/resourceClaims/$defs/operand"
+          }
+        },
+        "claim": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "resource",
+            "role"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/resourceClaims/$defs/id"
+            },
+            "role": {
+              "$ref": "#/$defs/resourceClaims/$defs/id"
+            },
+            "resource": {
+              "$ref": "#/$defs/resourceClaims/$defs/idOperand"
+            },
+            "owner": {
+              "$ref": "#/$defs/resourceClaims/$defs/idOperand"
+            },
+            "exclusive": {
+              "type": "boolean"
+            },
+            "discriminator": {
+              "$ref": "#/$defs/resourceClaims/$defs/operand"
+            },
+            "configuration": {
+              "$ref": "#/$defs/resourceClaims/$defs/operandMap"
+            },
+            "signals": {
+              "type": "object",
+              "maxProperties": 32,
+              "propertyNames": {
+                "$ref": "#/$defs/resourceClaims/$defs/id"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/resourceClaims/$defs/idOperand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "allOf": [
+        { "not": { "pattern": "^(?:[A-Za-z]:|[/\\\\])" } },
+        { "not": { "pattern": "(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)" } }
+      ]
+    },
+    "stringSet": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spdx_id", "file"],
+      "properties": {
+        "spdx_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SPDX license identifier or LicenseRef-* identifier."
+        },
+        "file": { "$ref": "#/$defs/relativePath" }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "boards": { "$ref": "#/$defs/stringSet" },
+        "architectures": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "entrypoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blocks", "generator", "toolbox"],
+      "properties": {
+        "blocks": { "$ref": "#/$defs/jsonEntrypoint" },
+        "generator": { "$ref": "#/$defs/jsonEntrypoint" },
+        "toolbox": { "$ref": "#/$defs/toolboxEntrypoint" }
+      }
+    },
+    "jsonEntrypoint": {
+      "allOf": [
+        { "$ref": "#/$defs/relativePath" },
+        { "pattern": "\\.[Jj][Ss][Oo][Nn]$" }
+      ]
+    },
+    "toolboxEntrypoint": {
+      "allOf": [
+        { "$ref": "#/$defs/relativePath" },
+        { "pattern": "\\.(?:[Jj][Ss][Oo][Nn]|[Xx][Mm][Ll])$" }
+      ]
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {
+          "enum": ["arduino-library", "core", "header", "tool", "capability"]
+        },
+        "id": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "headers": { "$ref": "#/$defs/stringSet" },
+        "optional": { "type": "boolean", "default": false },
+        "reason": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1 }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "value"],
+      "properties": {
+        "label": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "description"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "default": {},
+        "options": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/option" }
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "description"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["value", "statement"] },
+        "description": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "check": {
+          "oneOf": [
+            { "type": "string", "minLength": 1 },
+            { "$ref": "#/$defs/stringSet" }
+          ]
+        },
+        "default": {}
+      }
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["purpose", "behavior", "side_effects", "concepts"],
+      "properties": {
+        "purpose": { "type": "string", "minLength": 1 },
+        "behavior": { "type": "string", "minLength": 1 },
+        "side_effects": { "$ref": "#/$defs/stringSet" },
+        "concepts": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["connection", "types"],
+      "properties": {
+        "connection": { "enum": ["none", "value"] },
+        "types": { "$ref": "#/$defs/stringSet" },
+        "description": { "type": "string", "minLength": 1 },
+        "unit": { "type": "string", "minLength": 1 },
+        "nullable": { "type": "boolean", "default": false }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "connection": { "const": "none" } } },
+          "then": { "properties": { "types": { "type": "array", "maxItems": 0 } } },
+          "else": { "properties": { "types": { "type": "array", "minItems": 1 } } }
+        }
+      ]
+    },
+    "resourceSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["field", "input", "fixed", "board-default"] },
+        "name": { "type": "string", "minLength": 1 },
+        "value": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "enum": ["field", "input"] } } },
+          "then": {
+            "properties": { "name": { "type": "string", "minLength": 1 } },
+            "required": ["name"]
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "fixed" } } },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "number" }
+                ]
+              }
+            },
+            "required": ["value"]
+          }
+        }
+      ]
+    },
+    "hardwareResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "description"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "gpio", "adc", "pwm", "i2c", "spi", "uart", "timer", "interrupt",
+            "network", "filesystem", "flash", "ram", "other"
+          ]
+        },
+        "id": { "type": "string", "minLength": 1 },
+        "source": { "$ref": "#/$defs/resourceSource" },
+        "access": { "enum": ["read", "write", "read-write", "reserve"] },
+        "sharing": { "enum": ["exclusive", "shared", "board-defined"] },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "capabilities": { "$ref": "#/$defs/stringSet" },
+        "description": { "type": "string", "minLength": 1 }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resources"],
+      "properties": {
+        "claims": { "$ref": "#/$defs/resourceClaims" },
+        "resources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hardwareResource" }
+        },
+        "boards": { "$ref": "#/$defs/stringSet" },
+        "architectures": { "$ref": "#/$defs/stringSet" },
+        "notes": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "emission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["section", "description"],
+      "properties": {
+        "section": {
+          "enum": ["include", "global", "setup", "loop", "statement", "expression"]
+        },
+        "description": { "type": "string", "minLength": 1 },
+        "template": { "type": "string", "minLength": 1 }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "shape", "deterministic", "emissions"],
+      "properties": {
+        "language": { "const": "arduino-cpp" },
+        "shape": { "enum": ["statement", "expression", "event"] },
+        "deterministic": { "type": "boolean" },
+        "includes": { "$ref": "#/$defs/stringSet" },
+        "calls": { "$ref": "#/$defs/stringSet" },
+        "emissions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/emission" }
+        },
+        "notes": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "constraintCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "operator"],
+      "properties": {
+        "target": { "type": "string", "minLength": 1 },
+        "operator": {
+          "enum": [
+            "equals", "not-equals", "one-of", "range", "matches", "requires",
+            "conflicts-with", "board-capability"
+          ]
+        },
+        "value": {}
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "severity", "description", "message"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "description": { "type": "string", "minLength": 1 },
+        "check": { "$ref": "#/$defs/constraintCheck" },
+        "message": { "type": "string", "minLength": 1 },
+        "recovery": { "type": "string", "minLength": 1 }
+      }
+    },
+    "example": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "description", "expected_behavior"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "title": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "field_values": { "type": "object" },
+        "input_values": { "type": "object" },
+        "project": { "$ref": "#/$defs/relativePath" },
+        "generated_code": { "$ref": "#/$defs/relativePath" },
+        "expected_code_contains": { "$ref": "#/$defs/stringSet" },
+        "expected_behavior": { "type": "string", "minLength": 1 },
+        "boards": { "$ref": "#/$defs/stringSet" }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "message", "cause", "recovery"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string", "minLength": 1 },
+        "cause": { "type": "string", "minLength": 1 },
+        "recovery": { "type": "string", "minLength": 1 }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type", "display_name", "description", "category", "kind", "semantics",
+        "fields", "inputs", "output", "dependencies", "hardware", "generation",
+        "constraints", "examples", "errors"
+      ],
+      "properties": {
+        "type": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$" },
+        "display_name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["statement", "value", "hat", "terminal"] },
+        "keywords": { "$ref": "#/$defs/stringSet" },
+        "semantics": { "$ref": "#/$defs/semantics" },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+        "inputs": { "type": "array", "items": { "$ref": "#/$defs/input" } },
+        "output": { "$ref": "#/$defs/output" },
+        "dependencies": { "type": "array", "items": { "$ref": "#/$defs/dependency" } },
+        "hardware": { "$ref": "#/$defs/hardware" },
+        "generation": { "$ref": "#/$defs/generation" },
+        "constraints": { "type": "array", "items": { "$ref": "#/$defs/constraint" } },
+        "examples": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/example" }
+        },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/error" } }
+      }
+    }
+  }
+}

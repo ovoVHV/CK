@@ -1,0 +1,239 @@
+{
+  "applicabilities": [
+    {
+      "buildSignatureAfter": "3b0bdd2b415e726d0db661ccdd80485f4ee29fb0e4a90ab7d2a6ac03e8b54067",
+      "buildSignatureBefore": "3b0bdd2b415e726d0db661ccdd80485f4ee29fb0e4a90ab7d2a6ac03e8b54067",
+      "firmwareHashes": {
+        "sketch_arduino_avr_nano_6629c0bfe98135715bb58089_rel.ino.elf": "26345357c8bf30fed7b32a3a4777a1a543fbc2e4e993ba744409e04c78956213",
+        "sketch_arduino_avr_nano_6629c0bfe98135715bb58089_rel.ino.hex": "96920a5ec193c913b67e7d49e55cc23748e42c0120fb47446fcce1b5501f50d9",
+        "sketch_arduino_avr_nano_6629c0bfe98135715bb58089_rel.ino.with_bootloader.hex": "03d12897e967d7b05fb1241d8189d3fda2aefedc0b453003121c53dc008edc05"
+      },
+      "identity": {
+        "coreVersion": "1.8.8",
+        "fCpu": "16000000L",
+        "fqbn": "arduino:avr:nano:cpu=atmega328",
+        "mcu": "atmega328p",
+        "options": {
+          "cpu": "atmega328"
+        },
+        "variant": "eightanaloginputs"
+      },
+      "productionCompilePair": "PASS",
+      "rejected": {
+        "core": {
+          "coreVersion": "0.0.0",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328",
+          "mcu": "atmega328p",
+          "options": {
+            "cpu": "atmega328"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "fCpu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "8000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328",
+          "mcu": "atmega328p",
+          "options": {
+            "cpu": "atmega328"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "mcu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328",
+          "mcu": "unknown_mcu",
+          "options": {
+            "cpu": "atmega328"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "menu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328,unverified=1",
+          "mcu": "atmega328p",
+          "options": {
+            "cpu": "atmega328",
+            "unverified": "1"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "variant": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328",
+          "mcu": "atmega328p",
+          "options": {
+            "cpu": "atmega328"
+          },
+          "variant": "standard"
+        }
+      },
+      "requestUnchanged": true
+    },
+    {
+      "buildSignatureAfter": "00c3474bd8ac778744e518c95e245c34a666c9e43dbfca8a2fed61c0e0754147",
+      "buildSignatureBefore": "00c3474bd8ac778744e518c95e245c34a666c9e43dbfca8a2fed61c0e0754147",
+      "firmwareHashes": {
+        "sketch_arduino_avr_nano_80815cf566e30b6ce2e31873_rel.ino.elf": "13f7060fc0d1780b363a2474ba3d225cf9edd6cfc67ed4c6caf26eb63349ad43",
+        "sketch_arduino_avr_nano_80815cf566e30b6ce2e31873_rel.ino.hex": "96920a5ec193c913b67e7d49e55cc23748e42c0120fb47446fcce1b5501f50d9",
+        "sketch_arduino_avr_nano_80815cf566e30b6ce2e31873_rel.ino.with_bootloader.hex": "856da6d020c29beb58808aba25a0fcc208b61412e4fe13cde321ad20444ad846"
+      },
+      "identity": {
+        "coreVersion": "1.8.8",
+        "fCpu": "16000000L",
+        "fqbn": "arduino:avr:nano:cpu=atmega328old",
+        "mcu": "atmega328p",
+        "options": {
+          "cpu": "atmega328old"
+        },
+        "variant": "eightanaloginputs"
+      },
+      "productionCompilePair": "PASS",
+      "rejected": {
+        "core": {
+          "coreVersion": "0.0.0",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328old",
+          "mcu": "atmega328p",
+          "options": {
+            "cpu": "atmega328old"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "fCpu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "8000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328old",
+          "mcu": "atmega328p",
+          "options": {
+            "cpu": "atmega328old"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "mcu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328old",
+          "mcu": "unknown_mcu",
+          "options": {
+            "cpu": "atmega328old"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "menu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328old,unverified=1",
+          "mcu": "atmega328p",
+          "options": {
+            "cpu": "atmega328old",
+            "unverified": "1"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "variant": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega328old",
+          "mcu": "atmega328p",
+          "options": {
+            "cpu": "atmega328old"
+          },
+          "variant": "standard"
+        }
+      },
+      "requestUnchanged": true
+    },
+    {
+      "buildSignatureAfter": "f007dad1fecdba946ef1192060b99452d73cdfa49dfae069d824cce061e7f05a",
+      "buildSignatureBefore": "f007dad1fecdba946ef1192060b99452d73cdfa49dfae069d824cce061e7f05a",
+      "firmwareHashes": {
+        "sketch_arduino_avr_nano_7e33ab7d43d83e364eb11edd_rel.ino.elf": "976365363fb73f9435ebb495c686a7e67346f4734b4ff6687b04ebc0f9807a8a",
+        "sketch_arduino_avr_nano_7e33ab7d43d83e364eb11edd_rel.ino.hex": "c4cc64ae13a14f33ec8b90252d9884fb733c43b57673f989f26ab8ea5e1ecaea",
+        "sketch_arduino_avr_nano_7e33ab7d43d83e364eb11edd_rel.ino.with_bootloader.hex": "ce3f3c1f5371d20e370f0fccf5d342d00fbb10d8ebc30b758d5ff67dac7f1823"
+      },
+      "identity": {
+        "coreVersion": "1.8.8",
+        "fCpu": "16000000L",
+        "fqbn": "arduino:avr:nano:cpu=atmega168",
+        "mcu": "atmega168",
+        "options": {
+          "cpu": "atmega168"
+        },
+        "variant": "eightanaloginputs"
+      },
+      "productionCompilePair": "PASS",
+      "rejected": {
+        "core": {
+          "coreVersion": "0.0.0",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega168",
+          "mcu": "atmega168",
+          "options": {
+            "cpu": "atmega168"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "fCpu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "8000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega168",
+          "mcu": "atmega168",
+          "options": {
+            "cpu": "atmega168"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "mcu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega168",
+          "mcu": "unknown_mcu",
+          "options": {
+            "cpu": "atmega168"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "menu": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega168,unverified=1",
+          "mcu": "atmega168",
+          "options": {
+            "cpu": "atmega168",
+            "unverified": "1"
+          },
+          "variant": "eightanaloginputs"
+        },
+        "variant": {
+          "coreVersion": "1.8.8",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:nano:cpu=atmega168",
+          "mcu": "atmega168",
+          "options": {
+            "cpu": "atmega168"
+          },
+          "variant": "standard"
+        }
+      },
+      "requestUnchanged": true
+    }
+  ],
+  "defaultIdentity": {
+    "coreVersion": "1.8.8",
+    "fCpu": "16000000L",
+    "fqbn": "arduino:avr:nano",
+    "mcu": "atmega328p",
+    "options": {},
+    "variant": "eightanaloginputs"
+  },
+  "processors": [
+    "atmega328",
+    "atmega328old",
+    "atmega168"
+  ]
+}

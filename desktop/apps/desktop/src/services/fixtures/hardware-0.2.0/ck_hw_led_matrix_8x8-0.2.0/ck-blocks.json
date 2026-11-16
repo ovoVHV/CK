@@ -1,0 +1,1012 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_led_matrix_8x8",
+  "display_name": "CK 8×8 裸 LED 点阵",
+  "description": "8×8 裸 LED 点阵独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_led_matrix_8x8",
+    "8×8 裸 LED 点阵",
+    "8x8 Bare LED Matrix"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_led_matrix_8x8_begin",
+      "display_name": "初始化 8×8 裸点阵",
+      "description": "初始化 8×8 裸点阵",
+      "category": "8×8 裸 LED 点阵",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_led_matrix_8x8",
+        "8×8 裸 LED 点阵",
+        "8x8 Bare LED Matrix"
+      ],
+      "semantics": {
+        "purpose": "初始化 8×8 裸点阵",
+        "behavior": "初始化 8×8 裸点阵。仅支持 8 行/8 列裸点阵，不是 MAX7219 或 I2C 屏。16 个管脚映射必须从实际器件资料确认；积木参数是 MCU 接线号，不是点阵封装脚号。可选行有效高/低，列电平相反。必须限流，必要时增加行列驱动；软件测试不证明电气安全。循环中调用扫描，不能长期 delay。",
+        "side_effects": [
+          "Explicit initialization of user-configured pins / peripheral."
+        ],
+        "concepts": [
+          "ck_hw_led_matrix_8x8"
+        ]
+      },
+      "fields": [
+        {
+          "name": "ROW_HIGH",
+          "kind": "dropdown",
+          "description": "行有效电平",
+          "required": true,
+          "default": "1",
+          "options": [
+            {
+              "label": "高",
+              "value": "1"
+            },
+            {
+              "label": "低",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "name": "R1",
+          "kind": "number",
+          "description": "R1",
+          "required": true,
+          "default": 2
+        },
+        {
+          "name": "R2",
+          "kind": "number",
+          "description": "R2",
+          "required": true,
+          "default": 3
+        },
+        {
+          "name": "R3",
+          "kind": "number",
+          "description": "R3",
+          "required": true,
+          "default": 4
+        },
+        {
+          "name": "R4",
+          "kind": "number",
+          "description": "R4",
+          "required": true,
+          "default": 5
+        },
+        {
+          "name": "R5",
+          "kind": "number",
+          "description": "R5",
+          "required": true,
+          "default": 6
+        },
+        {
+          "name": "R6",
+          "kind": "number",
+          "description": "R6",
+          "required": true,
+          "default": 7
+        },
+        {
+          "name": "R7",
+          "kind": "number",
+          "description": "R7",
+          "required": true,
+          "default": 8
+        },
+        {
+          "name": "R8",
+          "kind": "number",
+          "description": "R8",
+          "required": true,
+          "default": 9
+        },
+        {
+          "name": "C1",
+          "kind": "number",
+          "description": "C1",
+          "required": true,
+          "default": 10
+        },
+        {
+          "name": "C2",
+          "kind": "number",
+          "description": "C2",
+          "required": true,
+          "default": 11
+        },
+        {
+          "name": "C3",
+          "kind": "number",
+          "description": "C3",
+          "required": true,
+          "default": 12
+        },
+        {
+          "name": "C4",
+          "kind": "number",
+          "description": "C4",
+          "required": true,
+          "default": 13
+        },
+        {
+          "name": "C5",
+          "kind": "number",
+          "description": "C5",
+          "required": true,
+          "default": 14
+        },
+        {
+          "name": "C6",
+          "kind": "number",
+          "description": "C6",
+          "required": true,
+          "default": 15
+        },
+        {
+          "name": "C7",
+          "kind": "number",
+          "description": "C7",
+          "required": true,
+          "default": 16
+        },
+        {
+          "name": "C8",
+          "kind": "number",
+          "description": "C8",
+          "required": true,
+          "default": 17
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitMatrix.h",
+          "headers": [
+            "CKKitMatrix.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "r1",
+            "source": {
+              "kind": "field",
+              "name": "R1"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: R1"
+          },
+          {
+            "kind": "gpio",
+            "id": "r2",
+            "source": {
+              "kind": "field",
+              "name": "R2"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: R2"
+          },
+          {
+            "kind": "gpio",
+            "id": "r3",
+            "source": {
+              "kind": "field",
+              "name": "R3"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: R3"
+          },
+          {
+            "kind": "gpio",
+            "id": "r4",
+            "source": {
+              "kind": "field",
+              "name": "R4"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: R4"
+          },
+          {
+            "kind": "gpio",
+            "id": "r5",
+            "source": {
+              "kind": "field",
+              "name": "R5"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: R5"
+          },
+          {
+            "kind": "gpio",
+            "id": "r6",
+            "source": {
+              "kind": "field",
+              "name": "R6"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: R6"
+          },
+          {
+            "kind": "gpio",
+            "id": "r7",
+            "source": {
+              "kind": "field",
+              "name": "R7"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: R7"
+          },
+          {
+            "kind": "gpio",
+            "id": "r8",
+            "source": {
+              "kind": "field",
+              "name": "R8"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: R8"
+          },
+          {
+            "kind": "gpio",
+            "id": "c1",
+            "source": {
+              "kind": "field",
+              "name": "C1"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C1"
+          },
+          {
+            "kind": "gpio",
+            "id": "c2",
+            "source": {
+              "kind": "field",
+              "name": "C2"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C2"
+          },
+          {
+            "kind": "gpio",
+            "id": "c3",
+            "source": {
+              "kind": "field",
+              "name": "C3"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C3"
+          },
+          {
+            "kind": "gpio",
+            "id": "c4",
+            "source": {
+              "kind": "field",
+              "name": "C4"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C4"
+          },
+          {
+            "kind": "gpio",
+            "id": "c5",
+            "source": {
+              "kind": "field",
+              "name": "C5"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C5"
+          },
+          {
+            "kind": "gpio",
+            "id": "c6",
+            "source": {
+              "kind": "field",
+              "name": "C6"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C6"
+          },
+          {
+            "kind": "gpio",
+            "id": "c7",
+            "source": {
+              "kind": "field",
+              "name": "C7"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C7"
+          },
+          {
+            "kind": "gpio",
+            "id": "c8",
+            "source": {
+              "kind": "field",
+              "name": "C8"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: C8"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "r1-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "R1",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r2-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "R2",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r3-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "R3",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r4-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "R4",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r5-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "R5",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r6-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "R6",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r7-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "R7",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "r8-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "R8",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c1-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C1",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c2-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C2",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c3-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C3",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c4-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C4",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c5-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C5",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c6-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C6",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c7-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C7",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "c8-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "C8",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitMatrix.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "初始化 8×8 裸点阵",
+            "template": "ckKitMatrixBegin({{field:ROW_HIGH}}, {{field:R1}}, {{field:R2}}, {{field:R3}}, {{field:R4}}, {{field:R5}}, {{field:R6}}, {{field:R7}}, {{field:R8}}, {{field:C1}}, {{field:C2}}, {{field:C3}}, {{field:C4}}, {{field:C5}}, {{field:C6}}, {{field:C7}}, {{field:C8}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_led_matrix_8x8_begin-example",
+          "title": "初始化 8×8 裸点阵",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "ROW_HIGH": "1",
+            "R1": 2,
+            "R2": 3,
+            "R3": 4,
+            "R4": 5,
+            "R5": 6,
+            "R6": 7,
+            "R7": 8,
+            "R8": 9,
+            "C1": 10,
+            "C2": 11,
+            "C3": 12,
+            "C4": 13,
+            "C5": 14,
+            "C6": 15,
+            "C7": 16,
+            "C8": 17
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_led_matrix_8x8_pixel",
+      "display_name": "点阵设置像素",
+      "description": "点阵设置像素",
+      "category": "8×8 裸 LED 点阵",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_led_matrix_8x8",
+        "8×8 裸 LED 点阵",
+        "8x8 Bare LED Matrix"
+      ],
+      "semantics": {
+        "purpose": "点阵设置像素",
+        "behavior": "点阵设置像素。仅支持 8 行/8 列裸点阵，不是 MAX7219 或 I2C 屏。16 个管脚映射必须从实际器件资料确认；积木参数是 MCU 接线号，不是点阵封装脚号。可选行有效高/低，列电平相反。必须限流，必要时增加行列驱动；软件测试不证明电气安全。循环中调用扫描，不能长期 delay。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_led_matrix_8x8"
+        ]
+      },
+      "fields": [],
+      "inputs": [
+        {
+          "name": "X",
+          "kind": "value",
+          "description": "列 0–7",
+          "required": true,
+          "check": "Number",
+          "default": 0
+        },
+        {
+          "name": "Y",
+          "kind": "value",
+          "description": "行 0–7",
+          "required": true,
+          "check": "Number",
+          "default": 0
+        },
+        {
+          "name": "ON",
+          "kind": "value",
+          "description": "亮/灭",
+          "required": true,
+          "check": "Boolean",
+          "default": true
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitMatrix.h",
+          "headers": [
+            "CKKitMatrix.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitMatrix.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "点阵设置像素",
+            "template": "ckKitMatrixPixel({{value:X}}, {{value:Y}}, {{value:ON}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_led_matrix_8x8_pixel-example",
+          "title": "点阵设置像素",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {
+            "X": 0,
+            "Y": 0,
+            "ON": true
+          },
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_led_matrix_8x8_row",
+      "display_name": "点阵设置一行",
+      "description": "点阵设置一行",
+      "category": "8×8 裸 LED 点阵",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_led_matrix_8x8",
+        "8×8 裸 LED 点阵",
+        "8x8 Bare LED Matrix"
+      ],
+      "semantics": {
+        "purpose": "点阵设置一行",
+        "behavior": "点阵设置一行。仅支持 8 行/8 列裸点阵，不是 MAX7219 或 I2C 屏。16 个管脚映射必须从实际器件资料确认；积木参数是 MCU 接线号，不是点阵封装脚号。可选行有效高/低，列电平相反。必须限流，必要时增加行列驱动；软件测试不证明电气安全。循环中调用扫描，不能长期 delay。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_led_matrix_8x8"
+        ]
+      },
+      "fields": [],
+      "inputs": [
+        {
+          "name": "ROW",
+          "kind": "value",
+          "description": "行 0–7",
+          "required": true,
+          "check": "Number",
+          "default": 0
+        },
+        {
+          "name": "BYTE",
+          "kind": "value",
+          "description": "字节（bit0 为第 0 列）",
+          "required": true,
+          "check": "Number",
+          "default": 170
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitMatrix.h",
+          "headers": [
+            "CKKitMatrix.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitMatrix.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "点阵设置一行",
+            "template": "ckKitMatrixRow({{value:ROW}}, {{value:BYTE}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_led_matrix_8x8_row-example",
+          "title": "点阵设置一行",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {
+            "ROW": 0,
+            "BYTE": 170
+          },
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_led_matrix_8x8_refresh",
+      "display_name": "扫描点阵（循环调用）",
+      "description": "扫描点阵（循环调用）",
+      "category": "8×8 裸 LED 点阵",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_led_matrix_8x8",
+        "8×8 裸 LED 点阵",
+        "8x8 Bare LED Matrix"
+      ],
+      "semantics": {
+        "purpose": "扫描点阵（循环调用）",
+        "behavior": "扫描点阵（循环调用）。仅支持 8 行/8 列裸点阵，不是 MAX7219 或 I2C 屏。16 个管脚映射必须从实际器件资料确认；积木参数是 MCU 接线号，不是点阵封装脚号。可选行有效高/低，列电平相反。必须限流，必要时增加行列驱动；软件测试不证明电气安全。循环中调用扫描，不能长期 delay。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_led_matrix_8x8"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitMatrix.h",
+          "headers": [
+            "CKKitMatrix.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitMatrix.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "扫描点阵（循环调用）",
+            "template": "ckKitMatrixRefresh();"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_led_matrix_8x8_refresh-example",
+          "title": "扫描点阵（循环调用）",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_led_matrix_8x8_clear",
+      "display_name": "清空点阵",
+      "description": "清空点阵",
+      "category": "8×8 裸 LED 点阵",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_led_matrix_8x8",
+        "8×8 裸 LED 点阵",
+        "8x8 Bare LED Matrix"
+      ],
+      "semantics": {
+        "purpose": "清空点阵",
+        "behavior": "清空点阵。仅支持 8 行/8 列裸点阵，不是 MAX7219 或 I2C 屏。16 个管脚映射必须从实际器件资料确认；积木参数是 MCU 接线号，不是点阵封装脚号。可选行有效高/低，列电平相反。必须限流，必要时增加行列驱动；软件测试不证明电气安全。循环中调用扫描，不能长期 delay。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_led_matrix_8x8"
+        ]
+      },
+      "fields": [],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitMatrix.h",
+          "headers": [
+            "CKKitMatrix.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitMatrix.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "清空点阵",
+            "template": "ckKitMatrixClear();"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_led_matrix_8x8_clear-example",
+          "title": "清空点阵",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

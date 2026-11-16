@@ -1,0 +1,4113 @@
+@import "tailwindcss";
+@import "./brand.css";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 
+  Theme Variables
+  Using CSS variables for performant theme switching
+*/
+:root {
+    /* Typography tokens: prefer clean UI faces with proper CJK fallbacks on Windows. */
+    --font-sans: Inter, "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", Avenir, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", Consolas, "JetBrains Mono", SFMono-Regular, Menlo, Monaco, monospace;
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: light;
+
+    /* Semantic Colors - Light Mode Defaults */
+    --bg-workspace: #f8fafc;
+    /* Slate-50 */
+    --bg-surface: #ffffff;
+    /* White */
+    --bg-popover: #ffffff;
+    /* White */
+    --text-primary: #334155;
+    /* Slate-700 */
+    --text-secondary: #64748b;
+    /* Slate-500 */
+    --border-color: #e2e8f0;
+    /* Slate-200 */
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #cbd5e1;
+    /* Slate-300 */
+    --scrollbar-thumb-hover: #94a3b8;
+    /* Slate-400 */
+
+    /* CK brand accents */
+    --accent: #c2410c;
+    /* Brand action */
+    --accent-strong: #9a3412;
+    --accent-soft: #fff0e5;
+    --focus-ring: #ea580c;
+    /* Accessible focus outline */
+
+    /* Elevation tokens */
+    --shadow-sm: 0 1px 2px rgb(15 23 42 / 6%);
+    --shadow-md: 0 2px 8px rgb(15 23 42 / 8%), 0 1px 2px rgb(15 23 42 / 6%);
+    --shadow-lg: 0 12px 32px rgb(15 23 42 / 14%), 0 2px 8px rgb(15 23 42 / 8%);
+
+    /* Radius scale */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Legacy Mappings to ensure current code works while we transition */
+    color: var(--text-primary);
+    background-color: var(--bg-workspace);
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Global Transition Duration */
+    --transition-fast: 0.15s;
+    --transition-medium: 0.25s;
+}
+
+:root.dark {
+    color-scheme: dark;
+    --bg-workspace: #0b1220;
+    --bg-surface: #111827;
+    --bg-popover: #172033;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --border-color: #293548;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #334155;
+    --scrollbar-thumb-hover: #475569;
+
+    --accent: #fdba74;
+    /* Light orange remains readable on dark surfaces */
+    --accent-strong: #fb923c;
+    --accent-soft: rgb(255 106 0 / 12%);
+    --focus-ring: #fb923c;
+    /* Dark-mode focus outline */
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+    --shadow-md: 0 2px 8px rgb(0 0 0 / 38%), 0 1px 2px rgb(0 0 0 / 30%);
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 50%), 0 2px 8px rgb(0 0 0 / 38%);
+}
+
+html,
+body,
+#root,
+.app-root {
+    background-color: var(--bg-workspace);
+    color: var(--text-primary);
+}
+
+/* =========================================
+   Semantic Component Overrides (Robustness)
+   ========================================= */
+
+/* Blockly Toolbox - Force use of semantic background */
+.blocklyToolboxDiv {
+    background-color: var(--bg-workspace) !important;
+    border-right: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.blocklyFlyoutBackground {
+    fill: var(--bg-workspace) !important;
+    fill-opacity: 0.95 !important;
+}
+
+/* C++ Preview Container */
+.cpp-preview-container {
+    background-color: var(--bg-workspace) !important;
+    border-left: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Common UI Panels (Bottom Panel, etc) */
+.bottom-panel,
+.output-logs-container {
+    background-color: var(--bg-workspace) !important;
+    color: var(--text-primary) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+.panel-header {
+    background-color: var(--bg-surface) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* Scrollbars (Semantic) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background-color: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 5px;
+    border: 2px solid var(--scrollbar-track);
+    /* Creates padding effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+    background-color: var(--scrollbar-track);
+}
+
+html {
+    height: 100%;
+}
+
+/* 
+   SAFE TEXT ZOOM IMPLEMENTATION
+   We override standard tailwind text classes to use our multiplier. 
+   We avoid !important to allow specific overrides if needed,
+   but since these are in the main css, they should apply correctly.
+*/
+/* 
+   SAFE TEXT ZOOM IMPLEMENTATION
+   We removed global overrides to prevent UI breakage in Headers/Nav.
+   Scaling is now applied selectively to content areas.
+*/
+
+/* Scale the Toolbox Sidebar */
+.blocklyToolboxCategoryLabel,
+.blocklyTreeLabel {
+    /* Base 16px * Mult */
+    font-size: 16px !important;
+    line-height: normal !important;
+}
+
+/* Keep only modern toolbox label in Blockly v12; hide legacy tree label to avoid duplicate text overlay. */
+.blocklyToolboxDiv .blocklyTreeLabel {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Scale the C++ Preview */
+.cpp-preview-container {
+    /* Base 12px * Mult */
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    tab-size: 4 !important;
+}
+
+.cpp-preview-container code,
+.cpp-preview-container span {
+    font-size: inherit !important;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    overflow-y: hidden;
+    overflow-y: hidden;
+    /* background: transparent !important; -- Removed for Native Window Mode */
+    /* Prevent body scroll if not needed */
+}
+
+/* Custom scrollbar for better look in light theme */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    /* slate-300 */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    /* slate-400 */
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+    background: #334155;
+    /* slate-700 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+    /* slate-600 */
+}
+
+/* Specific class if needed */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #334155;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* --- Blockly UI Overrides --- */
+
+/* 1. Slim Scrollbar for Dropdowns (Pin Selector, etc.) */
+.blocklyWidgetDiv .goog-menu,
+.blocklyDropDownDiv {
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: #cbd5e1 transparent;
+    /* Firefox */
+}
+
+.blocklyWidgetDiv .goog-menu::-webkit-scrollbar,
+.blocklyDropDownDiv::-webkit-scrollbar {
+    width: 6px;
+    /* Slim width */
+    height: 6px;
+}
+
+.blocklyWidgetDiv .goog-menu::-webkit-scrollbar-track,
+.blocklyDropDownDiv::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.blocklyWidgetDiv .goog-menu::-webkit-scrollbar-thumb,
+.blocklyDropDownDiv::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    /* Slate-300 */
+    border-radius: 4px;
+    /* Rounded pill look */
+    border: 1px solid transparent;
+    /* Optional padding */
+    background-clip: content-box;
+}
+
+.blocklyWidgetDiv .goog-menu::-webkit-scrollbar-thumb:hover,
+.blocklyDropDownDiv::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+    /* Slate-400 */
+}
+
+/* 1.5 Blockly Text in Dark Mode */
+.dark .blocklyText {
+    fill: #e2e8f0 !important;
+    /* Slate-200 */
+}
+
+.dark .blocklyEditableText>text {
+    fill: #ffffff !important;
+}
+
+/* Crucial: Darken the input field background so white text is visible */
+.dark .blocklyEditableText>rect {
+    fill: #1e293b !important;
+    /* Slate-800 */
+    stroke: #475569 !important;
+    /* Slate-600 */
+    fill-opacity: 1 !important;
+}
+
+.dark .blocklyDropdownText {
+    fill: #ffffff !important;
+}
+
+/* Toolbox text color in dark mode is handled by theme, but category labels might need this */
+.dark .blocklyToolboxCategoryLabel {
+    color: #e2e8f0 !important;
+}
+
+/* Inverted icons if necessary */
+.dark .blocklyZoom>image,
+.dark .blocklyTrash>image {
+    filter: invert(1) opacity(0.8);
+}
+
+/* 2. Toolbox Styling - Extra Large & Fixing Layout */
+/* 2. Toolbox Styling - Compact Personalized (User Spec 30px) */
+.blocklyToolboxDiv {
+    position: relative !important;
+    background-color: #f8fafc !important;
+    border-right: 1px solid #e2e8f0 !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    padding-top: 12px !important;
+    padding-bottom: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    --bg-toolbox: #f8fafc;
+    --bg-toolbox-dark: #0f172a;
+}
+
+.dark .blocklyToolboxDiv {
+    background-color: #0f172a !important;
+    /* Slate 900 */
+    border-right: 1px solid #334155 !important;
+}
+
+.blocklyToolboxContents,
+.blocklyToolboxCategory,
+.blocklyToolboxCategoryGroup {
+    width: 180px !important;
+}
+
+.blocklyToolboxContents {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-bottom: 56px !important;
+}
+
+.blocklyToolboxCategoryGroup {
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+    padding-bottom: 0 !important;
+}
+
+/* User Specified Larger Layout */
+/* Mixly-style Toolbox Integration */
+
+/* Category container: fully transparent, no margin gaps */
+.blocklyToolboxCategory {
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    background-color: transparent !important;
+}
+
+/* Category group (children wrapper): no gaps */
+.blocklyToolboxCategoryGroup {
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* The actual visible row - full width, no gaps on sides */
+.blocklyTreeRow {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding-left: 12px !important;
+    width: 100% !important;   /* Full width - no right gap */
+    margin: 0 !important;
+
+    /* Left accent border like Mixly */
+    border-radius: 0 !important;
+    border-left-width: 8px !important;
+    border-left-style: solid !important;
+
+    /* Default background matches toolbox so row is "invisible" until hovered/selected.
+       Do NOT use !important here — Blockly sets inline background-color on selected rows. */
+    background-color: #f8fafc;
+
+    display: flex !important;
+    align-items: center !important;
+
+    color: #334155 !important;
+    transition: background-color 0.1s ease;
+}
+
+/* Hover state for unselected items */
+.blocklyTreeRow:not(.blocklyTreeSelected):not([aria-selected='true']):hover {
+    background-color: #e2e8f0 !important;
+}
+
+/* SELECTED STATE:
+   Blockly gives inline style="background-color: [COLOR]" to .blocklyTreeRow when selected.
+   We just need to force the text and icon to white, and strip border-left.
+*/
+.blocklyTreeRow.blocklyTreeSelected,
+.blocklyTreeRow[aria-selected="true"] {
+    color: #ffffff !important;
+    /* Force border color to match background by making it transparent */
+    border-left-color: transparent !important;
+    /* Add slight inset shadow for depth */
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2) !important;
+}
+
+/* Keep text white when selected */
+.blocklyTreeRow.blocklyTreeSelected .blocklyToolboxCategoryLabel,
+.blocklyTreeRow.blocklyTreeSelected .blocklyTreeLabel,
+.blocklyTreeRow.blocklyTreeSelected span,
+.blocklyTreeRow[aria-selected="true"] .blocklyToolboxCategoryLabel,
+.blocklyTreeRow[aria-selected="true"] .blocklyTreeLabel,
+.blocklyTreeRow[aria-selected="true"] span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Invert SVG icons for selected categories */
+.blocklyTreeRow.blocklyTreeSelected .blocklyToolboxCategoryLabel::before,
+.blocklyTreeRow[aria-selected="true"] .blocklyToolboxCategoryLabel::before {
+    opacity: 1;
+    filter: brightness(0) saturate(100%) invert(100%) !important;
+}
+
+/* Dark Mode Overrides */
+.dark .blocklyTreeRow {
+    background-color: #1e293b;
+    color: #cbd5e1 !important;
+}
+
+.dark .blocklyTreeRow:not(.blocklyTreeSelected):not([aria-selected='true']):hover {
+    background-color: #334155 !important;
+}
+
+.dark .blocklyTreeRow.blocklyTreeSelected,
+.dark .blocklyTreeRow[aria-selected="true"] {
+    color: #ffffff !important;
+}
+
+/* Fix Focus outlines */
+.blocklyTreeRow:focus,
+.blocklyTreeRow:active,
+.blocklyTreeRow:focus-visible,
+.blocklyToolboxCategory:focus,
+.blocklyToolboxCategory:focus-visible,
+.blocklyToolboxCategory:active {
+    outline: none !important;
+}
+
+/* Fix vertical alignment for labels */
+.blocklyTreeRowContentContainer {
+    display: flex !important;
+    align-items: center !important;
+    height: 100% !important;
+}
+
+/* Layout for font */
+.blocklyToolboxCategoryLabel,
+.blocklyTreeLabel {
+    font-family: inherit !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    line-height: normal !important;
+    padding-left: 6px;
+}
+
+.blocklyFlyoutBackground {
+    fill: var(--bg-workspace) !important;
+    fill-opacity: 0.95 !important;
+}
+
+/* C++ Preview Container */
+.cpp-preview-container {
+    background-color: var(--bg-workspace) !important;
+    border-left: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Common UI Panels (Bottom Panel, etc) */
+.bottom-panel,
+.output-logs-container {
+    background-color: var(--bg-workspace) !important;
+    color: var(--text-primary) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+.panel-header {
+    background-color: var(--bg-surface) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* Scrollbars (Semantic) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background-color: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 5px;
+    border: 2px solid var(--scrollbar-track);
+    /* Creates padding effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+    background-color: var(--scrollbar-track);
+}
+
+html {
+    height: 100%;
+}
+
+/* 
+   SAFE TEXT ZOOM IMPLEMENTATION
+   We override standard tailwind text classes to use our multiplier. 
+   We avoid !important to allow specific overrides if needed,
+   but since these are in the main css, they should apply correctly.
+*/
+/* 
+   SAFE TEXT ZOOM IMPLEMENTATION
+   We removed global overrides to prevent UI breakage in Headers/Nav.
+   Scaling is now applied selectively to content areas.
+*/
+
+/* Scale the Toolbox Sidebar */
+.blocklyToolboxCategoryLabel,
+.blocklyTreeLabel {
+    /* Base 16px * Mult */
+    font-size: 16px !important;
+    line-height: normal !important;
+}
+
+/* Keep only modern toolbox label in Blockly v12; hide legacy tree label to avoid duplicate text overlay. */
+.blocklyToolboxDiv .blocklyTreeLabel {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Scale the C++ Preview */
+.cpp-preview-container {
+    /* Base 12px * Mult */
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    tab-size: 4 !important;
+}
+
+.cpp-preview-container code,
+.cpp-preview-container span {
+    font-size: inherit !important;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    overflow-y: hidden;
+    overflow-y: hidden;
+    /* background: transparent !important; -- Removed for Native Window Mode */
+    /* Prevent body scroll if not needed */
+}
+
+/* Custom scrollbar for better look in light theme */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    /* slate-300 */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    /* slate-400 */
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+    background: #334155;
+    /* slate-700 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+    /* slate-600 */
+}
+
+/* Specific class if needed */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #334155;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* --- Blockly UI Overrides --- */
+
+/* 1. Slim Scrollbar for Dropdowns (Pin Selector, etc.) */
+.blocklyWidgetDiv .goog-menu,
+.blocklyDropDownDiv {
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: #cbd5e1 transparent;
+    /* Firefox */
+}
+
+.blocklyWidgetDiv .goog-menu::-webkit-scrollbar,
+.blocklyDropDownDiv::-webkit-scrollbar {
+    width: 6px;
+    /* Slim width */
+    height: 6px;
+}
+
+.blocklyWidgetDiv .goog-menu::-webkit-scrollbar-track,
+.blocklyDropDownDiv::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.blocklyWidgetDiv .goog-menu::-webkit-scrollbar-thumb,
+.blocklyDropDownDiv::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    /* Slate-300 */
+    border-radius: 4px;
+    /* Rounded pill look */
+    border: 1px solid transparent;
+    /* Optional padding */
+    background-clip: content-box;
+}
+
+.blocklyWidgetDiv .goog-menu::-webkit-scrollbar-thumb:hover,
+.blocklyDropDownDiv::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+    /* Slate-400 */
+}
+
+/* 1.5 Blockly Text in Dark Mode */
+.dark .blocklyText {
+    fill: #e2e8f0 !important;
+    /* Slate-200 */
+}
+
+.dark .blocklyEditableText>text {
+    fill: #ffffff !important;
+}
+
+/* Crucial: Darken the input field background so white text is visible */
+.dark .blocklyEditableText>rect {
+    fill: #1e293b !important;
+    /* Slate-800 */
+    stroke: #475569 !important;
+    /* Slate-600 */
+    fill-opacity: 1 !important;
+}
+
+.dark .blocklyDropdownText {
+    fill: #ffffff !important;
+}
+
+/* Toolbox text color in dark mode is handled by theme, but category labels might need this */
+.dark .blocklyToolboxCategoryLabel {
+    color: #e2e8f0 !important;
+}
+
+/* Inverted icons if necessary */
+.dark .blocklyZoom>image,
+.dark .blocklyTrash>image {
+    filter: invert(1) opacity(0.8);
+}
+
+/* 2. Toolbox Styling - Extra Large & Fixing Layout */
+/* 2. Toolbox Styling - Compact Personalized (User Spec 30px) */
+.blocklyToolboxDiv {
+    position: relative !important;
+    background-color: #f8fafc !important;
+    border-right: 1px solid #e2e8f0 !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    padding-top: 12px !important;
+    padding-bottom: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    --bg-toolbox: #f8fafc;
+    --bg-toolbox-dark: #0f172a;
+}
+
+.dark .blocklyToolboxDiv {
+    background-color: #0f172a !important;
+    /* Slate 900 */
+    border-right: 1px solid #334155 !important;
+}
+
+.blocklyToolboxContents,
+.blocklyToolboxCategory,
+.blocklyToolboxCategoryGroup {
+    width: 180px !important;
+}
+
+.blocklyToolboxContents {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-bottom: 56px !important;
+}
+
+.blocklyToolboxCategoryGroup {
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+    padding-bottom: 0 !important;
+}
+
+/* User Specified Larger Layout */
+.blocklyToolboxCategory {
+    /* Larger height for better click targets */
+    min-height: 40px !important;
+    height: auto !important;
+
+    /* Center vert with more spacing */
+    margin-bottom: 6px !important;
+    cursor: pointer !important;
+    transition: background-color 0.1s ease !important;
+
+    /* Prevent inheriting parent category's Blockly inline background-color.
+       When a parent category is selected, Blockly sets its background via inline
+       style; child categories are nested inside and would inherit that color unless
+       we override with an explicit background here. */
+    background-color: var(--bg-toolbox, #f8fafc) !important;
+}
+
+/* The group that wraps children of an expanded category must also be opaque
+   so it doesn't show the parent's inline colour through. */
+.blocklyToolboxCategoryGroup {
+    background-color: var(--bg-toolbox, #f8fafc) !important;
+}
+
+.dark .blocklyToolboxCategory,
+.dark .blocklyToolboxCategoryGroup {
+    background-color: var(--bg-toolbox-dark, #0f172a) !important;
+}
+
+/* ========== HOVER/FOCUS FIX FOR ALL TOOLBOX ELEMENTS ========== */
+/* Target ALL possible class names Blockly might use */
+
+.blocklyToolboxCategory:hover,
+.blocklyToolboxCategoryContainer:hover,
+.blocklyTreeRowContentContainer:hover,
+.blocklyToolboxCategory:hover .blocklyTreeRow,
+.blocklyTreeRow:hover {
+    background-color: #e2e8f0 !important;
+    /* Slate-200 — visible against Slate-50 background */
+}
+
+.blocklyToolboxCategory:focus,
+.blocklyToolboxCategory:active,
+.blocklyToolboxCategory:focus-visible,
+.blocklyToolboxCategoryContainer:focus,
+.blocklyToolboxCategoryContainer:active,
+.blocklyTreeRowContentContainer:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: #e2e8f0 !important;
+}
+
+/* Selected category: use a subtle tinted background instead of transparent,
+   so child categories nested inside don't inherit the Blockly inline colour. */
+.blocklyToolboxCategory[aria-selected="true"],
+.blocklyToolboxCategoryContainer.blocklyToolboxSelected,
+.blocklyToolboxCategory.blocklyToolboxSelected {
+    background-color: var(--bg-toolbox, #f8fafc) !important;
+}
+
+/* Allow hover to still show on non-selected rows even when parent is "selected" */
+.blocklyToolboxCategory:not([aria-selected="true"]):hover,
+.blocklyToolboxCategory:not(.blocklyToolboxSelected):hover {
+    background-color: #e2e8f0 !important;
+}
+
+/* Dark Mode */
+.dark .blocklyToolboxCategory:hover,
+.dark .blocklyToolboxCategoryContainer:hover,
+.dark .blocklyToolboxCategory:hover .blocklyTreeRow,
+.dark .blocklyTreeRow:hover {
+    background-color: #1e293b !important;
+    /* Slate-800 */
+}
+
+.dark .blocklyToolboxCategory[aria-selected="true"],
+.dark .blocklyToolboxCategory.blocklyToolboxSelected {
+    background-color: #134e4a !important;
+    /* Teal-900 */
+}
+
+/* The Row - Compact & Modern */
+.blocklyTreeRow {
+    height: 30px !important;
+    padding-left: 12px !important;
+
+    width: 172px !important;
+    /* 180 - 8 margin */
+    margin-right: 8px !important;
+
+    /* PERSONALIZATION: Soft Rounded Right Edge */
+    border-radius: 0 15px 15px 0 !important;
+
+    border-left-width: 6px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    background-color: var(--bg-toolbox, #f8fafc);
+    color: #475569;
+    /* Slate 600 */
+    transition: all 0.1s ease !important;
+}
+
+.blocklyTreeRow:not(.blocklyTreeSelected):hover {
+    background-color: #e2e8f0 !important;
+    /* Slate-200 — same as category hover */
+    color: #0f172a !important;
+    /* Slate-900 */
+}
+
+/* Fix: Remove focus ring and weird highlight on click */
+.blocklyTreeRow:focus,
+.blocklyTreeRow:active,
+.blocklyTreeRow:focus-visible,
+.blocklyTreeRow[aria-selected="true"],
+.blocklyTreeRow[aria-selected="false"]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+    /* Prevent focus border color shifts */
+}
+
+/* Ensure selected state is respected even with focus.
+   DO NOT set background-color here — Blockly uses inline style to apply the
+   category colour on selected rows.  Any !important override kills it.  */
+.blocklyTreeSelected,
+.blocklyTreeRow.blocklyTreeSelected,
+.blocklyTreeRow.blocklyTreeSelected:focus,
+.blocklyTreeRow.blocklyTreeSelected:active,
+.blocklyTreeRow[aria-selected="true"] {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-right: none !important;
+}
+
+/* Dark mode specific override for selected state to prevent default dark grey */
+/* Dark mode: let Blockly inline colour show; just tweak text */
+.dark .blocklyTreeSelected,
+.dark .blocklyTreeRow.blocklyTreeSelected,
+.dark .blocklyTreeRow.blocklyTreeSelected:focus {
+    color: #f1f5f9 !important;
+    /* Slate 100 */
+}
+
+/* Selected State — text only; background comes from Blockly inline style */
+.blocklyTreeSelected,
+.blocklyTreeRow.blocklyTreeSelected {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Stable selected visual effect (toolbox only). */
+.blocklyToolboxDiv .blocklyTreeRow {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyTreeRow {
+    color: #ffffff !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+.blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected::after,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyTreeRow::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #14b8a6;
+    box-shadow: 0 0 8px rgba(20, 184, 166, 0.55);
+    pointer-events: none;
+}
+
+.dark .blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected,
+.dark .blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyTreeRow {
+    color: #ffffff !important;
+    box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.35) !important;
+}
+
+/* Keep selected category text white in all Blockly sidebar variants */
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"] .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"] .blocklyTreeLabel {
+    color: #ffffff !important;
+}
+
+/* Text - Larger 16px for better readability */
+.blocklyToolboxCategoryLabel,
+.blocklyTreeLabel,
+.blocklyTreeRow span,
+.blocklyToolboxCategoryContainer .blocklyToolboxCategoryLabel {
+    font-family: "Segoe UI", system-ui, sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: inherit !important;
+    padding-left: 8px;
+    line-height: normal !important;
+    /* Let flex handle vertical alignment */
+}
+
+/* Fix vertical alignment for all rows */
+.blocklyTreeRowContentContainer {
+    display: flex !important;
+    align-items: center !important;
+    height: 100% !important;
+    min-height: 40px !important;
+}
+
+.blocklyFlyoutBackground {
+    fill: #f8fafc !important;
+    fill-opacity: 1 !important;
+}
+
+.blocklyToolboxDiv::-webkit-scrollbar {
+    display: none;
+}
+
+/* Flyout styling removed - relying on JS layout */
+
+/* HIDE BLOCKLY SCROLLBARS - Distracting for user */
+.blocklyScrollbarHorizontal,
+.blocklyScrollbarVertical,
+.blocklyScrollbarBackground,
+.blocklyScrollbarHandle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* =========================================
+   TOOLBOX ICONS (SVG Data URIs)
+   ========================================= */
+
+/* Base Icon Style - Hidden by default, shown only when specific class is present */
+.blocklyToolboxCategoryLabel::before {
+    content: '';
+    display: none;
+    /* Hidden by default */
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    vertical-align: text-bottom;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.7;
+    /* Slightly dim unselected */
+    transition: all 0.2s ease;
+}
+
+/* Show icon only for categories with specific icon classes */
+.category-pins .blocklyToolboxCategoryLabel::before,
+.category-serial .blocklyToolboxCategoryLabel::before,
+.category-variables .blocklyToolboxCategoryLabel::before,
+.category-control .blocklyToolboxCategoryLabel::before,
+.category-timing .blocklyToolboxCategoryLabel::before,
+.category-math .blocklyToolboxCategoryLabel::before,
+.category-function .blocklyToolboxCategoryLabel::before,
+.category-actuators .blocklyToolboxCategoryLabel::before,
+.category-network .blocklyToolboxCategoryLabel::before,
+.category-c5 .blocklyToolboxCategoryLabel::before,
+.category-loop .blocklyToolboxCategoryLabel::before,
+.category-text .blocklyToolboxCategoryLabel::before,
+.category-array .blocklyToolboxCategoryLabel::before,
+.category-search .blocklyToolboxCategoryLabel::before {
+    display: inline-block;
+}
+
+/* Selected state: full opacity and brand accent */
+.blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryLabel::before,
+.blocklyTreeRow.blocklyTreeSelected .blocklyToolboxCategoryLabel::before {
+    opacity: 1;
+    filter: brightness(0) saturate(100%) invert(100%);
+    /* Make white when selected */
+}
+
+/* Hover state: Full opacity */
+.blocklyToolboxCategoryContainer:hover .blocklyToolboxCategoryLabel::before {
+    opacity: 1;
+}
+
+/* --- ICONS --- */
+
+/* Pins - Plug */
+.category-pins .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M9 2v2H6v2h2v6h2V6h2V4H9zm7 0v2h-2v2h2v6h2V6h2V4h-4zM6 16v2h12v-2H6zm2 4v2h8v-2H8z'/%3E%3C/svg%3E");
+}
+
+/* Serial - Signal/Antenna */
+.category-serial .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E");
+}
+
+/* Variables - Box/Cube */
+.category-variables .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44a1.006 1.006 0 0 1-.969.006l-7.969-4.529A.996.996 0 0 1 3 16.425V7.475c0-.38.21-.71.53-.88l7.9-4.44a1.007 1.007 0 0 1 .969-.006l7.969 4.529c.325.18.53.51.53.88v8.947l.002.002zM12 4.14L6.039 7.49 12 10.84l5.961-3.35L12 4.14z'/%3E%3C/svg%3E");
+}
+
+/* Control - Flow/Shuffle */
+.category-control .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z'/%3E%3C/svg%3E");
+}
+
+/* Timing - Clock */
+.category-timing .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E");
+}
+
+/* Math - Calculator */
+.category-math .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-6 14H7v-2h6v2zm4-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E");
+}
+
+/* Function - Code */
+.category-function .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M8.7 16.6 4.1 12l4.6-4.6L7.3 6 1.3 12l6 6 1.4-1.4zM15.3 16.6 19.9 12l-4.6-4.6L16.7 6l6 6-6 6-1.4-1.4z'/%3E%3C/svg%3E");
+}
+
+/* Actuators - Gear */
+.category-actuators .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.27.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z'/%3E%3C/svg%3E");
+}
+
+/* Network - WiFi */
+.category-network .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z'/%3E%3C/svg%3E");
+}
+
+/* C5 Test - Chip */
+.category-c5 .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M6 2h12v2H6V2zm0 4h12v2H6V6zm0 4h12v2H6v-2zm-2 6h16v-2H4v2zm2 4h12v-2H6v2z'/%3E%3C/svg%3E");
+}
+
+/* CK signal-rail toolbox: compact hardware-oriented navigation for Blockly v12. */
+.ck-blockly-toolbox-root {
+    --ck-toolbox-surface: #f7f9fc;
+    --ck-toolbox-rail: #cbd5e1;
+    box-sizing: border-box !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    padding: 10px 0 56px !important;
+    overflow-x: hidden !important;
+    background: var(--ck-toolbox-surface) !important;
+    border-right: 1px solid #dbe2ea !important;
+}
+
+.dark .ck-blockly-toolbox-root {
+    --ck-toolbox-surface: #111827;
+    --ck-toolbox-rail: #3b4658;
+    background: var(--ck-toolbox-surface) !important;
+    border-right-color: #303b4d !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategoryGroup {
+    position: relative !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategoryGroup::before {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    left: 18px;
+    top: 22px;
+    bottom: 22px;
+    width: 1px;
+    background: var(--ck-toolbox-rail);
+    pointer-events: none;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategoryContainer {
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory {
+    position: relative !important;
+    z-index: 1;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    background: transparent !important;
+    color: #3f4d63 !important;
+    box-shadow: none !important;
+    transition: background-color 120ms ease, color 120ms ease !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategoryIcon {
+    display: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyTreeRowContentContainer {
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 18px 0 36px !important;
+    background: transparent !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    left: 14px;
+    top: 50%;
+    box-sizing: border-box;
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--ck-toolbox-accent, #64748b);
+    background: var(--ck-toolbox-surface);
+    transform: translateY(-50%) rotate(45deg);
+    transition: background-color 120ms ease, transform 120ms ease;
+    pointer-events: none;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory::after {
+    content: none;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategoryLabel,
+.ck-blockly-toolbox-root .blocklyTreeLabel {
+    min-width: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    color: inherit !important;
+    -webkit-text-fill-color: currentColor !important;
+    font-size: 15px !important;
+    font-weight: 650 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategoryLabel::before {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    opacity: 0.72;
+    filter: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory:not(.blocklyToolboxSelected):not(.ck-toolbox-selected):hover {
+    background: #edf1f6 !important;
+    color: #1f2937 !important;
+}
+
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory:not(.blocklyToolboxSelected):not(.ck-toolbox-selected):hover {
+    background: #1f2937 !important;
+    color: #f1f5f9 !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected,
+.ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"] {
+    background: var(--ck-toolbox-active-bg, #e4f7f5) !important;
+    color: #172033 !important;
+    box-shadow: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected::before,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected::before,
+.ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"]::before {
+    background: var(--ck-toolbox-accent, #14b8a6);
+    border-color: var(--ck-toolbox-accent, #14b8a6);
+    transform: translateY(-50%) rotate(45deg) scale(1.12);
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected::after,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected::after,
+.ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"]::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    right: 0;
+    width: 8px;
+    height: 20px;
+    background: var(--ck-toolbox-accent, #14b8a6);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    pointer-events: none;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected .blocklyToolboxCategoryLabel,
+.ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"] .blocklyToolboxCategoryLabel {
+    color: #172033 !important;
+    -webkit-text-fill-color: #172033 !important;
+    font-weight: 750 !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel::before,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected .blocklyToolboxCategoryLabel::before,
+.ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"] .blocklyToolboxCategoryLabel::before {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory:focus-visible {
+    outline: 2px solid var(--ck-toolbox-accent, #14b8a6) !important;
+    outline-offset: -2px !important;
+}
+
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"] {
+    background: var(--ck-toolbox-active-bg-dark, #153b3a) !important;
+    color: #f8fafc !important;
+}
+
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected .blocklyToolboxCategoryLabel,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"] .blocklyToolboxCategoryLabel {
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+}
+
+/* Loop - Sync/Double Arrow */
+.category-loop .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z'/%3E%3C/svg%3E");
+}
+
+/* Text - Type */
+.category-text .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z'/%3E%3C/svg%3E");
+}
+
+/* Array - List */
+.category-array .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z'/%3E%3C/svg%3E");
+}
+
+/* Search - Magnifier */
+.category-search .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.79L20 21.5 21.5 20l-6-6zM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+}
+
+/* Fixed global block search at the bottom of the signal rail. */
+.ck-toolbox-search-dock-overlay {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 180px;
+    height: 46px;
+    z-index: 120;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 7px;
+    border-top: 1px solid #dbe2ea;
+    border-right: 1px solid #dbe2ea;
+    background: #f7f9fc;
+    pointer-events: auto;
+    transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.ck-toolbox-search-dock-overlay.is-active {
+    border-top-color: var(--color-brand-300);
+    background: #ffffff;
+}
+
+.ck-toolbox-search-icon {
+    flex: 0 0 auto;
+    color: #758398;
+}
+
+.ck-toolbox-search-dock-overlay.is-active .ck-toolbox-search-icon {
+    color: var(--accent);
+}
+
+.dark .ck-toolbox-search-dock-overlay {
+    border-top-color: #334155;
+    border-right-color: #334155;
+    background: #111827;
+}
+
+.ck-toolbox-search-dock-input {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 32px;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    outline: none;
+    background: transparent;
+    color: #334155;
+}
+
+.ck-toolbox-search-dock-input:focus {
+    box-shadow: none;
+}
+
+.ck-toolbox-search-dock-input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.ck-toolbox-search-result-count {
+    flex: 0 0 auto;
+    min-width: 18px;
+    color: var(--accent);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: right;
+}
+
+.ck-toolbox-search-clear {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #7b8798;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+.ck-toolbox-search-clear:hover {
+    background: #e7edf3;
+    color: #334155;
+}
+
+.dark .ck-toolbox-search-dock-input {
+    color: #e2e8f0;
+}
+
+.dark .ck-toolbox-search-clear:hover {
+    background: #1f2937;
+    color: #f1f5f9;
+}
+
+.ck-block-search-active .ck-search-source-label .blocklyFlyoutLabelText {
+    fill: #66758a !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+}
+
+.ck-block-search-active .ck-search-source-label .blocklyFlyoutLabelBackground {
+    fill: transparent !important;
+    opacity: 1 !important;
+}
+
+/* ============================================================
+   FINAL TOOLBOX SELECTED-TEXT OVERRIDE (Blockly v11/v12)
+   Keep selected category text white in every DOM variant.
+   ============================================================ */
+.blocklyToolboxDiv .blocklyToolboxCategory[aria-selected="true"],
+.blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"],
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer.blocklyToolboxSelected,
+.blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected,
+.blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"] {
+    color: #ffffff !important;
+}
+
+.blocklyToolboxDiv .blocklyToolboxCategory[aria-selected="true"] .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategory[aria-selected="true"] .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer.blocklyToolboxSelected .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer.blocklyToolboxSelected .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected span,
+.blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"] .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"] .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"] span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    fill: #ffffff !important;
+}
+
+/* Some Blockly builds mark selected on row-content container only */
+.blocklyToolboxDiv .blocklyTreeRowContentContainer[aria-selected="true"] .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyTreeRowContentContainer[aria-selected="true"] .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyTreeRowContentContainer.blocklyToolboxSelected .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyTreeRowContentContainer.blocklyToolboxSelected .blocklyTreeLabel {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    fill: #ffffff !important;
+}
+
+/* Runtime-selected fallback class set by Workspace.tsx */
+.blocklyToolboxDiv .ck-toolbox-selected,
+.blocklyToolboxDiv .ck-toolbox-selected .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .ck-toolbox-selected .blocklyTreeLabel,
+.blocklyToolboxDiv .ck-toolbox-selected span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    fill: #ffffff !important;
+}
+
+/* Keep selected row visible when hovered/focused (avoid white-on-light washout). */
+.blocklyToolboxDiv .ck-toolbox-selected,
+.blocklyToolboxDiv .ck-toolbox-selected:hover,
+.blocklyToolboxDiv .ck-toolbox-selected:focus,
+.blocklyToolboxDiv .ck-toolbox-selected:active,
+.blocklyToolboxDiv .ck-toolbox-selected .blocklyTreeRow,
+.blocklyToolboxDiv .ck-toolbox-selected .blocklyTreeRow:hover,
+.blocklyToolboxDiv .blocklyToolboxCategory[aria-selected="true"],
+.blocklyToolboxDiv .blocklyToolboxCategory[aria-selected="true"]:hover,
+.blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected,
+.blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected:hover,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"],
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"]:hover,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer.blocklyToolboxSelected,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer.blocklyToolboxSelected:hover,
+.blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected,
+.blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected:hover,
+.blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"],
+.blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"]:hover,
+.blocklyToolboxDiv .blocklyTreeRowContentContainer[aria-selected="true"],
+.blocklyToolboxDiv .blocklyTreeRowContentContainer[aria-selected="true"]:hover,
+.blocklyToolboxDiv .blocklyTreeRowContentContainer.blocklyToolboxSelected,
+.blocklyToolboxDiv .blocklyTreeRowContentContainer.blocklyToolboxSelected:hover {
+    background: linear-gradient(90deg, rgba(20, 184, 166, 0.24) 0%, rgba(20, 184, 166, 0.10) 100%) !important;
+    box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.34) !important;
+}
+
+.dark .blocklyToolboxDiv .ck-toolbox-selected,
+.dark .blocklyToolboxDiv .ck-toolbox-selected:hover,
+.dark .blocklyToolboxDiv .ck-toolbox-selected .blocklyTreeRow,
+.dark .blocklyToolboxDiv .ck-toolbox-selected .blocklyTreeRow:hover,
+.dark .blocklyToolboxDiv .blocklyToolboxCategory[aria-selected="true"],
+.dark .blocklyToolboxDiv .blocklyToolboxCategory[aria-selected="true"]:hover,
+.dark .blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected,
+.dark .blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected:hover,
+.dark .blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"],
+.dark .blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"]:hover,
+.dark .blocklyToolboxDiv .blocklyToolboxCategoryContainer.blocklyToolboxSelected,
+.dark .blocklyToolboxDiv .blocklyToolboxCategoryContainer.blocklyToolboxSelected:hover,
+.dark .blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected,
+.dark .blocklyToolboxDiv .blocklyTreeRow.blocklyTreeSelected:hover,
+.dark .blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"],
+.dark .blocklyToolboxDiv .blocklyTreeRow[aria-selected="true"]:hover,
+.dark .blocklyToolboxDiv .blocklyTreeRowContentContainer[aria-selected="true"],
+.dark .blocklyToolboxDiv .blocklyTreeRowContentContainer[aria-selected="true"]:hover,
+.dark .blocklyToolboxDiv .blocklyTreeRowContentContainer.blocklyToolboxSelected,
+.dark .blocklyToolboxDiv .blocklyTreeRowContentContainer.blocklyToolboxSelected:hover {
+    background: linear-gradient(90deg, rgba(20, 184, 166, 0.30) 0%, rgba(20, 184, 166, 0.14) 100%) !important;
+    box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.40) !important;
+}
+
+/* Hover text lock: selected category label always stays white. */
+.blocklyToolboxDiv .ck-toolbox-selected:hover .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .ck-toolbox-selected:hover .blocklyTreeLabel,
+.blocklyToolboxDiv .ck-toolbox-selected:hover span,
+.blocklyToolboxDiv .blocklyToolboxCategory[aria-selected="true"]:hover .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected:hover .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"]:hover .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer.blocklyToolboxSelected:hover .blocklyToolboxCategoryLabel {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    fill: #ffffff !important;
+}
+
+/* Keep nested sub-categories readable when parent category is selected. */
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryContainer:not([aria-selected="true"]) .blocklyToolboxCategoryLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryContainer:not([aria-selected="true"]) .blocklyTreeLabel,
+.blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryContainer:not([aria-selected="true"]) .blocklyTreeRow span {
+    color: #334155 !important;
+    -webkit-text-fill-color: #334155 !important;
+    fill: #334155 !important;
+}
+
+.dark .blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryContainer:not([aria-selected="true"]) .blocklyToolboxCategoryLabel,
+.dark .blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryContainer:not([aria-selected="true"]) .blocklyTreeLabel,
+.dark .blocklyToolboxDiv .blocklyToolboxCategoryContainer[aria-selected="true"] .blocklyToolboxCategoryContainer:not([aria-selected="true"]) .blocklyTreeRow span {
+    color: #e2e8f0 !important;
+    -webkit-text-fill-color: #e2e8f0 !important;
+    fill: #e2e8f0 !important;
+}
+
+/* Final authoritative toolbox selected state.
+   Workspace.tsx adds `.ck-toolbox-selected` to the actual selected row/content
+   container so the sidebar highlight stays stable across Blockly DOM variants. */
+.ck-blockly-toolbox-root .category-pins,
+.ck-blockly-toolbox-root .category-pins.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #14b8a6;
+    --ck-toolbox-active-bg: #e4f7f5;
+    --ck-toolbox-active-bg-dark: #153b3a;
+}
+
+.ck-blockly-toolbox-root .category-timing,
+.ck-blockly-toolbox-root .category-timing.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #f59e0b;
+    --ck-toolbox-active-bg: #fff3d6;
+    --ck-toolbox-active-bg-dark: #3d2d11;
+}
+
+.ck-blockly-toolbox-root .category-control,
+.ck-blockly-toolbox-root .category-control.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #3b82f6;
+    --ck-toolbox-active-bg: #eaf2ff;
+    --ck-toolbox-active-bg-dark: #172e52;
+}
+
+.ck-blockly-toolbox-root .category-loop,
+.ck-blockly-toolbox-root .category-loop.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #22c55e;
+    --ck-toolbox-active-bg: #e9f8ee;
+    --ck-toolbox-active-bg-dark: #173822;
+}
+
+.ck-blockly-toolbox-root .category-function,
+.ck-blockly-toolbox-root .category-function.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #8b5cf6;
+    --ck-toolbox-active-bg: #f1edff;
+    --ck-toolbox-active-bg-dark: #2b2147;
+}
+
+.ck-blockly-toolbox-root .category-serial,
+.ck-blockly-toolbox-root .category-serial.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #2563eb;
+    --ck-toolbox-active-bg: #e9f1ff;
+    --ck-toolbox-active-bg-dark: #172d50;
+}
+
+.ck-blockly-toolbox-root .category-text,
+.ck-blockly-toolbox-root .category-text.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #14b8a6;
+    --ck-toolbox-active-bg: #e4f7f5;
+    --ck-toolbox-active-bg-dark: #153b3a;
+}
+
+.ck-blockly-toolbox-root .category-array,
+.ck-blockly-toolbox-root .category-array.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #7c3aed;
+    --ck-toolbox-active-bg: #f1ebff;
+    --ck-toolbox-active-bg-dark: #2b2149;
+}
+
+.ck-blockly-toolbox-root .category-variables,
+.ck-blockly-toolbox-root .category-variables.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #c026d3;
+    --ck-toolbox-active-bg: #faeafb;
+    --ck-toolbox-active-bg-dark: #45203f;
+}
+
+.ck-blockly-toolbox-root .category-math,
+.ck-blockly-toolbox-root .category-math.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #65a30d;
+    --ck-toolbox-active-bg: #eff7df;
+    --ck-toolbox-active-bg-dark: #2d3817;
+}
+
+.ck-blockly-toolbox-root .category-network,
+.ck-blockly-toolbox-root .category-network.blocklyTreeRowContentContainer {
+    --ck-toolbox-accent: #2563eb;
+    --ck-toolbox-active-bg: #e9f1ff;
+    --ck-toolbox-active-bg-dark: #172d50;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory {
+    margin-bottom: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategoryContainer {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected,
+.ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"],
+.ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected,
+.ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected {
+    background: var(--ck-toolbox-active-bg, #e4f7f5) !important;
+    color: #172033 !important;
+    border-top: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected:hover,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected:hover,
+.ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"]:hover,
+.ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected:hover,
+.ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected:hover,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected:focus,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected:focus,
+.ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected:focus,
+.ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected:focus {
+    background: var(--ck-toolbox-active-bg, #e4f7f5) !important;
+    color: #172033 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected .blocklyToolboxCategoryLabel,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel,
+.ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected .blocklyToolboxCategoryLabel,
+.ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected .blocklyTreeLabel,
+.ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected span,
+.ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected .blocklyToolboxCategoryLabel,
+.ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected .blocklyTreeLabel,
+.ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected span {
+    color: #172033 !important;
+    -webkit-text-fill-color: #172033 !important;
+    fill: #172033 !important;
+}
+
+.ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected .blocklyToolboxCategoryLabel::before,
+.ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected .blocklyToolboxCategoryLabel::before {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+.ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected .blocklyToolboxCategoryLabel::before,
+.ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel::before,
+.ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"] .blocklyToolboxCategoryLabel::before {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"],
+.dark .ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected,
+.dark .ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected {
+    background: var(--ck-toolbox-active-bg-dark, #153b3a) !important;
+    color: #f8fafc !important;
+}
+
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected .blocklyToolboxCategoryLabel,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected .blocklyToolboxCategoryLabel,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"] .blocklyToolboxCategoryLabel {
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+    fill: #f8fafc !important;
+}
+
+
+
+.category-c5 .blocklyToolboxCategoryLabel::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'%3E%3Cpath d='M6 2h12v2H6V2zm0 4h12v2H6V6zm0 4h12v2H6v-2zm-2 6h16v-2H4v2zm2 4h12v-2H6v2z'/%3E%3C/svg%3E");
+}
+
+/* Workspace surface refresh. Keep this final, scoped pair authoritative over
+   Blockly's injected renderer CSS and the older compatibility rules above. */
+.ck-workspace-shell {
+    --ck-blockly-workspace: #fbfcfe;
+    --ck-blockly-flyout: #f2f5f8;
+    --ck-blockly-edge: #d7e0e9;
+    --ck-blockly-grid: #cbd8e6;
+    --ck-blockly-field: #ffffff;
+    --ck-blockly-field-border: #cbd5e1;
+    --ck-blockly-field-text: #334155;
+    --ck-blockly-flyout-text: #475569;
+    --ck-blockly-scrollbar: #aebdcb;
+}
+
+.dark .ck-workspace-shell {
+    --ck-blockly-workspace: #0b1220;
+    --ck-blockly-flyout: #111827;
+    --ck-blockly-edge: #334155;
+    --ck-blockly-grid: #334155;
+    --ck-blockly-field: #263449;
+    --ck-blockly-field-border: #64748b;
+    --ck-blockly-field-text: #f1f5f9;
+    --ck-blockly-flyout-text: #cbd5e1;
+    --ck-blockly-scrollbar: #526177;
+}
+
+.ck-workspace-shell .blocklyFlyoutBackground {
+    fill: var(--ck-blockly-flyout) !important;
+    fill-opacity: 1 !important;
+}
+
+.ck-workspace-shell .blocklyFlyout {
+    filter: drop-shadow(1px 0 0 var(--ck-blockly-edge));
+}
+
+.ck-workspace-shell .blocklySvg {
+    background-color: var(--ck-blockly-workspace) !important;
+}
+
+.ck-workspace-shell .blocklyMainBackground {
+    stroke: var(--ck-blockly-edge) !important;
+    stroke-width: 1px !important;
+}
+
+.ck-workspace-shell pattern[id^="blocklyGridPattern"] line {
+    stroke: var(--ck-blockly-grid) !important;
+}
+
+/* Blockly v12 uses EditableField/NonEditableField (not the old
+   EditableText class). Give text/number inputs a real dark surface. */
+.ck-workspace-shell .blocklyEditableField>rect:not(.blocklyDropdownRect),
+.ck-workspace-shell .blocklyNonEditableField>rect:not(.blocklyDropdownRect) {
+    fill: var(--ck-blockly-field) !important;
+    fill-opacity: 1 !important;
+    stroke: var(--ck-blockly-field-border) !important;
+    stroke-width: 1px !important;
+}
+
+/* Dropdown fields use a separate rect class in Blockly 12.  Keep them on the
+   same readable field surface as text/number inputs.  The old rule above
+   intentionally excluded this class to preserve Blockly's default dropdown
+   shadow, but that leaves dark mode with a pale rect and white text. */
+.ck-workspace-shell .blocklyEditableField>.blocklyDropdownRect,
+.ck-workspace-shell .blocklyNonEditableField>.blocklyDropdownRect,
+.ck-workspace-shell .blocklyDropdownField>.blocklyDropdownRect {
+    fill: var(--ck-blockly-field) !important;
+    fill-opacity: 1 !important;
+    stroke: var(--ck-blockly-field-border) !important;
+    stroke-width: 1px !important;
+}
+
+.ck-workspace-shell .blocklyEditableField>text,
+.ck-workspace-shell .blocklyEditableField>g>text,
+.ck-workspace-shell .blocklyNonEditableField>text,
+.ck-workspace-shell .blocklyNonEditableField>g>text {
+    fill: var(--ck-blockly-field-text) !important;
+}
+
+.ck-workspace-shell .blocklyDropdownField .blocklyDropdownText,
+.ck-workspace-shell .blocklyDropdownField .blocklyText,
+.ck-workspace-shell .blocklyEditableField .blocklyDropdownText,
+.ck-workspace-shell .blocklyNonEditableField .blocklyDropdownText {
+    fill: var(--ck-blockly-field-text) !important;
+}
+
+/* SVG dropdown arrows are images; give them enough contrast on both field
+   surfaces without changing the block's semantics or selected value. */
+.ck-workspace-shell .blocklyDropdownField>image {
+    opacity: 0.78 !important;
+}
+
+.dark .ck-workspace-shell .blocklyDropdownField>image {
+    filter: brightness(1.8) contrast(0.9) !important;
+    opacity: 0.92 !important;
+}
+
+.ck-workspace-shell .blocklyFlyoutLabelText {
+    fill: var(--ck-blockly-flyout-text) !important;
+}
+
+.ck-workspace-shell .blocklyZoom>image,
+.ck-workspace-shell .blocklyZoom>svg>image,
+.ck-workspace-shell .blocklyTrash>image {
+    opacity: 0.38 !important;
+    transition: opacity 120ms ease;
+}
+
+.ck-workspace-shell .blocklyZoom:hover>image,
+.ck-workspace-shell .blocklyZoom:hover>svg>image,
+.ck-workspace-shell .blocklyTrash:hover>image {
+    opacity: 0.68 !important;
+}
+
+.ck-workspace-shell .blocklyScrollbarHandle {
+    fill: var(--ck-blockly-scrollbar) !important;
+}
+
+/* Blockly menus and the temporary HTML editor live outside the workspace SVG,
+   so they need document-level dark overrides as well. */
+.dark .blocklyDropDownDiv,
+.dark .blocklyWidgetDiv .goog-menu,
+.dark .blocklyWidgetDiv .blocklyMenu {
+    border-color: #475569 !important;
+    background-color: #111827 !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .blocklyDropDownDiv .blocklyMenuItem,
+.dark .blocklyWidgetDiv .blocklyMenuItem,
+.dark .blocklyDropDownDiv .blocklyMenuItemContent {
+    color: #e2e8f0 !important;
+}
+
+.dark .blocklyDropDownDiv .blocklyMenuItemHighlight,
+.dark .blocklyWidgetDiv .blocklyMenuItemHighlight {
+    background-color: #263449 !important;
+}
+
+.dark .blocklyDropDownDiv .blocklyMenuSeparator,
+.dark .blocklyWidgetDiv .blocklyMenuSeparator {
+    background-color: #475569 !important;
+}
+
+.dark .blocklyWidgetDiv .blocklyHtmlInput {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    caret-color: var(--color-brand-300);
+}
+
+.dark .blocklyTooltipDiv {
+    border-color: #475569 !important;
+    background: #111827 !important;
+    color: #e2e8f0 !important;
+}
+
+/* The custom signal-rail category text and data-URI icons previously kept
+   their light-mode slate colour, which made the whole left rail look disabled. */
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory:not(.blocklyToolboxSelected):not(.ck-toolbox-selected) {
+    color: #cbd5e1 !important;
+}
+
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategoryLabel::before {
+    opacity: 0.82 !important;
+    filter: brightness(0) invert(1) !important;
+}
+
+/* Numeric/text placeholders are shadow blocks. Their visible white pill is the
+   shadow block path, not a FieldRect, so field-only selectors cannot fix it.
+   Darken the path itself while retaining each block category's secondary hue;
+   this applies equally to workspace and flyout clones. */
+.dark .ck-workspace-shell[data-ck-blockly-skin='original'] .blocklyShadow>.blocklyPath {
+    stroke: rgb(226 232 240 / 34%) !important;
+    stroke-width: 1px !important;
+}
+
+.dark .ck-workspace-shell[data-ck-blockly-skin='original'] .blocklyShadow .blocklyText,
+.dark .ck-workspace-shell[data-ck-blockly-skin='original'] .blocklyShadow .blocklyFieldText,
+.dark .ck-workspace-shell[data-ck-blockly-skin='original'] .blocklyShadow .blocklyDropdownText {
+    fill: #f8fafc !important;
+}
+
+/* Block skins keep CK's block geometry and project semantics, but each skin
+   now has its own material language. The SVG painter owns colour/texture;
+   CSS owns edge, shadow and field typography. The workspace background stays
+   entirely under the light/dark application theme. */
+.ck-workspace-shell[data-ck-blockly-skin='pastel'] .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath,
+.ck-workspace-shell[data-ck-blockly-skin='pastel'] .blocklyFlyout .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath {
+    filter: drop-shadow(0 1.5px 1.5px rgb(30 41 59 / 20%));
+    stroke: rgb(255 255 255 / 48%) !important;
+    stroke-width: 1px !important;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='arcade'] .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath,
+.ck-workspace-shell[data-ck-blockly-skin='arcade'] .blocklyFlyout .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath {
+    filter: drop-shadow(3px 3px 0 rgb(1 5 8 / 88%));
+    stroke: #071018 !important;
+    stroke-width: 2px !important;
+    stroke-linejoin: bevel;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyText,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyFieldText,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyDropdownText {
+    fill: var(--ck-block-skin-label, #f8fafc) !important;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='arcade'] .blocklyDropdownField>image {
+    filter: brightness(2) contrast(.88) !important;
+    opacity: .96 !important;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='sticker'] .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath,
+.ck-workspace-shell[data-ck-blockly-skin='sticker'] .blocklyFlyout .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath {
+    filter: drop-shadow(1px 2px 0 rgb(91 70 48 / 22%)) drop-shadow(0 3px 3px rgb(91 70 48 / 14%));
+    stroke: rgb(255 246 228 / 68%) !important;
+    stroke-width: .8px !important;
+    stroke-dasharray: 3 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='sticker'] .blocklyBlockCanvas>.blocklyBlock:nth-child(3n)>.blocklyPath,
+.ck-workspace-shell[data-ck-blockly-skin='sticker'] .blocklyFlyout .blocklyBlock:nth-child(3n)>.blocklyPath {
+    stroke-dashoffset: 1.25px;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='sticker'] .blocklyBlockCanvas>.blocklyBlock:nth-child(3n + 1)>.blocklyPath,
+.ck-workspace-shell[data-ck-blockly-skin='sticker'] .blocklyFlyout .blocklyBlock:nth-child(3n + 1)>.blocklyPath {
+    stroke-dashoffset: 2.5px;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='neon'] .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath,
+.ck-workspace-shell[data-ck-blockly-skin='neon'] .blocklyFlyout .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath {
+    filter: drop-shadow(0 0 2px var(--ck-block-skin-accent, rgb(45 212 191 / 34%)));
+    stroke: var(--ck-block-skin-accent, #5eead4) !important;
+    stroke-width: 1.15px !important;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='mono'] .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath,
+.ck-workspace-shell[data-ck-blockly-skin='mono'] .blocklyFlyout .blocklyBlock:not(.blocklyInsertionMarker)>.blocklyPath {
+    filter: drop-shadow(0 1px 1px rgb(15 23 42 / 22%));
+    stroke: rgb(255 255 255 / 42%) !important;
+    stroke-width: 1px !important;
+}
+
+/* A Blockly shadow is a default placeholder, not a user-inserted value. Keep
+   its category hue, but make it unmistakably quieter than a real block. */
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyShadow:not(.blocklyInsertionMarker)>.blocklyPath {
+    stroke: var(--ck-block-skin-label, #64748b) !important;
+    stroke-width: 1.55px !important;
+    stroke-dasharray: 1 4.5 !important;
+    stroke-opacity: .62 !important;
+    stroke-linecap: round;
+}
+
+.dark .ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyShadow:not(.blocklyInsertionMarker)>.blocklyPath {
+    stroke-opacity: .74 !important;
+}
+
+/* Field chips are deliberately independent from the app theme. Pastel,
+   sticker and mono use paper/light chips with dark values; arcade and neon
+   use dark chips with light values. This selector comes after the generic
+   dark-mode and shadow-block rules so a field can never become white-on-white. */
+.ck-workspace-shell[data-ck-blockly-skin='pastel'],
+.ck-workspace-shell[data-ck-blockly-skin='sticker'],
+.ck-workspace-shell[data-ck-blockly-skin='mono'] {
+    --ck-blockly-skin-field-text: #1f2937;
+    --ck-blockly-field-text: #1f2937;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='pastel'] {
+    --ck-blockly-field: #fffaf2;
+    --ck-blockly-field-border: #718399;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='sticker'] {
+    --ck-blockly-field: #fff4df;
+    --ck-blockly-field-border: #756255;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='mono'] {
+    --ck-blockly-field: #edf0f3;
+    --ck-blockly-field-border: #667085;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='arcade'] {
+    --ck-blockly-skin-field-text: #f8fafc;
+    --ck-blockly-field: #101a2e;
+    --ck-blockly-field-border: #f8d36b;
+    --ck-blockly-field-text: #f8fafc;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='neon'] {
+    --ck-blockly-skin-field-text: #f8fafc;
+    --ck-blockly-field: #07152b;
+    --ck-blockly-field-border: #71e7db;
+    --ck-blockly-field-text: #f8fafc;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyEditableField .blocklyText,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyEditableField .blocklyFieldText,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyEditableField .blocklyDropdownText,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyNonEditableField .blocklyText,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyNonEditableField .blocklyFieldText,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyNonEditableField .blocklyDropdownText,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyEditableField>text,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyEditableField>g>text,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyNonEditableField>text,
+.ck-workspace-shell[data-ck-blockly-skin]:not([data-ck-blockly-skin='original']) .blocklyBlock:not(.blocklyInsertionMarker) .blocklyNonEditableField>g>text {
+    fill: var(--ck-blockly-skin-field-text) !important;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='pastel'] .blocklyDropdownField>image,
+.ck-workspace-shell[data-ck-blockly-skin='sticker'] .blocklyDropdownField>image,
+.ck-workspace-shell[data-ck-blockly-skin='mono'] .blocklyDropdownField>image {
+    filter: brightness(.38) saturate(.72) !important;
+    opacity: .82 !important;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin='neon'] .blocklyDropdownField>image {
+    filter: brightness(2) contrast(.88) !important;
+    opacity: .96 !important;
+}
+
+/* Make the selected signal-rail item unmistakable without flattening all
+   categories to the same teal. The background is derived from that category's
+   accent and the diamond/right flag keep the exact category colour. */
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"],
+.dark .ck-blockly-toolbox-root .blocklyTreeRow.ck-toolbox-selected,
+.dark .ck-blockly-toolbox-root .blocklyTreeRow.blocklyTreeSelected,
+.dark .ck-blockly-toolbox-root .blocklyTreeRow[aria-selected="true"],
+.dark .ck-blockly-toolbox-root .blocklyTreeRowContentContainer.ck-toolbox-selected,
+.dark .ck-blockly-toolbox-root .blocklyTreeRowContentContainer[aria-selected="true"] {
+    background: color-mix(in srgb, var(--ck-toolbox-accent, #14b8a6) 42%, #111827) !important;
+    box-shadow:
+        inset 3px 0 0 var(--ck-toolbox-accent, #14b8a6),
+        inset 0 0 0 1px color-mix(in srgb, var(--ck-toolbox-accent, #14b8a6) 62%, transparent) !important;
+    color: #ffffff !important;
+}
+
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected::before,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected::before,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"]::before {
+    background: var(--ck-toolbox-accent, #14b8a6) !important;
+    border-color: #f8fafc !important;
+    filter: drop-shadow(0 0 4px var(--ck-toolbox-accent, #14b8a6));
+}
+
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.ck-toolbox-selected::after,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory.blocklyToolboxSelected::after,
+.dark .ck-blockly-toolbox-root .blocklyToolboxCategory[aria-selected="true"]::after {
+    filter: drop-shadow(-2px 0 3px var(--ck-toolbox-accent, #14b8a6));
+}
+
+/* Interaction/debug overlays are workspace semantics, not part of a skin.
+   Keep them authoritative for original CK and every visual skin alike. */
+.ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.blocklySelected>.blocklyPath {
+    stroke: var(--accent) !important;
+    stroke-width: 3.25px !important;
+    filter: drop-shadow(0 0 4px rgb(255 106 0 / 58%));
+}
+
+.dark .ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.blocklySelected>.blocklyPath {
+    stroke: #facc15 !important;
+    filter: drop-shadow(0 0 5px rgb(250 204 21 / 72%));
+}
+
+.ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.blocklyHighlighted>.blocklyPath {
+    stroke: #06b6d4 !important;
+    stroke-width: 4px !important;
+    filter: drop-shadow(0 0 7px rgb(6 182 212 / 82%));
+}
+
+.ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.ck-block-compile-error:not(.ck-block-debug-paused)>.blocklyPath {
+    stroke: #dc2626 !important;
+    stroke-width: 4px !important;
+    filter: drop-shadow(0 0 6px rgb(220 38 38 / 68%));
+}
+
+.ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.ck-block-has-breakpoint>.blocklyPath {
+    stroke: #ef4444 !important;
+    stroke-width: 2.5px !important;
+}
+
+.ck-workspace-shell .ck-block-breakpoint-dot {
+    fill: #ef4444;
+    stroke: #ffffff;
+    stroke-width: 1.5px;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1px rgb(15 23 42 / 28%));
+}
+
+@keyframes ck-block-debug-paused-pulse {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 2px rgb(245 158 11 / 45%));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 9px rgb(245 158 11 / 90%));
+    }
+}
+
+.ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.ck-block-debug-paused>.blocklyPath {
+    stroke: #f59e0b !important;
+    stroke-width: 4px !important;
+    animation: ck-block-debug-paused-pulse 1s ease-in-out infinite;
+}
+
+/* Sampled trace overlay. Keep breakpoint red and paused amber as the stronger
+   states when trace and breakpoint debugging share the same firmware shell. */
+.ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.ck-block-trace-pending:not(.ck-block-debug-paused):not(.ck-block-has-breakpoint):not(.ck-block-compile-error)>.blocklyPath {
+    filter: grayscale(1) saturate(0);
+    opacity: 0.52;
+    stroke: #94a3b8 !important;
+    stroke-width: 1.5px !important;
+}
+
+.ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.ck-block-trace-covered:not(.ck-block-debug-paused):not(.ck-block-has-breakpoint):not(.ck-block-compile-error)>.blocklyPath {
+    stroke: #16a34a !important;
+    stroke-width: 3px !important;
+    filter: drop-shadow(0 0 4px rgb(34 197 94 / 42%));
+}
+
+@keyframes ck-block-trace-current-pulse {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 3px rgb(6 182 212 / 55%));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 10px rgb(6 182 212 / 95%));
+    }
+}
+
+.ck-workspace-shell[data-ck-blockly-skin] .blocklyBlock.ck-block-trace-current:not(.ck-block-debug-paused):not(.ck-block-has-breakpoint):not(.ck-block-compile-error)>.blocklyPath {
+    stroke: #06b6d4 !important;
+    stroke-width: 4px !important;
+    animation: ck-block-trace-current-pulse 900ms ease-in-out infinite;
+}
+
+@keyframes ck-progress-indeterminate {
+    0% {
+        transform: translateX(-115%);
+    }
+
+    55% {
+        transform: translateX(105%);
+    }
+
+    100% {
+        transform: translateX(265%);
+    }
+}
+
+.ck-progress-indeterminate {
+    animation: ck-progress-indeterminate 1.45s ease-in-out infinite;
+    will-change: transform;
+}
+
+/* Keep build activity visible without continuous full-window compositing.
+   In software-rendered WebView2, even a small pulse behind backdrop blur can
+   occupy a CPU core that the native compiler needs. Text and progress updates
+   remain live. Stepped animations still kept the compositor busy in installed
+   desktop measurements, so decoration stays static during a build. The progress
+   overlay updates only its icon and small activity bar, synced to presentation
+   with a 60 Hz cap. Hidden windows stop requesting activity frames. */
+.ck-workspace-shell[data-ck-build-busy="true"] *,
+.ck-workspace-shell[data-ck-build-busy="true"] *::before,
+.ck-workspace-shell[data-ck-build-busy="true"] *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+.ck-workspace-shell[data-ck-build-busy="true"] .ck-progress-indeterminate {
+    margin-left: 31%;
+    transform: none;
+}
+
+/* Keep only the two small moving elements on their own compositor layers.
+   Repainting their parent on each frame adds avoidable renderer work. */
+.ck-workspace-shell[data-ck-build-busy="true"] [data-ck-role="compile-progress-activity"],
+.ck-workspace-shell[data-ck-build-busy="true"] .ck-progress-indeterminate {
+    will-change: transform;
+}
+
+.ck-workspace-shell[data-ck-build-busy="true"] .ck-block-dock {
+    backdrop-filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ck-workspace-shell .ck-block-debug-paused>.blocklyPath {
+        animation: none;
+    }
+
+    .ck-workspace-shell .ck-block-trace-current>.blocklyPath {
+        animation: none;
+    }
+
+    .ck-progress-indeterminate {
+        animation: none;
+        margin-left: 31%;
+        opacity: 0.75;
+        transform: none;
+    }
+}
+
+/* =========================================
+   CK Visual Polish Layer
+   Appended last so these low-specificity rules refine the defaults
+   without disturbing the pinned Blockly override ordering above.
+   ========================================= */
+
+/* Base-layer refinements. Tailwind v4 puts its utilities in a later cascade
+   layer, so everything in this @layer base block is overridable by any
+   utility class already present in the markup (transition-*, outline-none,
+   focus-visible:ring-*, tracking-*, placeholder:*), keeping existing
+   component styling authoritative. */
+@layer base {
+
+    /* Typography rhythm: unified font stack, equal-width digits so
+       timing/size readouts (KB/s, ms, baud) do not jitter as values change. */
+    body {
+        font-family: var(--font-sans);
+        font-variant-numeric: tabular-nums;
+    }
+
+    code,
+    kbd,
+    pre,
+    samp {
+        font-family: var(--font-mono);
+        font-variant-ligatures: none;
+    }
+
+    /* Text selection matches the product accent. */
+    ::selection {
+        background: rgb(255 106 0 / 24%);
+    }
+
+    .dark ::selection {
+        background: rgb(251 146 60 / 30%);
+    }
+
+    /* Accessible keyboard focus: a visible accent ring for anything
+       interactive that does not already declare its own focus treatment. */
+    :where(button, [role="button"], [role="menuitem"], input, select, textarea, a, summary, [tabindex]):focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 1px;
+    }
+
+    /* Subtle motion: short color/elevation transitions on interactive
+       elements that have not opted into their own transition utilities. */
+    :where(button, [role="button"], [role="menuitem"], input, select, textarea, a, summary) {
+        transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+    }
+
+    /* Form comfort: calmer placeholder tone in both themes. */
+    :where(input, textarea)::placeholder {
+        color: #94a3b8;
+        opacity: 1;
+    }
+
+    .dark :where(input, textarea)::placeholder {
+        color: #64748b;
+    }
+}
+
+/* Theme selection changes parent surfaces immediately. Keep control text and
+   fill in the same paint instead of briefly crossing through unreadable colors. */
+[data-ck-role="appearance-settings-modal"] :is(button, select) {
+    transition: none;
+}
+
+/* Refined scrollbars: slim rounded pill inset in a 10px gutter, brightening
+   on hover. Scoped selectors above (.custom-scrollbar, Blockly menus) still
+   win on specificity and keep their slimmer 6px look. */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background-color: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    background-clip: padding-box;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+    background-clip: padding-box;
+}
+
+/* CK Block Dock: a compact programming-time layer. The traditional Blockly
+   toolbox remains available for exploration; this dock is deliberately small
+   and only owns its own hit targets. */
+.ck-block-dock-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 38;
+    pointer-events: none;
+}
+
+.ck-block-dock {
+    position: absolute;
+    left: calc(50% + var(--ck-block-dock-center-offset, 0px));
+    bottom: 14px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    max-width: min(720px, calc(var(--ck-block-dock-available-width, 100%) - 28px));
+    min-height: 40px;
+    padding: 4px;
+    overflow-x: auto;
+    border: 1px solid rgb(203 213 225 / 88%);
+    border-radius: 12px;
+    background: rgb(255 255 255 / 94%);
+    box-shadow: 0 4px 14px rgb(15 23 42 / 9%), 0 1px 2px rgb(15 23 42 / 6%);
+    backdrop-filter: blur(14px);
+    pointer-events: auto;
+    scrollbar-width: none;
+}
+
+.ck-block-dock::-webkit-scrollbar {
+    display: none;
+}
+
+.dark .ck-block-dock {
+    border-color: rgb(71 85 105 / 90%);
+    background: rgb(15 23 42 / 94%);
+    box-shadow: 0 12px 30px rgb(0 0 0 / 38%), inset 0 1px rgb(255 255 255 / 4%);
+}
+
+.ck-block-dock > button {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 29px;
+    max-width: 148px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ck-block-dock > button > span:not(.ck-block-dock-fixed-mark) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ck-block-dock > button:hover,
+.ck-block-dock > button.is-active {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.ck-block-dock > button:focus-visible {
+    outline: 2px solid var(--brand-orange);
+    outline-offset: -2px;
+}
+
+.dark .ck-block-dock > button {
+    color: #cbd5e1;
+}
+
+.dark .ck-block-dock > button:hover,
+.dark .ck-block-dock > button.is-active {
+    background: var(--color-brand-950);
+    color: var(--color-brand-200);
+}
+
+.ck-block-dock-fixed-mark {
+    width: 7px;
+    height: 7px;
+    border: 2px solid var(--accent);
+    transform: rotate(45deg);
+    border-radius: 1px;
+}
+
+.ck-block-dock-divider {
+    width: 1px;
+    height: 20px;
+    margin: 0 2px;
+    flex: 0 0 auto;
+    background: #dbe3eb;
+}
+
+.dark .ck-block-dock-divider {
+    background: #475569;
+}
+
+.ck-block-dock .ck-block-dock-command {
+    color: var(--accent);
+}
+
+.ck-block-dock kbd {
+    display: inline-flex;
+    min-height: 17px;
+    align-items: center;
+    padding: 0 4px;
+    border: 1px solid #cbd5e1;
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.dark .ck-block-dock kbd {
+    border-color: #475569;
+    background: #1e293b;
+    color: #94a3b8;
+}
+
+.ck-block-connection-add {
+    position: absolute;
+    z-index: 46;
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ck-block-connection-add-face {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--accent);
+    border-radius: 9px;
+    background: rgb(255 247 237 / 97%);
+    box-shadow: 0 3px 10px rgb(15 23 42 / 20%);
+    transition: background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.ck-block-connection-add:hover .ck-block-connection-add-face,
+.ck-block-connection-add:focus-visible .ck-block-connection-add-face {
+    background: var(--color-brand-100);
+    box-shadow: 0 5px 16px rgb(194 65 12 / 28%);
+    transform: translateY(-1px) scale(1.06);
+}
+
+.ck-block-connection-add:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: -5px;
+}
+
+.dark .ck-block-connection-add {
+    color: var(--color-brand-300);
+}
+
+.dark .ck-block-connection-add-face {
+    border-color: var(--color-brand-400);
+    background: rgb(15 23 42 / 96%);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 42%);
+}
+
+.dark .ck-block-connection-add:hover .ck-block-connection-add-face,
+.dark .ck-block-connection-add:focus-visible .ck-block-connection-add-face {
+    background: var(--color-brand-950);
+}
+
+.ck-block-target-menu {
+    position: absolute;
+    z-index: 49;
+    width: min(210px, calc(100% - 16px));
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 7px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    background: rgb(255 255 255 / 98%);
+    box-shadow: 0 14px 34px rgb(15 23 42 / 24%);
+    pointer-events: auto;
+}
+
+.ck-block-target-menu > strong {
+    padding: 3px 7px 5px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.ck-block-target-menu > button {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 750;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ck-block-target-menu > button:hover,
+.ck-block-target-menu > button:focus-visible {
+    outline: 0;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.ck-block-target-menu > button > span {
+    flex: 0 0 auto;
+    padding: 2px 5px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #64748b;
+    font-size: 8px;
+    font-weight: 850;
+}
+
+.dark .ck-block-target-menu {
+    border-color: #475569;
+    background: rgb(15 23 42 / 98%);
+    box-shadow: 0 18px 38px rgb(0 0 0 / 50%);
+}
+
+.dark .ck-block-target-menu > button {
+    color: #e2e8f0;
+}
+
+.dark .ck-block-target-menu > button:hover,
+.dark .ck-block-target-menu > button:focus-visible {
+    background: var(--color-brand-950);
+    color: var(--color-brand-200);
+}
+
+.dark .ck-block-target-menu > button > span {
+    background: #263449;
+    color: #94a3b8;
+}
+
+.ck-block-dock-popover {
+    position: absolute;
+    z-index: 50;
+    left: calc(50% + var(--ck-block-dock-center-offset, 0px));
+    bottom: 64px;
+    transform: translateX(-50%);
+    width: min(720px, calc(var(--ck-block-dock-available-width, 100%) - 28px));
+    min-width: 0;
+    max-height: calc(100% - 76px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    background: rgb(255 255 255 / 98%);
+    box-shadow: 0 18px 48px rgb(15 23 42 / 22%), 0 2px 6px rgb(15 23 42 / 10%);
+    backdrop-filter: blur(18px);
+    pointer-events: auto;
+}
+
+.dark .ck-block-dock-popover {
+    border-color: #475569;
+    background: rgb(15 23 42 / 98%);
+    box-shadow: 0 24px 58px rgb(0 0 0 / 52%);
+}
+
+.ck-block-dock-popover-head {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.dark .ck-block-dock-popover-head {
+    border-color: #334155;
+}
+
+.ck-block-dock-search-wrap {
+    display: flex;
+    min-width: 0;
+    height: 42px;
+    flex: 1;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border: 1px solid #b8c6d6;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.ck-block-dock-search-wrap:focus-within {
+    border-color: var(--brand-orange);
+    box-shadow: 0 0 0 3px rgb(255 106 0 / 13%);
+}
+
+.dark .ck-block-dock-search-wrap {
+    border-color: #475569;
+    background: #111827;
+    color: #94a3b8;
+}
+
+.ck-block-dock-search-wrap input {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.dark .ck-block-dock-search-wrap input {
+    color: #f1f5f9;
+}
+
+.ck-block-dock-close {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.ck-block-dock-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.dark .ck-block-dock-close:hover {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+.ck-block-dock-context-line {
+    display: flex;
+    flex: 0 0 auto;
+    min-height: 30px;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-bottom: 1px solid #eef2f7;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.dark .ck-block-dock-context-line {
+    border-color: #263449;
+    color: #94a3b8;
+}
+
+.ck-block-dock-context-line > span {
+    font-weight: 850;
+    color: #334155;
+}
+
+.dark .ck-block-dock-context-line > span {
+    color: #e2e8f0;
+}
+
+.ck-block-dock-context-line > strong {
+    overflow: hidden;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: var(--color-brand-100);
+    color: var(--accent);
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dark .ck-block-dock-context-line > strong {
+    background: var(--color-brand-950);
+    color: var(--color-brand-200);
+}
+
+.ck-block-dock-context-line > em {
+    margin-left: auto;
+    font-style: normal;
+}
+
+.ck-block-dock-results {
+    min-height: 0;
+    flex: 1 1 auto;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 7px;
+}
+
+/* The serial console reduces the Blockly stage height. Keep Ctrl+K inside that
+   actual stage instead of sizing its results from the full browser viewport. */
+.ck-workspace-stage .ck-block-dock-layer {
+    contain: layout;
+}
+
+.ck-serial-terminal {
+    position: relative;
+    isolation: isolate;
+    background: #f8fafc;
+    box-shadow: inset 0 1px 0 rgb(226 232 240 / 82%);
+}
+
+.ck-serial-terminal-host {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #f8fafc;
+}
+
+.ck-serial-terminal-host .xterm {
+    height: 100%;
+    padding: 7px 10px 5px;
+}
+
+.ck-serial-terminal-host .xterm-viewport {
+    scrollbar-color: #cbd5e1 transparent;
+    scrollbar-width: thin;
+}
+
+.ck-serial-terminal-empty {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 18px;
+    color: #94a3b8;
+    text-align: center;
+    pointer-events: none;
+}
+
+.ck-serial-terminal-empty-icon {
+    display: inline-flex;
+    height: 30px;
+    min-width: 42px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: rgb(255 255 255 / 72%);
+    color: var(--accent);
+    font: 800 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    box-shadow: 0 5px 16px rgb(15 23 42 / 7%);
+}
+
+.ck-serial-terminal-empty-title {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.ck-serial-terminal-empty-detail {
+    font-size: 10px;
+}
+
+.ck-console-panel[data-expanded="false"] .ck-serial-terminal-empty {
+    flex-direction: row;
+    gap: 8px;
+    padding: 8px 12px;
+}
+
+.ck-console-panel[data-expanded="false"] .ck-serial-terminal-empty-icon {
+    height: 24px;
+    min-width: 32px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+.ck-console-panel[data-expanded="false"] .ck-serial-terminal-empty-detail {
+    display: none;
+}
+
+.ck-serial-terminal-paused {
+    position: absolute;
+    top: 9px;
+    right: 12px;
+    z-index: 10;
+    padding: 4px 8px;
+    border: 1px solid #fde68a;
+    border-radius: 999px;
+    background: rgb(255 251 235 / 94%);
+    color: #a16207;
+    font-size: 10px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgb(120 53 15 / 9%);
+    pointer-events: none;
+}
+
+.ck-serial-scroll-to-bottom {
+    position: absolute;
+    right: 14px;
+    bottom: 12px;
+    z-index: 12;
+    display: inline-flex;
+    height: 30px;
+    align-items: center;
+    gap: 5px;
+    padding: 0 10px;
+    border: 1px solid rgb(254 215 170 / 88%);
+    border-radius: 999px;
+    background: rgb(255 247 237 / 96%);
+    box-shadow: 0 6px 18px rgb(15 23 42 / 18%);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+}
+
+.ck-serial-scroll-to-bottom:hover,
+.ck-serial-scroll-to-bottom:focus-visible {
+    border-color: var(--color-brand-400);
+    outline: none;
+    background: var(--color-brand-100);
+    box-shadow: 0 8px 22px rgb(194 65 12 / 24%);
+}
+
+.dark .ck-serial-scroll-to-bottom {
+    border-color: var(--accent);
+    background: rgb(53 21 10 / 94%);
+    color: var(--color-brand-200);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 42%);
+}
+
+.dark .ck-serial-scroll-to-bottom:hover,
+.dark .ck-serial-scroll-to-bottom:focus-visible {
+    border-color: var(--color-brand-400);
+    background: var(--color-brand-900);
+}
+
+.dark .ck-serial-terminal,
+.dark .ck-serial-terminal-host {
+    background: #0b1220;
+}
+
+.dark .ck-serial-terminal {
+    box-shadow: inset 0 1px 0 rgb(51 65 85 / 70%);
+}
+
+.dark .ck-serial-terminal-host .xterm-viewport {
+    scrollbar-color: #334155 transparent;
+}
+
+.dark .ck-serial-terminal-empty {
+    color: #64748b;
+}
+
+.dark .ck-serial-terminal-empty-icon {
+    border-color: #334155;
+    background: rgb(15 23 42 / 76%);
+    color: var(--color-brand-300);
+    box-shadow: 0 6px 18px rgb(0 0 0 / 22%);
+}
+
+.dark .ck-serial-terminal-empty-title {
+    color: #94a3b8;
+}
+
+.dark .ck-serial-terminal-paused {
+    border-color: #854d0e;
+    background: rgb(69 26 3 / 92%);
+    color: #fde68a;
+}
+
+.ck-serial-plotter {
+    container-type: inline-size;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 7px 8px 8px;
+    background: #f7fafc;
+    color: #334155;
+}
+
+.ck-serial-plotter-header {
+    min-width: 0;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 5px 7px 5px 8px;
+    border: 1px solid #dfe7ef;
+    border-radius: 10px;
+    background: rgb(255 255 255 / 92%);
+    box-shadow: 0 3px 12px rgb(15 23 42 / 4%);
+}
+
+.ck-serial-plotter-heading {
+    min-width: 160px;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ck-serial-plotter-heading-icon {
+    display: inline-flex;
+    width: 29px;
+    height: 29px;
+    flex: 0 0 29px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-brand-200);
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.ck-serial-plotter-heading-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.ck-serial-plotter-title-row,
+.ck-serial-plotter-meta {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ck-serial-plotter-title-row > strong {
+    color: #1e293b;
+    font-size: 11px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.ck-serial-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ck-serial-status-badge.is-live {
+    background: #e8faf6;
+    color: #0f766e;
+}
+
+.ck-serial-status-badge.is-live > span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #14b8a6;
+    box-shadow: 0 0 0 3px rgb(20 184 166 / 12%);
+}
+
+.ck-serial-status-badge.is-paused {
+    background: #fff7df;
+    color: #a16207;
+}
+
+.ck-serial-plotter-meta {
+    overflow: hidden;
+    color: #7b8da3;
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+.ck-serial-plotter-meta > span {
+    flex: 0 0 auto;
+}
+
+.ck-serial-plotter-meta > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    flex: 0 1 auto;
+    text-overflow: ellipsis;
+}
+
+.ck-serial-plotter-meta > span + span::before {
+    content: '·';
+    margin-right: 6px;
+    color: #cbd5e1;
+}
+
+.ck-serial-plotter-meta .is-warning {
+    color: #b45309;
+}
+
+.ck-serial-plotter-meta .is-success {
+    color: #0f8b81;
+    font-weight: 750;
+}
+
+.ck-serial-plotter-actions {
+    min-width: 0;
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+.ck-serial-zoom-control {
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid #dbe4ed;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.ck-serial-zoom-control > button {
+    width: 28px;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.ck-serial-zoom-control > button:hover:not(:disabled) {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.ck-serial-zoom-control > button:disabled,
+.ck-serial-tool-button:disabled {
+    opacity: .36;
+    cursor: not-allowed;
+}
+
+.ck-serial-zoom-control > span {
+    min-width: 52px;
+    padding: 0 5px;
+    border-right: 1px solid #dbe4ed;
+    border-left: 1px solid #dbe4ed;
+    color: #52657a;
+    font: 750 9px/26px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ck-serial-axis-select,
+.ck-serial-tool-button {
+    height: 28px;
+    border: 1px solid #dbe4ed;
+    border-radius: 8px;
+    background: #fff;
+    color: #52657a;
+    font-size: 9px;
+    font-weight: 750;
+}
+
+.ck-serial-axis-select {
+    max-width: 118px;
+    padding: 0 6px;
+    outline: none;
+}
+
+.ck-serial-axis-select:focus {
+    border-color: var(--color-brand-300);
+    box-shadow: 0 0 0 2px rgb(251 146 60 / 13%);
+}
+
+.ck-serial-tool-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 8px;
+    cursor: pointer;
+}
+
+.ck-serial-tool-button:hover:not(:disabled) {
+    border-color: var(--color-brand-300);
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.ck-serial-tool-button.is-accent {
+    border-color: var(--color-brand-300);
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.ck-serial-tool-button.is-danger:hover:not(:disabled) {
+    border-color: #fecaca;
+    background: #fff5f5;
+    color: #dc2626;
+}
+
+.ck-serial-quality-warning {
+    min-width: 0;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 8px;
+    border: 1px solid #f6d88f;
+    border-radius: 8px;
+    background: #fff9e9;
+    color: #92400e;
+    font-size: 10px;
+}
+
+.ck-serial-quality-warning > svg,
+.ck-serial-quality-warning > button {
+    flex: 0 0 auto;
+}
+
+.ck-serial-quality-warning > span {
+    min-width: 0;
+    overflow: hidden;
+    flex: 1 1 auto;
+    display: -webkit-box;
+    white-space: normal;
+    text-overflow: clip;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.ck-serial-quality-warning > button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 9px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ck-serial-trigger-slot {
+    min-width: 0;
+    flex: 0 0 auto;
+}
+
+.ck-serial-trigger-slot > section {
+    border-color: #dfe7ef;
+    background: rgb(255 255 255 / 76%);
+}
+
+.ck-serial-channel-strip {
+    min-width: 0;
+    flex: 0 0 auto;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 1px 1px 3px;
+    scrollbar-color: #cbd5e1 transparent;
+    scrollbar-width: thin;
+}
+
+.ck-serial-channel-card {
+    min-width: 118px;
+    max-width: 170px;
+    flex: 1 0 118px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 1px 7px;
+    padding: 5px 8px 5px;
+    border: 1px solid #dfe7ef;
+    border-top-width: 2px;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
+}
+
+.ck-serial-channel-name {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ck-serial-channel-name > span {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+    border-radius: 50%;
+}
+
+.ck-serial-channel-name > strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #607188;
+    font-size: 9px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ck-serial-channel-value {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    align-self: center;
+    max-width: 82px;
+    overflow: hidden;
+    color: #162033;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ck-serial-channel-range {
+    min-width: 0;
+    display: flex;
+    gap: 6px;
+    overflow: hidden;
+    color: #94a3b8;
+    font: 650 8px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: nowrap;
+}
+
+.ck-serial-chart-surface {
+    position: relative;
+    min-width: 0;
+    min-height: 92px;
+    flex: 1 1 auto;
+    overflow: hidden;
+    border: 1px solid #dfe7ef;
+    border-radius: 11px;
+    background:
+        linear-gradient(rgb(255 255 255 / 86%), rgb(255 255 255 / 86%)),
+        repeating-linear-gradient(0deg, transparent 0 23px, #e9f0f5 23px 24px),
+        repeating-linear-gradient(90deg, transparent 0 39px, #e9f0f5 39px 40px);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%), 0 4px 14px rgb(15 23 42 / 3%);
+    cursor: grab;
+    user-select: none;
+}
+
+.ck-serial-chart-surface:active {
+    cursor: grabbing;
+}
+
+.ck-serial-chart-empty {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 14px;
+    color: #94a3b8;
+    text-align: center;
+    pointer-events: none;
+}
+
+.ck-serial-chart-empty-icon {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+    border: 1px solid var(--color-brand-200);
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.ck-serial-chart-empty > strong {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.ck-serial-chart-empty > span:last-child {
+    max-width: 760px;
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+.ck-serial-chart-mode,
+.ck-serial-chart-help {
+    position: absolute;
+    z-index: 10;
+    top: 7px;
+    padding: 3px 6px;
+    border: 1px solid rgb(219 228 237 / 88%);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 82%);
+    color: #8291a3;
+    font-size: 8px;
+    font-weight: 750;
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+}
+
+.ck-serial-chart-mode {
+    left: 8px;
+    color: var(--accent);
+}
+
+.ck-serial-chart-help {
+    right: 8px;
+}
+
+.dark .ck-serial-plotter {
+    background: #0b1220;
+    color: #cbd5e1;
+}
+
+.dark .ck-serial-plotter-header {
+    border-color: #263449;
+    background: rgb(15 23 42 / 90%);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
+}
+
+.dark .ck-serial-plotter-heading-icon {
+    border-color: var(--color-brand-800);
+    background: var(--color-brand-950);
+    color: var(--color-brand-300);
+}
+
+.dark .ck-serial-plotter-title-row > strong {
+    color: #e5edf6;
+}
+
+.dark .ck-serial-status-badge.is-live {
+    background: #103b38;
+    color: #99f6e4;
+}
+
+.dark .ck-serial-status-badge.is-paused {
+    background: #422006;
+    color: #fde68a;
+}
+
+.dark .ck-serial-plotter-meta {
+    color: #7f91a7;
+}
+
+.dark .ck-serial-plotter-meta > span + span::before {
+    color: #334155;
+}
+
+.dark .ck-serial-zoom-control,
+.dark .ck-serial-axis-select,
+.dark .ck-serial-tool-button {
+    border-color: #314055;
+    background: #111b2b;
+    color: #a8b6c8;
+}
+
+.dark .ck-serial-zoom-control > span {
+    border-color: #314055;
+    color: #a8b6c8;
+}
+
+.dark .ck-serial-zoom-control > button {
+    color: #a8b6c8;
+}
+
+.dark .ck-serial-zoom-control > button:hover:not(:disabled),
+.dark .ck-serial-tool-button:hover:not(:disabled),
+.dark .ck-serial-tool-button.is-accent {
+    border-color: var(--color-brand-800);
+    background: var(--color-brand-950);
+    color: var(--color-brand-200);
+}
+
+.dark .ck-serial-tool-button.is-danger:hover:not(:disabled) {
+    border-color: #7f1d1d;
+    background: #3b1118;
+    color: #fda4af;
+}
+
+.dark .ck-serial-quality-warning {
+    border-color: #713f12;
+    background: #2b1e0c;
+    color: #fcd34d;
+}
+
+.dark .ck-serial-trigger-slot > section {
+    border-color: #263449;
+    background: rgb(15 23 42 / 76%);
+}
+
+.dark .ck-serial-channel-strip {
+    scrollbar-color: #334155 transparent;
+}
+
+.dark .ck-serial-channel-card {
+    border-color: #2d3b4f;
+    background: #111a29;
+    box-shadow: 0 3px 12px rgb(0 0 0 / 15%);
+}
+
+.dark .ck-serial-channel-name > strong {
+    color: #9fb0c4;
+}
+
+.dark .ck-serial-channel-value {
+    color: #edf5fc;
+}
+
+.dark .ck-serial-channel-range {
+    color: #64748b;
+}
+
+.dark .ck-serial-chart-surface {
+    border-color: #263449;
+    background:
+        linear-gradient(rgb(11 18 32 / 88%), rgb(11 18 32 / 88%)),
+        repeating-linear-gradient(0deg, transparent 0 23px, #263449 23px 24px),
+        repeating-linear-gradient(90deg, transparent 0 39px, #263449 39px 40px);
+    box-shadow: inset 0 1px 0 rgb(51 65 85 / 36%), 0 5px 18px rgb(0 0 0 / 17%);
+}
+
+.dark .ck-serial-chart-empty-icon {
+    border-color: var(--color-brand-800);
+    background: var(--color-brand-950);
+    color: var(--color-brand-300);
+}
+
+.dark .ck-serial-chart-empty > strong {
+    color: #94a3b8;
+}
+
+.dark .ck-serial-chart-mode,
+.dark .ck-serial-chart-help {
+    border-color: rgb(49 64 85 / 86%);
+    background: rgb(15 23 42 / 80%);
+    color: #718197;
+}
+
+.dark .ck-serial-chart-mode {
+    color: var(--color-brand-300);
+}
+
+@media (max-width: 980px) {
+    .ck-serial-plotter-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ck-serial-plotter-actions {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 1px;
+    }
+}
+
+@container (max-width: 720px) {
+    .ck-serial-plotter-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ck-serial-plotter-actions {
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 1px;
+    }
+}
+
+.ck-block-dock-result {
+    display: flex;
+    min-height: 86px;
+    align-items: stretch;
+    margin-bottom: 5px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #334155;
+}
+
+.ck-block-dock-result.is-selected {
+    border-color: var(--color-brand-300);
+    background: var(--accent-soft);
+    box-shadow: inset 3px 0 var(--brand-orange), 0 4px 12px rgb(194 65 12 / 8%);
+}
+
+.dark .ck-block-dock-result {
+    border-color: #263449;
+    background: #111827;
+    color: #e2e8f0;
+}
+
+.dark .ck-block-dock-result.is-selected {
+    border-color: var(--accent);
+    background: var(--color-brand-950);
+}
+
+.ck-block-dock-result-main {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    overflow: hidden;
+    padding: 7px 10px 7px 13px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ck-block-dock-result-preview {
+    min-width: 0;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.ck-block-dock-result-preview-svg {
+    min-width: 0;
+    max-width: 100%;
+    display: block;
+    filter: drop-shadow(0 2px 2px rgb(15 23 42 / 14%));
+}
+
+.ck-block-dock-result-preview-svg > svg {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 56px;
+    display: block;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.ck-block-dock-result-preview-fallback {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    padding: 0 12px;
+    border: 1px dashed #94a3b8;
+    border-radius: 10px;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.dark .ck-block-dock-result-preview-fallback {
+    border-color: #64748b;
+    color: #cbd5e1;
+}
+
+.ck-block-dock-result-meta {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    color: #8492a6;
+    font-size: 9px;
+    font-weight: 650;
+}
+
+.ck-block-dock-result-meta > strong {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 9px;
+    font-weight: 850;
+}
+
+.dark .ck-block-dock-result-meta > strong {
+    background: #263449;
+    color: #cbd5e1;
+}
+
+.ck-block-dock-result-meta > small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ck-block-dock-result-meta > em {
+    margin-left: auto;
+    flex: 0 0 auto;
+    color: var(--accent);
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 850;
+}
+
+.dark .ck-block-dock-result-meta > em {
+    color: var(--color-brand-300);
+}
+
+.ck-block-discovery-details {
+    display: grid;
+    flex-basis: 100%;
+    min-width: 0;
+    gap: 4px;
+    font-size: 11px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: #334155;
+    overflow-wrap: anywhere;
+}
+.dark .ck-block-discovery-details { color: #e2e8f0; }
+.ck-block-discovery-note { color: #64748b; }
+.dark .ck-block-discovery-note { color: #94a3b8; }
+[data-ck-role="engineering-health-view"] section { scroll-margin-top: 86px; }
+
+.ck-block-dock-pin {
+    width: 42px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.ck-block-dock-preview-workspace {
+    position: absolute;
+    left: -2400px;
+    top: 0;
+    width: 1800px;
+    height: 900px;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.ck-block-dock-pin:hover,
+.ck-block-dock-pin.is-pinned {
+    color: var(--accent);
+}
+
+.dark .ck-block-dock-pin:hover,
+.dark .ck-block-dock-pin.is-pinned {
+    color: var(--color-brand-300);
+}
+
+.ck-block-dock-empty {
+    padding: 34px 18px;
+    color: #94a3b8;
+    text-align: center;
+    font-size: 12px;
+}
+
+.ck-block-dock-help {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 14px;
+    padding: 7px 12px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.dark .ck-block-dock-help {
+    border-color: #334155;
+    background: #111827;
+    color: #64748b;
+}
+
+@media (max-width: 980px) {
+    .ck-block-dock {
+        max-width: min(720px, calc(var(--ck-block-dock-available-width, 100%) - 20px));
+    }
+    .ck-block-dock-popover {
+        width: min(720px, calc(var(--ck-block-dock-available-width, 100%) - 20px));
+    }
+
+    .ck-block-dock .ck-block-dock-command kbd {
+        display: none;
+    }
+}
+
+/* ========================================================================
+   Serial console visual contract
+
+   Keep the serial monitor readable independently from the Blockly renderer.
+   The console is also rendered in a detached Tauri window, so these rules
+   intentionally scope to both roots and set color-scheme on the controls
+   themselves. Chromium otherwise renders native <option> popups in a light
+   palette even when the surrounding document is dark.
+   ======================================================================== */
+.ck-serial-console-panel,
+.ck-detached-console-root {
+    --ck-serial-bg: #f8fafc;
+    --ck-serial-surface: #ffffff;
+    --ck-serial-toolbar: #f2f6f9;
+    --ck-serial-border: #d7e1ea;
+    --ck-serial-border-strong: #c4d0dc;
+    --ck-serial-text: #1e293b;
+    --ck-serial-muted: #5f7186;
+    --ck-serial-faint: #8291a3;
+    --ck-serial-control-bg: #ffffff;
+    --ck-serial-control-hover: var(--accent-soft);
+    --ck-serial-active-bg: var(--color-brand-100);
+    --ck-serial-active-text: var(--accent);
+    --ck-serial-danger-bg: #fff1f2;
+    --ck-serial-danger-text: #b91c1c;
+    color-scheme: light;
+}
+
+.dark .ck-serial-console-panel,
+.dark .ck-detached-console-root {
+    --ck-serial-bg: #0b1220;
+    --ck-serial-surface: #0f172a;
+    --ck-serial-toolbar: #111b2b;
+    --ck-serial-border: #2d3b4f;
+    --ck-serial-border-strong: #41516a;
+    --ck-serial-text: #edf5fc;
+    --ck-serial-muted: #b7c5d5;
+    --ck-serial-faint: #91a2b7;
+    --ck-serial-control-bg: #162235;
+    --ck-serial-control-hover: #35241c;
+    --ck-serial-active-bg: var(--color-brand-950);
+    --ck-serial-active-text: var(--color-brand-200);
+    --ck-serial-danger-bg: #3b151d;
+    --ck-serial-danger-text: #fda4af;
+    color-scheme: dark;
+}
+
+.ck-serial-console-panel,
+.ck-detached-console-root,
+.ck-serial-console-content,
+.ck-serial-console-surface,
+.ck-serial-compile-log,
+.ck-serial-input-bar {
+    color: var(--ck-serial-text);
+}
+
+.ck-serial-console-toolbar,
+.ck-serial-console-titlebar {
+    background: var(--ck-serial-toolbar) !important;
+    border-color: var(--ck-serial-border) !important;
+    color: var(--ck-serial-muted);
+}
+
+.ck-serial-console-toolbar > div,
+.ck-serial-console-titlebar > div {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ck-serial-border-strong) transparent;
+}
+
+.ck-serial-console-tab {
+    color: var(--ck-serial-muted) !important;
+    border-bottom-color: transparent;
+}
+
+.ck-serial-console-tab:hover {
+    background: var(--ck-serial-control-hover) !important;
+    color: var(--ck-serial-text) !important;
+}
+
+.ck-serial-console-tab.is-active {
+    background: var(--ck-serial-surface) !important;
+    color: var(--ck-serial-active-text) !important;
+}
+
+.ck-serial-console-tab-compile.is-active {
+    color: #2563eb !important;
+}
+
+.dark .ck-serial-console-tab-compile.is-active {
+    color: #93c5fd !important;
+}
+
+.ck-serial-setting-label {
+    color: var(--ck-serial-muted) !important;
+}
+
+.ck-serial-control-select,
+.ck-serial-line-ending-select {
+    color-scheme: light;
+    border-color: var(--ck-serial-border) !important;
+    background-color: var(--ck-serial-control-bg) !important;
+    color: var(--ck-serial-text) !important;
+    text-shadow: none;
+}
+
+.dark .ck-serial-control-select,
+.dark .ck-serial-line-ending-select {
+    color-scheme: dark;
+}
+
+.ck-serial-control-select:focus,
+.ck-serial-line-ending-select:focus {
+    border-color: var(--color-brand-400) !important;
+    box-shadow: 0 0 0 2px rgb(251 146 60 / 18%);
+}
+
+.ck-serial-control-select option,
+.ck-serial-line-ending-select option {
+    background-color: #ffffff;
+    color: #1e293b;
+}
+
+.dark .ck-serial-control-select option,
+.dark .ck-serial-line-ending-select option {
+    background-color: #162235 !important;
+    color: #edf5fc !important;
+}
+
+.ck-serial-monitor-toggle {
+    min-width: 76px;
+    border-color: var(--ck-serial-border-strong) !important;
+}
+
+.ck-serial-monitor-toggle:not(:disabled):hover {
+    filter: brightness(1.04);
+}
+
+.ck-serial-view-switch {
+    border-color: var(--ck-serial-border) !important;
+    background: var(--ck-serial-control-bg) !important;
+}
+
+.ck-serial-view-button {
+    color: var(--ck-serial-muted) !important;
+}
+
+.ck-serial-view-button:hover {
+    background: var(--ck-serial-control-hover) !important;
+    color: var(--ck-serial-text) !important;
+}
+
+.ck-serial-view-button.is-active {
+    background: var(--ck-serial-active-bg) !important;
+    color: var(--ck-serial-active-text) !important;
+    box-shadow: 0 1px 2px rgb(194 65 12 / 14%);
+}
+
+.ck-serial-icon-button,
+.ck-serial-action-button {
+    color: var(--ck-serial-muted) !important;
+}
+
+.ck-serial-icon-button:hover,
+.ck-serial-action-button:hover {
+    background: var(--ck-serial-control-hover) !important;
+    color: var(--ck-serial-active-text) !important;
+}
+
+.ck-serial-clear-button:hover {
+    background: var(--ck-serial-danger-bg) !important;
+    color: var(--ck-serial-danger-text) !important;
+}
+
+.ck-serial-console-content,
+.ck-serial-console-surface,
+.ck-serial-compile-log {
+    background-color: var(--ck-serial-bg) !important;
+}
+
+.ck-serial-compile-log {
+    color: var(--ck-serial-text);
+    scrollbar-color: var(--ck-serial-border-strong) transparent;
+}
+
+.ck-serial-input-bar {
+    background: var(--ck-serial-surface) !important;
+    border-color: var(--ck-serial-border) !important;
+}
+
+.ck-serial-input {
+    color: var(--ck-serial-text) !important;
+    caret-color: var(--color-brand-400);
+}
+
+.ck-serial-input:disabled {
+    color: var(--ck-serial-faint) !important;
+    opacity: .72 !important;
+}
+
+.ck-serial-input::placeholder {
+    color: var(--ck-serial-faint) !important;
+    opacity: 1;
+}
+
+.ck-serial-line-ending-wrap {
+    border-color: var(--ck-serial-border) !important;
+    background: var(--ck-serial-surface);
+}
+
+.ck-serial-line-ending-wrap:hover {
+    background: var(--ck-serial-control-hover) !important;
+}
+
+.ck-serial-line-ending-wrap > span {
+    color: var(--ck-serial-faint) !important;
+}
+
+.ck-serial-line-ending-select {
+    min-width: 68px;
+    color: var(--ck-serial-muted) !important;
+}
+
+.ck-serial-line-ending-select:hover {
+    color: var(--ck-serial-active-text) !important;
+}
+
+.ck-serial-send-button {
+    min-width: 58px;
+    background: var(--brand-action) !important;
+}
+
+.ck-serial-send-button:hover:not(:disabled) {
+    background: var(--brand-action-hover) !important;
+}
+
+.ck-serial-send-button:disabled {
+    opacity: .72 !important;
+    filter: saturate(.72);
+}
+
+.ck-serial-terminal-host .xterm,
+.ck-serial-terminal-host .xterm-viewport,
+.ck-serial-terminal-host .xterm-screen {
+    background: transparent !important;
+}
+
+.ck-serial-terminal-host .xterm-rows {
+    color: #1e293b;
+    font-weight: 500;
+    letter-spacing: .01em;
+}
+
+.dark .ck-serial-terminal-host .xterm-rows {
+    color: #e8f0f7;
+}
+
+.ck-serial-terminal-host .xterm-viewport {
+    scrollbar-color: var(--ck-serial-border-strong) transparent;
+}
+
+.ck-serial-terminal-empty {
+    color: var(--ck-serial-muted) !important;
+}
+
+.ck-serial-terminal-empty-icon {
+    border-color: var(--ck-serial-border-strong) !important;
+    background: var(--ck-serial-control-bg) !important;
+    color: var(--ck-serial-active-text) !important;
+}
+
+.ck-serial-terminal-empty-title {
+    color: var(--ck-serial-text) !important;
+}
+
+.ck-serial-terminal-empty-detail {
+    color: var(--ck-serial-muted) !important;
+}
+
+.dark .ck-serial-plotter-meta {
+    color: #a8b6c8 !important;
+}
+
+.dark .ck-serial-plotter-meta > span + span::before {
+    color: #526177 !important;
+}
+
+.dark .ck-serial-channel-name > strong {
+    color: #c4d2df !important;
+}
+
+.dark .ck-serial-channel-range {
+    color: #91a2b7 !important;
+}
+
+.dark .ck-serial-chart-help,
+.dark .ck-serial-chart-mode {
+    color: #b7c5d5 !important;
+}
+
+.dark .ck-serial-chart-mode {
+    color: var(--color-brand-200) !important;
+}
+
+.dark .ck-serial-terminal-host .xterm-selection {
+    background-color: var(--color-brand-900) !important;
+}

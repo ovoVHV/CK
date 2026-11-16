@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "id": "orchard_fabric_board",
+  "name": "Orchard Fabric contract fixture",
+  "version": "1.0.0",
+  "description": "Non-hardware third-party package fixture. Not an AVR or ESP board and not a verified silicon model.",
+  "vendor": "Orchard fixture publisher",
+  "architecture": "fabric",
+  "fqbn_base": "orchard:fabric:carrier",
+  "arduino_core": { "package": "orchard:fabric", "version": "1.0.0", "index_url": "https://example.invalid/orchard/package_index.json" },
+  "pins": [
+    { "label": "Connector A", "value": "P1", "capabilities": ["digital"], "source": "fixture contract" },
+    { "label": "Connector B", "value": "P2", "capabilities": ["digital"], "source": "fixture contract" }
+  ],
+  "resource_graph": {
+    "version": 1, "coverage": "full",
+    "resources": [
+      { "id": "connector.a", "type": "gpio", "aliases": ["P1"], "sharing": "exclusive", "evidence": ["publisher"] },
+      { "id": "connector.b", "type": "gpio", "aliases": ["P2"], "sharing": "exclusive", "evidence": ["publisher"] },
+      { "id": "fabric.sensorbus", "type": "i2c-controller", "aliases": ["sensor-port"], "sharing": "address", "evidence": ["publisher"] }
+    ],
+    "routes": [
+      { "id": "fabric.data", "resource": "fabric.sensorbus", "signal": "sda", "mode": "fixed", "pins": ["connector.a"] },
+      { "id": "fabric.clock", "resource": "fabric.sensorbus", "signal": "scl", "mode": "fixed", "pins": ["connector.b"] }
+    ],
+    "evidence": [{ "id": "publisher", "source": "Contract fixture declaration, not physical hardware evidence", "confidence": "declared" }]
+  }
+}

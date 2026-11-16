@@ -1,0 +1,19 @@
+{
+  "kind": "category",
+  "name": "5点中值滤波（保留小数）",
+  "colour": "#E05263",
+  "contents": [
+    {
+      "kind": "block",
+      "type": "ck_ai_736b8b7dd8f8_reset"
+    },
+    {
+      "kind": "block",
+      "type": "ck_ai_736b8b7dd8f8_push"
+    },
+    {
+      "kind": "block",
+      "type": "ck_ai_736b8b7dd8f8_value"
+    }
+  ]
+}

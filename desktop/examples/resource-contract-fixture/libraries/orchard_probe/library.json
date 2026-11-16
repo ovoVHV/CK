@@ -1,0 +1,5 @@
+{
+  "id": "orchard_probe", "name": "Orchard probe contract fixture", "version": "1.0.0",
+  "description": "Independent declarative resource claim fixture, not a real sensor driver.",
+  "author": "Orchard fixture publisher", "license": "CC0-1.0", "architectures": ["*"], "includes": ["OrchardProbe.h"]
+}

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-forge-qualification-manifest.schema.json",
+  "title": "CK Forge built-in qualification manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "engine_id",
+    "contract_id",
+    "arduino_cli_version",
+    "host_os",
+    "host_arch",
+    "targets"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "engine_id": { "const": "ck-forge/v1" },
+    "contract_id": { "type": "string", "minLength": 1 },
+    "arduino_cli_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+    },
+    "host_os": { "type": "string", "minLength": 1 },
+    "host_arch": { "type": "string", "minLength": 1 },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["canonical_fqbn", "core_version", "toolchain_key"],
+        "properties": {
+          "canonical_fqbn": {
+            "type": "string",
+            "pattern": "^[^:,=\\s]+:[^:,=\\s]+:[^:,=\\s]+(?::[^,=:\\s]+=[^,=:\\s]+(?:,[^,=:\\s]+=[^,=:\\s]+)*)?$"
+          },
+          "core_version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+          },
+          "toolchain_key": {
+            "type": "string",
+            "pattern": "^[^|]+\\|[^|]+\\|[^|]+\\|[0-9a-fA-F]{64}$"
+          },
+          "performance_ab": {
+            "type": "array",
+            "maxItems": 3,
+            "items": { "$ref": "#/$defs/performanceEvidence" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "performanceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "candidateProfile",
+        "hostIdentitySha256",
+        "sampleSetSha256",
+        "samplesPerLane",
+        "nativeFreshMedianMs",
+        "candidateFreshMedianMs",
+        "nativeRepeatMedianMs",
+        "candidateRepeatMedianMs",
+        "nativeFreshP95Ms",
+        "candidateFreshP95Ms",
+        "nativeRepeatP95Ms",
+        "candidateRepeatP95Ms",
+        "nativeFreshCvBasisPoints",
+        "candidateFreshCvBasisPoints",
+        "nativeRepeatCvBasisPoints",
+        "candidateRepeatCvBasisPoints",
+        "artifactEquivalent",
+        "resourceEquivalent",
+        "evidenceSha256",
+        "artifactSetSha256"
+      ],
+      "properties": {
+        "operation": { "enum": ["compile", "upload-ready"] },
+        "candidateProfile": { "enum": ["quick-fast", "shared-fast"] },
+        "hostIdentitySha256": { "$ref": "#/$defs/sha256" },
+        "sampleSetSha256": { "$ref": "#/$defs/sha256" },
+        "samplesPerLane": { "type": "integer", "minimum": 3, "maximum": 25 },
+        "nativeFreshMedianMs": { "type": "integer", "minimum": 1 },
+        "candidateFreshMedianMs": { "type": "integer", "minimum": 1 },
+        "nativeRepeatMedianMs": { "type": "integer", "minimum": 1 },
+        "candidateRepeatMedianMs": { "type": "integer", "minimum": 1 },
+        "nativeFreshP95Ms": { "type": "integer", "minimum": 1 },
+        "candidateFreshP95Ms": { "type": "integer", "minimum": 1 },
+        "nativeRepeatP95Ms": { "type": "integer", "minimum": 1 },
+        "candidateRepeatP95Ms": { "type": "integer", "minimum": 1 },
+        "nativeFreshCvBasisPoints": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "candidateFreshCvBasisPoints": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "nativeRepeatCvBasisPoints": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "candidateRepeatCvBasisPoints": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "artifactEquivalent": { "const": true },
+        "resourceEquivalent": { "const": true },
+        "evidenceSha256": { "$ref": "#/$defs/sha256" },
+        "artifactSetSha256": { "$ref": "#/$defs/sha256" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "operation": { "const": "compile" } } },
+          "then": { "properties": { "candidateProfile": { "const": "quick-fast" } } }
+        }
+      ]
+    }
+  }
+}

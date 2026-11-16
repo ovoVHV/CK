@@ -1,0 +1,22 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_ir_sender_begin",
+      "kind": "statement",
+      "template": "ckKitIrSendBegin({{field:PIN}});",
+      "includes": {
+        "driver": "#include <CKKitIrSender.h>"
+      }
+    },
+    {
+      "type": "ck_hw_ir_sender_nec",
+      "kind": "statement",
+      "template": "ckKitIrSendNec({{value:ADDRESS}}, {{value:COMMAND}}, {{value:REPEATS}});",
+      "includes": {
+        "driver": "#include <CKKitIrSender.h>"
+      }
+    }
+  ]
+}

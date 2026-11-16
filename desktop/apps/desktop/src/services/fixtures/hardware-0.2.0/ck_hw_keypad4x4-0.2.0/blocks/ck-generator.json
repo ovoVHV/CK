@@ -1,0 +1,23 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_keypad4x4_begin",
+      "kind": "statement",
+      "template": "ckKitKeypadBegin({{field:R1}}, {{field:R2}}, {{field:R3}}, {{field:R4}}, {{field:C1}}, {{field:C2}}, {{field:C3}}, {{field:C4}});",
+      "includes": {
+        "driver": "#include <CKKitKeypad.h>"
+      }
+    },
+    {
+      "type": "ck_hw_keypad4x4_key",
+      "kind": "expression",
+      "template": "ckKitKeypadRead()",
+      "includes": {
+        "driver": "#include <CKKitKeypad.h>"
+      },
+      "order": 0
+    }
+  ]
+}

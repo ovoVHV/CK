@@ -1,0 +1,37 @@
+[
+  {
+    "args0": [],
+    "colour": "#1F7A8C",
+    "helpUrl": "",
+    "message0": "清空5点中值滤波缓冲（小数）",
+    "nextStatement": null,
+    "previousStatement": null,
+    "tooltip": "样本数与写入位置归零，之后读取中值返回 0.0，直到重新加入样本。",
+    "type": "ck_ai_736b8b7dd8f8_reset"
+  },
+  {
+    "args0": [
+      {
+        "check": "Number",
+        "name": "VALUE",
+        "type": "input_value"
+      }
+    ],
+    "colour": "#1F7A8C",
+    "helpUrl": "",
+    "message0": "5点中值滤波（小数）加入样本 %1",
+    "nextStatement": null,
+    "previousStatement": null,
+    "tooltip": "把样本写入环形缓冲，保留最近5个样本，样本数最多增加到5。",
+    "type": "ck_ai_736b8b7dd8f8_push"
+  },
+  {
+    "args0": [],
+    "colour": "#1F7A8C",
+    "helpUrl": "",
+    "message0": "读取5点中值（小数）",
+    "output": "Number",
+    "tooltip": "返回当前窗口中值：奇数个取中间值，偶数个取中间两数平均（保留小数），无样本返回0.0。",
+    "type": "ck_ai_736b8b7dd8f8_value"
+  }
+]

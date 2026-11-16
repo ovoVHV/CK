@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-generator.schema.json",
+  "title": "CK Declarative Arduino Generator v1",
+  "description": "Data-only generator rules for CK 1.0. This document is parsed as strict JSON and never evaluated as JavaScript.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "version", "rules"],
+  "properties": {
+    "schema": { "const": "ck-generator" },
+    "version": { "const": 1 },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "$defs": {
+    "blockType": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_]{0,127}$"
+    },
+    "template": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16384,
+      "description": "C/C++ text with only {{field:NAME}}, {{field_json:NAME}}, {{value:NAME}}, and {{statement:NAME}} placeholders. Runtime validation rejects malformed placeholders and NUL bytes."
+    },
+    "artifacts": {
+      "type": "object",
+      "maxProperties": 16,
+      "propertyNames": {
+        "pattern": "^[A-Za-z0-9_.:-]{1,96}$"
+      },
+      "additionalProperties": { "$ref": "#/$defs/template" }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "kind", "template"],
+      "properties": {
+        "type": { "$ref": "#/$defs/blockType" },
+        "kind": { "enum": ["statement", "expression"] },
+        "template": { "$ref": "#/$defs/template" },
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99,
+          "default": 0
+        },
+        "includes": { "$ref": "#/$defs/artifacts" },
+        "declarations": { "$ref": "#/$defs/artifacts" },
+        "setup": { "$ref": "#/$defs/artifacts" }
+      }
+    }
+  },
+  "$comment": "The runtime additionally requires unique rule types, a 512 KiB document limit, a 384 KiB aggregate template limit, and a 128 KiB rendered-output budget per rule invocation."
+}

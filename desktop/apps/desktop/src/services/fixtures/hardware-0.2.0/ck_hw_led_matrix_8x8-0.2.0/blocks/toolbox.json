@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "category",
+    "name": "8×8 裸 LED 点阵",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_led_matrix_8x8_begin"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_led_matrix_8x8_pixel"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_led_matrix_8x8_row"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_led_matrix_8x8_refresh"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_led_matrix_8x8_clear"
+      }
+    ]
+  }
+]

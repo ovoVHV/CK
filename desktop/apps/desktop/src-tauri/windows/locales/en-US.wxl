@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-US" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+  <String Id="LaunchApp">Launch CK when setup finishes</String>
+  <String Id="DowngradeErrorMessage">A newer version of CK is already installed. Uninstall it before installing this version.</String>
+  <String Id="PathEnvVarFeature">Add CK to the system PATH so it can be started from a terminal.</String>
+  <String Id="InstallAppFeature">Install CK MakerSwitch and its visual hardware workspace.</String>
+</WixLocalization>

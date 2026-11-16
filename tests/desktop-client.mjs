@@ -1,0 +1,11 @@
+import {randomUUID} from 'node:crypto';
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+export async function connectDesktop(){
+ let page;for(let i=0;i<160;i++){try{page=(await(await fetch(process.env.CK_CDP_LIST_URL)).json()).find(x=>x.type==='page'&&x.url==='http://tauri.localhost/');if(page)break;}catch{}await delay(250);}if(!page)throw Error('Preview WebView missing');
+ const socket=new WebSocket(page.webSocketDebuggerUrl),pending=new Map();let id=0;
+ await new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});socket.onmessage=e=>{const m=JSON.parse(e.data),p=pending.get(m.id);if(p){pending.delete(m.id);clearTimeout(p.timer);m.error?p.reject(Error(JSON.stringify(m.error))):p.resolve(m.result);}};
+ async function evaluate(expression){const result=await new Promise((resolve,reject)=>{const n=++id,timer=setTimeout(()=>{pending.delete(n);reject(Error('CDP timeout'));},1000000);pending.set(n,{resolve,reject,timer});socket.send(JSON.stringify({id:n,method:'Runtime.evaluate',params:{expression,awaitPromise:true,returnByValue:true}}));});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;}
+ async function input(method,params){if(!method.startsWith('Input.'))throw Error('Expected CDP input command');return await new Promise((resolve,reject)=>{const n=++id,timer=setTimeout(()=>{pending.delete(n);reject(Error('CDP input timeout'));},30000);pending.set(n,{resolve,reject,timer});socket.send(JSON.stringify({id:n,method,params}));});}
+ for(let i=0;i<160;i++){if(await evaluate('typeof window.__TAURI_INTERNALS__?.invoke === "function"'))break;await delay(250);}
+ return {evaluate,input,close:()=>socket.close(),build:(code,fqbn,{runId=randomUUID(),workspaceFingerprint='v9-foundation-desktop',projectId=null}={})=>evaluate(`(async()=>{const at=performance.now();try{return {success:true,value:await window.__TAURI_INTERNALS__.invoke('compile_sketch',${JSON.stringify({code,fqbn,boardPackageId:null,runId,workspaceFingerprint,projectId,sourceMapJson:null,silent:false,qualification:false})}),wallMs:performance.now()-at}}catch(e){return {success:false,error:String(e),wallMs:performance.now()-at}}})()`)};
+}

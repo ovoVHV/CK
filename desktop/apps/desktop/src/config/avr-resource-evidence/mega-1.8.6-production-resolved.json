@@ -1,0 +1,164 @@
+{
+  "applicabilities": [
+    {
+      "buildSignatureAfter": "5a4d74982fb56ae695da84d81377679f0cbf808c526532513fe48d0f20145754",
+      "buildSignatureBefore": "5a4d74982fb56ae695da84d81377679f0cbf808c526532513fe48d0f20145754",
+      "firmwareHashes": {
+        "sketch_arduino_avr_mega_a936bf46672ba95df359a273_rel.ino.elf": "3e164415b279cdc6298f85081b5d6f4fdcfb17fefbfa5695c8d3515c4bf86d96",
+        "sketch_arduino_avr_mega_a936bf46672ba95df359a273_rel.ino.hex": "29115bb10b0693f2ad55721e40a89be81bee781f86d83c7cc105512f09800a4f",
+        "sketch_arduino_avr_mega_a936bf46672ba95df359a273_rel.ino.with_bootloader.hex": "c7ff81100c39274a174ef31a02304b02f3eb9946e20935be599bfe1ab96358c2"
+      },
+      "identity": {
+        "coreVersion": "1.8.6",
+        "fCpu": "16000000L",
+        "fqbn": "arduino:avr:mega:cpu=atmega2560",
+        "mcu": "atmega2560",
+        "options": {
+          "cpu": "atmega2560"
+        },
+        "variant": "mega"
+      },
+      "productionCompilePair": "PASS",
+      "rejected": {
+        "core": {
+          "coreVersion": "0.0.0",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega2560",
+          "mcu": "atmega2560",
+          "options": {
+            "cpu": "atmega2560"
+          },
+          "variant": "mega"
+        },
+        "fCpu": {
+          "coreVersion": "1.8.6",
+          "fCpu": "8000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega2560",
+          "mcu": "atmega2560",
+          "options": {
+            "cpu": "atmega2560"
+          },
+          "variant": "mega"
+        },
+        "mcu": {
+          "coreVersion": "1.8.6",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega2560",
+          "mcu": "unknown_mcu",
+          "options": {
+            "cpu": "atmega2560"
+          },
+          "variant": "mega"
+        },
+        "menu": {
+          "coreVersion": "1.8.6",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega2560,unverified=1",
+          "mcu": "atmega2560",
+          "options": {
+            "cpu": "atmega2560",
+            "unverified": "1"
+          },
+          "variant": "mega"
+        },
+        "variant": {
+          "coreVersion": "1.8.6",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega2560",
+          "mcu": "atmega2560",
+          "options": {
+            "cpu": "atmega2560"
+          },
+          "variant": "eightanaloginputs"
+        }
+      },
+      "requestUnchanged": true
+    },
+    {
+      "buildSignatureAfter": "7bbe48c912437edcf7b77e89c663943ace262028213a7a7e2f1cb52ebde67c3f",
+      "buildSignatureBefore": "7bbe48c912437edcf7b77e89c663943ace262028213a7a7e2f1cb52ebde67c3f",
+      "firmwareHashes": {
+        "sketch_arduino_avr_mega_5bf12f34014fc84c1bae316a_rel.ino.elf": "ed611b9d1ddd092b244b8e5802645b1216025740313c39966fab69d82eeb8f5b",
+        "sketch_arduino_avr_mega_5bf12f34014fc84c1bae316a_rel.ino.hex": "08428c5fe5b6bb720abfb1bb975eb9fdc8315d8428ffd704b09574c2408ed199",
+        "sketch_arduino_avr_mega_5bf12f34014fc84c1bae316a_rel.ino.with_bootloader.hex": "dfc4777560f0eb96d75fe9e16042e94239a1d6f31659405cdb1e421582561dfe"
+      },
+      "identity": {
+        "coreVersion": "1.8.6",
+        "fCpu": "16000000L",
+        "fqbn": "arduino:avr:mega:cpu=atmega1280",
+        "mcu": "atmega1280",
+        "options": {
+          "cpu": "atmega1280"
+        },
+        "variant": "mega"
+      },
+      "productionCompilePair": "PASS",
+      "rejected": {
+        "core": {
+          "coreVersion": "0.0.0",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega1280",
+          "mcu": "atmega1280",
+          "options": {
+            "cpu": "atmega1280"
+          },
+          "variant": "mega"
+        },
+        "fCpu": {
+          "coreVersion": "1.8.6",
+          "fCpu": "8000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega1280",
+          "mcu": "atmega1280",
+          "options": {
+            "cpu": "atmega1280"
+          },
+          "variant": "mega"
+        },
+        "mcu": {
+          "coreVersion": "1.8.6",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega1280",
+          "mcu": "unknown_mcu",
+          "options": {
+            "cpu": "atmega1280"
+          },
+          "variant": "mega"
+        },
+        "menu": {
+          "coreVersion": "1.8.6",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega1280,unverified=1",
+          "mcu": "atmega1280",
+          "options": {
+            "cpu": "atmega1280",
+            "unverified": "1"
+          },
+          "variant": "mega"
+        },
+        "variant": {
+          "coreVersion": "1.8.6",
+          "fCpu": "16000000L",
+          "fqbn": "arduino:avr:mega:cpu=atmega1280",
+          "mcu": "atmega1280",
+          "options": {
+            "cpu": "atmega1280"
+          },
+          "variant": "eightanaloginputs"
+        }
+      },
+      "requestUnchanged": true
+    }
+  ],
+  "defaultIdentity": {
+    "coreVersion": "1.8.6",
+    "fCpu": "16000000L",
+    "fqbn": "arduino:avr:mega",
+    "mcu": "atmega2560",
+    "options": {},
+    "variant": "mega"
+  },
+  "processors": [
+    "atmega2560",
+    "atmega1280"
+  ]
+}

@@ -1,0 +1,25 @@
+[
+  {
+    "kind": "category",
+    "name": "DS1302 时钟",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_ds1302_begin"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_ds1302_set"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_ds1302_read"
+      },
+      {
+        "kind": "block",
+        "type": "ck_hw_ds1302_valid"
+      }
+    ]
+  }
+]

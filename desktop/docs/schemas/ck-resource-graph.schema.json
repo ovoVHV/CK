@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ck.local/schemas/ck-resource-graph-v1.schema.json",
+  "title": "CK declarative board resource graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "resources", "routes", "evidence", "coverage"],
+  "properties": {
+    "version": { "const": 1 },
+    "coverage": { "enum": ["full", "partial", "unknown"] },
+    "resources": { "type": "array", "maxItems": 1024, "items": { "$ref": "#/$defs/resource" } },
+    "routes": { "type": "array", "maxItems": 1024, "items": { "$ref": "#/$defs/route" } },
+    "evidence": { "type": "array", "maxItems": 1024, "items": { "$ref": "#/$defs/evidence" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$", "not": { "pattern": "[^A-Za-z0-9_.:/-]" } },
+    "ids": { "type": "array", "maxItems": 1024, "items": { "$ref": "#/$defs/id" } },
+    "text": { "type": "string", "maxLength": 4096 },
+    "resource": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "sharing", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "type": { "$ref": "#/$defs/id" },
+        "parent": { "$ref": "#/$defs/id" },
+        "aliases": { "$ref": "#/$defs/ids" }, "capabilities": { "$ref": "#/$defs/ids" },
+        "sharing": { "enum": ["shared", "exclusive", "configuration", "address", "selector", "unknown"] },
+        "configurationKeys": { "$ref": "#/$defs/ids" },
+        "reserved": { "type": "boolean" }, "evidence": { "$ref": "#/$defs/ids" }
+      }
+    },
+    "route": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "resource", "signal", "mode", "pins"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "resource": { "$ref": "#/$defs/id" },
+        "signal": { "$ref": "#/$defs/id" }, "mode": { "enum": ["fixed", "selectable"] },
+        "pins": { "type": "array", "minItems": 1, "maxItems": 1024, "items": { "$ref": "#/$defs/id" } }
+      },
+      "allOf": [{ "if": { "properties": { "mode": { "const": "fixed" } } }, "then": { "properties": { "pins": { "maxItems": 1 } } } }]
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "source", "confidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "source": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "locator": { "$ref": "#/$defs/text" }, "confidence": { "enum": ["verified", "declared", "unknown"] }
+      }
+    }
+  }
+}

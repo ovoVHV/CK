@@ -1,0 +1,102 @@
+{
+  "productV2": {
+    "impact": "Impact",
+    "missingDependencyImpact": "Code using this header cannot be built until the dependency is available. Find the library and confirm which package provides the header."
+  },
+  "toolbar": {
+    "compile": "Compile", "upload": "Upload", "uploading": "Uploading…", "compiling": "Compiling…", "cancel": "Cancel", "viewLog": "View log", "preparing": "Preparing",
+    "compileOnlyHint": "Compile without uploading", "normalUploadHint": "Upload the release firmware without breakpoints", "selectPort": "Select a serial port first", "debugOptions": "Debug upload options", "moreUploadActions": "More upload actions", "debugUpload": "Debug upload", "debugUploadWithBreakpoints_one": "Upload debug firmware with {{count}} breakpoint", "debugUploadWithBreakpoints_other": "Upload debug firmware with {{count}} breakpoints", "debugUploadNeedsBreakpoint": "Right-click a block to add a breakpoint first", "cancelOperation": "Cancel compilation or upload"
+  },
+  "progress": {
+    "title": "Compile and upload", "preparing": "Preparing…", "compiling": "Compiling…", "uploading": "Uploading…", "verifying": "Verifying…", "completed": "Completed", "failed": "Failed", "cancelled": "Cancelled",
+    "rebuilding": "Rebuilding the current configuration", "firstFullBuild": "Running the first full build", "waitingWarmupLong": "Background warmup has been handing off the cache for {{seconds}} seconds. The foreground build will continue when it is ready.", "waitingWarmup": "Background warmup is finishing the cache for this board. The foreground build will reuse it instead of starting another full build.", "quietLong": "The compiler has produced no new output for {{seconds}} seconds, but it is still running. Quiet periods are normal while compiling the ESP32 Core.", "fullBuildHint": "A first build, compatibility build, or forced rebuild must process the Core and dependencies. ESP32 builds can take several minutes; the timer will keep updating.", "checkingPath": "Checking the cache and build environment before building or safely reusing artifacts.",
+    "compileAria": "Compilation progress", "uploadingFirmware": "Uploading firmware", "buildingProject": "Compiling project", "elapsedAria": "Elapsed time {{elapsed}}", "working": "Compiler is working", "uploadAria": "Firmware upload progress", "projectBuildAria": "Project compilation progress", "processing": "Processing", "currentAria": "Current progress {{percentage}}", "stagesAria": "Compilation stages",
+    "message": {
+      "preparingUpload": "Preparing upload",
+      "initializingCompiler": "Initializing the compiler environment",
+      "compilingCore": "Compiling the Core and dependencies",
+      "waitingForeground": "Releasing the background task for foreground compilation",
+      "compilingSketch": "Compiling the current sketch",
+      "linkingFirmware": "Linking firmware",
+      "generatingArtifacts": "Generating upload artifacts",
+      "checkingArtifacts": "Checking firmware size and artifacts",
+      "connectingBoard": "Connecting to the board",
+      "resettingBoard": "Resetting the board",
+      "uploadingFirmware": "Uploading firmware",
+      "checkingCache": "Checking reusable cache",
+      "compilingSource": "Compiling {{source}}",
+      "processingStage": "The compiler is processing the current stage",
+      "preparingBuild": "Preparing compilation",
+      "waitingWarmupHandoff": "Waiting for background warmup to hand off reusable cache",
+      "forcedRebuild": "Forcing a rebuild of the current configuration",
+      "coreCacheReady": "Core cache is ready; preparing dependencies",
+      "cacheChanged": "Cache conditions changed; selecting a safe compilation path",
+      "compatibilityBuild": "The fast path is unavailable; running a compatibility build"
+    },
+    "step": { "prepare": "Prepare", "compile": "Compile", "link": "Link", "artifact": "Artifact" }
+  },
+  "resourcePreflight": {
+    "conflictLog": "[Resource preflight] A hardware resource conflict was found. This build was not modified automatically; open Project Health for details.",
+    "warningLog": "[Resource preflight] A resource coverage or declaration warning was found. The build continues with the current project; open Project Health for details."
+  },
+  "result": {
+    "compileSuccess": "Compilation succeeded", "uploadSuccess": "Upload succeeded", "compileFailed": "Compilation failed", "uploadFailed": "Upload failed", "duration": "Completed in {{seconds}} seconds",
+    "compileSuccessToast": "Compilation succeeded ({{duration}}s)", "compileSuccessLog": "Compilation succeeded in {{duration}} seconds.", "uploadSuccessToast": "{{firmware}} uploaded successfully ({{duration}}s)", "uploadSuccessLog": "{{firmware}} uploaded successfully in {{duration}} seconds.", "operationFailed": "Operation failed", "artifactFiles": "Artifact files ({{count}})", "artifactFile": "Artifact file", "sourceMap": "Block source map"
+  },
+  "uploadMode": { "debug": "Debug firmware", "trace": "trace firmware", "normal": "release firmware" },
+  "status": { "uploadingFirmware": "Uploading {{firmware}}…", "compiling": "Compiling…", "preparingFirmware": "Preparing {{firmware}}; upload will start automatically" },
+  "doctor": {
+    "title": "Compile Doctor", "explanation": "CK explanation", "rawDiagnostic": "Raw toolchain diagnostic", "suggestions": "Suggestions", "retry": "Retry", "openSettings": "Open settings",
+    "collecting": "Build health is collecting cache, lock-wait, and toolchain information…", "healthTitle": "Build health", "rechecking": "Checking again", "buildPath": "Build path", "totalTime": "Total time", "actualBuild": "Compiler time", "lockWait": "Build-lock wait", "toolchainLabel": "Toolchain", "forcedRebuild": "Forced rebuild", "cacheChanges": "Cache changes", "environmentChanges": "Environment changes", "eligibilityReasons": "Eligibility reasons", "recommendation": "Recommendation", "viewTechnical": "View cache and environment details", "listSeparator": "; ",
+    "forge": { "fastEligible": "Fast-path eligibility passed", "platformPath": "Using the platform-native compatibility path" },
+    "status": {
+      "healthy": { "summary": "Build path is healthy", "explanation": "Build evidence is complete and the cache and toolchain can be reused safely.", "recommendation": "No action is needed. Keep using the current configuration." },
+      "attention": { "summary": "Build environment needs attention", "explanation": "The build can continue, but cache, environment, or fast-path eligibility changed.", "recommendation": "Review the changes below. Continue if the configuration is expected." },
+      "problem": { "summary": "Build has a problem", "explanation": "The toolchain reported an issue that needs attention. Raw evidence remains in the log.", "recommendation": "Follow the issue-card action and try again." }
+    },
+    "buildMode": { "exact-match": "Exact artifact match", "fast-relink": "Relink build", "native-relink-compile-only": "NativeRelink partial build", "native-relink-graph-transition": "NativeRelink dependency-graph rebuild", "arduino-cli-core-seeded": "Arduino CLI Core reuse build", "full-build": "Full build", "arduino-cli-incremental": "Arduino CLI incremental build", "arduino-cli-incremental-fallback": "Arduino CLI incremental fallback", "arduino-cli-full-fallback": "Arduino CLI full fallback", "unknown": "Standard build" },
+    "cache": { "artifact": "Complete artifact", "core": "Core cache", "objects": "Object cache", "warmup": "Background warmup" },
+    "toolchain": { "processMemory": "In-process identity reuse", "persistentMetadata": "Cross-process evidence reuse", "strongContent": "Strong content verification", "persistentHint": "Verified installation-tree metadata and reused the previous strong-content result", "processHint": "Verified lightweight package metadata and reused the toolchain identity from this process", "strongHint": "Reverified the toolchain content used by this target" },
+    "missReason": { "code_changed": "Code changed", "include_headers_changed": "Header set changed", "workspace_fingerprint_changed": "Block workspace changed", "build_signature_changed": "Core, toolchain, or dependencies changed", "fqbn_changed": "Board or build options changed", "build_path_missing": "Previous build directory is missing", "metadata_missing": "Cache metadata is missing", "artifact_missing": "Firmware artifact is missing" },
+    "forgeStatus": {
+      "certified-evidence-available": { "label": "FLFE Core {{coreVersion}} · Evidence available", "detail": "This Core is covered by bundled FLFE evidence. The full FQBN, toolchain, and build contract are still verified at build time." },
+      "local-certification-required": { "label": "FLFE Core {{coreVersion}} · Local qualification required", "detail": "This Core can build normally and uses the platform-native safe path until qualified. Qualified versions: {{versions}}." },
+      "safe-fallback": { "label": "FLFE Core {{coreVersion}} · Safe fallback", "detail": "This identity has no bundled FLFE evidence, but it can still build through the platform-native path." }
+    },
+    "forgeReason": { "unverified-core-version": "This Core version has no FLFE evidence", "qualification-core-version-mismatch": "Local evidence belongs to a different Core version", "missing-core-version": "The current Core version could not be identified", "invalid-core-version": "The Core version format could not be verified", "unverified-board-target": "This board target has no FLFE evidence", "qualification-fqbn-mismatch": "Evidence does not match the complete FQBN", "qualification-toolchain-mismatch": "Evidence does not match the current toolchain content", "qualification-contract-mismatch": "Evidence does not match the current build contract", "qualification-performance-regression": "A/B performance did not meet the fast-path threshold", "qualification-performance-unavailable": "This identity lacks complete A/B performance evidence", "builtin-performance-qualification-missing": "This identity lacks bundled A/B qualification", "builtin-toolchain-content-mismatch": "Toolchain content differs from bundled evidence", "builtin-toolchain-identity-unavailable": "A strong toolchain identity is temporarily unavailable", "unknown-platform": "This platform is not covered by bundled FLFE evidence" }
+  },
+  "issue": { "sourceError": "Source build error", "undeclared": "Name {{symbol}} has not been declared", "locate": "Locate block", "showRaw": "View raw diagnostic", "actionableAria": "Actionable build issues", "blockError": "Error in “{{label}}” block", "certain": "Confirmed", "likely": "Likely", "block": "Block", "location": "Location", "reason": "Reason", "suggestion": "Suggestion", "rawDiagnosticEvidence": "Raw diagnostic evidence", "rawSourceEvidence": "Raw source evidence", "locateAria": "Locate block: {{label}}", "action": { "library_search": "Search for {{query}}", "rescan_ports": "Rescan serial ports", "show_boot_help": "View BOOT/RESET steps", "show_resources": "View resource usage", "open_board_config": "Open Board Settings" } },
+  "explanation": {
+    "compile": {
+      "missing_header": { "title": "Missing header {{header}}", "summary": "The compiler cannot find this header in the current environment. Search for the Arduino library that provides it, then check the selected board and Core version." },
+      "diagnostic": {
+        "undeclared_symbol": { "title": "Name {{symbol}} has not been declared", "summary": "The program uses {{symbol}}, but no declaration or creation is visible in the current scope.", "suggestion": "Make sure the variable, function, or object is created first, and check its spelling." },
+        "unknown_type": { "title": "Unknown type {{typeName}}", "summary": "The compiler does not recognize {{typeName}}. Its declaration may be missing, its header may not be active, or the library version may not match.", "suggestion": "Check the initialization blocks and library dependencies, and confirm that the selected board Core supports this type." },
+        "missing_member": { "title": "The current library has no {{member}} member", "summary": "{{typeName}} does not provide {{member}}. A different library with the same name may be selected, or the API may not match this library/Core version.", "suggestion": "Check the actual library path and installed version shown in the log." },
+        "redefinition": { "title": "Duplicate definition of {{symbol}}", "summary": "The name {{symbol}} is defined more than once.", "suggestion": "Check for duplicate initialization, object, or variable blocks and keep only one definition." },
+        "conflicting_declaration": { "title": "Conflicting declarations", "summary": "The same name is declared with different types or forms.", "suggestion": "Check duplicate variable, object, or function blocks and use one consistent name and type." },
+        "no_matching_function": { "title": "Function arguments do not match the library API", "summary": "The number or types of arguments do not match the function provided by the current library version.", "suggestion": "Check the types and number of connected block inputs, then verify the library version." },
+        "argument_count": { "title": "Incorrect number of function arguments", "summary": "This call supplies a different number of arguments than the function requires.", "suggestion": "Check for missing block inputs or an API change in the installed library version." },
+        "invalid_conversion": { "title": "Incompatible data types", "summary": "The current value cannot be safely converted to the type required by the target parameter or variable.", "suggestion": "Check the value type connected to this block input." },
+        "expected_semicolon": { "title": "The preceding generated code is incomplete", "summary": "The compiler expected a semicolon here. The actual problem is usually on this line or the statement immediately before it.", "suggestion": "Locate the nearby blocks and check whether text, expressions, or custom code are complete." },
+        "incomplete_syntax": { "title": "Incomplete expression or statement", "summary": "The compiler expected another symbol or expression at this position.", "suggestion": "Check nearby blocks for empty inputs or incomplete expression connections." },
+        "stray_character": { "title": "Unrecognized character in the code", "summary": "The generated source contains a character that the compiler cannot accept.", "suggestion": "Check text and custom code, replace full-width punctuation, and remove hidden characters." },
+        "generic": { "title": "Source build error", "summary": "The compiler found an error at this source location. The raw diagnostic is preserved below.", "suggestion": "Locate the block and check its inputs, variables, and connections. For library files, verify the library and Core versions." }
+      },
+      "capacity": {
+        "iram": { "title": "Program exceeds the available IRAM", "summary": "The linker reports that instruction RAM (IRAM) is full." },
+        "dram": { "title": "Program exceeds the available DRAM", "summary": "The linker reports that data RAM (DRAM) is full." },
+        "ram": { "title": "Program exceeds the available RAM", "summary": "The linker reports that the static data region is full." },
+        "flash": { "title": "Program exceeds the current Flash partition", "summary": "The linker reports that the program does not fit in the selected Flash partition." },
+        "target_region": { "title": "Build output exceeds the target region", "summary": "The linker reports that a target memory region is full." }
+      }
+    },
+    "upload": {
+      "serial_port_unavailable": { "title": "The selected serial port is unavailable", "summary": "The upload tool could not open the target serial port. Rescan ports and make sure no other application is using it." },
+      "esp_handshake_failed": { "title": "The chip did not enter upload mode", "summary": "The serial port was handed to the upload tool, but the chip did not complete the handshake. Follow the BOOT/RESET steps for this chip." },
+      "physical_flash_mismatch": { "title": "Flash configuration exceeds the board's measured capacity", "summary": "CK stopped the upload before writing. Select a matching FlashSize and partition scheme in Board Settings." }
+    },
+    "build": { "environment_changed": { "title": "Board or build settings differ from the last successful build", "summary": "The configuration change safely invalidates old cache entries, but it may not be the cause of this error.", "suggestion": "Review the specific changes and retry. You do not need to clear every cache." } }
+  },
+  "log": { "title": "Build log", "copy": "Copy log", "clear": "Clear log", "empty": "No build output" }
+}

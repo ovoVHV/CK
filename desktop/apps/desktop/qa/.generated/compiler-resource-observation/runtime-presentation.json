@@ -1,0 +1,5337 @@
+{
+  "report": {
+    "phase": "observation",
+    "status": "conflict",
+    "available": true,
+    "checkedAt": "2026-09-24T17:16:01.678Z",
+    "coverage": {
+      "graph": "partial",
+      "analysis": "partial",
+      "declaration": "partial",
+      "project": "partial",
+      "hardwareEvidence": "source-verified-not-hardware-tested",
+      "hardwareValidation": "not-tested",
+      "evidence": {
+        "total": 11,
+        "verified": 11,
+        "declared": 0,
+        "unknown": 0,
+        "status": "verified"
+      }
+    },
+    "checks": [
+      {
+        "id": "resource-preflight:conflict:exclusive-conflict:TIMER1:observed:5,project:0",
+        "status": "conflict",
+        "severity": "conflict",
+        "code": "exclusive-conflict",
+        "resource": "TIMER1",
+        "resourceId": "TIMER1",
+        "claimIds": [
+          "project:0",
+          "observed:5"
+        ],
+        "claimReferences": [
+          "pwm",
+          "servo"
+        ],
+        "blockReferences": [
+          "pwm",
+          "servo"
+        ],
+        "bindings": [
+          {
+            "claimId": "project:0",
+            "resource": "TIMER1A",
+            "ancestors": [
+              "TIMER1"
+            ],
+            "direct": false,
+            "claim": {
+              "id": "project:0",
+              "owner": "[\"ck.builtin\",\"pwm.9\"]",
+              "reference": "pwm",
+              "resource": "TIMER1A",
+              "role": "hardware-pwm",
+              "configuration": {},
+              "signals": {}
+            }
+          },
+          {
+            "claimId": "observed:5",
+            "resource": "TIMER1",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:5",
+              "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+              "reference": "servo",
+              "resource": "TIMER1",
+              "role": "servo-timing",
+              "exclusive": true,
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:6b4477836ed3a00c",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "locator": "sha256:6b4477836ed3a00c3d77a5ad1e6a8636a4ee6cc905a9d93dfc60fca654860abb",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:baf96f1d65390abd",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\Servo.h",
+            "locator": "sha256:baf96f1d65390abddb1c88121198480e4d993b7c9ef87657640082aa73944d7d",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:c18bf7dfd3804d08",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\ServoTimers.h",
+            "locator": "sha256:c18bf7dfd3804d0862572b4e0ea3b4e73431916771ceb531c28e88ed36ec4461",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:af985237cce8dcf2",
+            "source": "C:\\Users\\AI\\Documents\\CK\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino\\wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:335f45c59532cd7d",
+            "source": "C:\\Users\\AI\\Documents\\CK\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino\\Arduino.h",
+            "locator": "sha256:335f45c59532cd7df39ce1435fbf1abf8d503d42ac6085a92e0f2ff75f5fffac",
+            "confidence": "verified"
+          }
+        ],
+        "coverage": {
+          "graph": "partial",
+          "analysis": "partial",
+          "declaration": "partial",
+          "project": "partial",
+          "hardwareEvidence": "source-verified-not-hardware-tested",
+          "hardwareValidation": "not-tested",
+          "evidence": {
+            "total": 11,
+            "verified": 11,
+            "declared": 0,
+            "unknown": 0,
+            "status": "verified"
+          }
+        },
+        "issueId": "resource-preflight:conflict:exclusive-conflict:TIMER1:observed:5,project:0"
+      },
+      {
+        "id": "compiler-latency:c66d1b174da28df6767a9b4c",
+        "severity": "warning",
+        "code": "interrupt-latency-risk",
+        "explanationCode": "interrupt-latency-risk",
+        "blockReferences": [
+          "servo",
+          "soft-serial"
+        ],
+        "claimIds": [
+          "observed:4",
+          "observed:5"
+        ],
+        "claimReferences": [
+          "Servo::attach",
+          "SoftwareSerial::begin"
+        ],
+        "sourceLabels": {
+          "soft-serial": "SoftwareSerial::begin",
+          "servo": "Servo::attach"
+        },
+        "bindings": [],
+        "evidence": [
+          {
+            "id": "compiler:6b4477836ed3a00c",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "locator": "sha256:6b4477836ed3a00c3d77a5ad1e6a8636a4ee6cc905a9d93dfc60fca654860abb",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:baf96f1d65390abd",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\Servo.h",
+            "locator": "sha256:baf96f1d65390abddb1c88121198480e4d993b7c9ef87657640082aa73944d7d",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:c18bf7dfd3804d08",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\ServoTimers.h",
+            "locator": "sha256:c18bf7dfd3804d0862572b4e0ea3b4e73431916771ceb531c28e88ed36ec4461",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:f49b152375ede361",
+            "source": "C:\\Users\\AI\\Documents\\CK\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src\\SoftwareSerial.cpp",
+            "locator": "sha256:f49b152375ede361c7475ac9a83d9fa23bef7f3c9c58c46ca036b1aa85cd65b0",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:5897e15a3fc14307",
+            "source": "C:\\Users\\AI\\Documents\\CK\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src\\SoftwareSerial.h",
+            "locator": "sha256:5897e15a3fc14307066fbad6e201f88e39417a8d40368c21b41ea14a0abf2f25",
+            "confidence": "verified"
+          }
+        ],
+        "coverage": {
+          "graph": "partial",
+          "analysis": "partial",
+          "declaration": "partial",
+          "project": "partial",
+          "hardwareEvidence": "source-verified-not-hardware-tested",
+          "hardwareValidation": "not-tested",
+          "evidence": {
+            "total": 11,
+            "verified": 11,
+            "declared": 0,
+            "unknown": 0,
+            "status": "verified"
+          }
+        },
+        "canLocate": true,
+        "status": "warning",
+        "issueId": "compiler-latency:c66d1b174da28df6767a9b4c"
+      },
+      {
+        "id": "resource-preflight:warning:missing-declarations:project:",
+        "status": "warning",
+        "severity": "warning",
+        "code": "missing-declarations",
+        "claimIds": [],
+        "claimReferences": [],
+        "blockReferences": [],
+        "bindings": [],
+        "evidence": [],
+        "coverage": {
+          "graph": "partial",
+          "analysis": "partial",
+          "declaration": "partial",
+          "project": "partial",
+          "hardwareEvidence": "source-verified-not-hardware-tested",
+          "hardwareValidation": "not-tested",
+          "evidence": {
+            "total": 11,
+            "verified": 11,
+            "declared": 0,
+            "unknown": 0,
+            "status": "verified"
+          }
+        },
+        "issueId": "resource-preflight:warning:missing-declarations:project:"
+      },
+      {
+        "id": "resource-preflight:warning:builtin-claim-not-covered:project:",
+        "status": "warning",
+        "severity": "warning",
+        "code": "builtin-claim-not-covered",
+        "claimIds": [],
+        "claimReferences": [],
+        "blockReferences": [],
+        "bindings": [],
+        "evidence": [],
+        "coverage": {
+          "graph": "partial",
+          "analysis": "partial",
+          "declaration": "partial",
+          "project": "partial",
+          "hardwareEvidence": "source-verified-not-hardware-tested",
+          "hardwareValidation": "not-tested",
+          "evidence": {
+            "total": 11,
+            "verified": 11,
+            "declared": 0,
+            "unknown": 0,
+            "status": "verified"
+          }
+        },
+        "issueId": "resource-preflight:warning:builtin-claim-not-covered:project:"
+      }
+    ],
+    "issues": [
+      {
+        "id": "resource-preflight:conflict:exclusive-conflict:TIMER1:observed:5,project:0",
+        "severity": "conflict",
+        "code": "exclusive-conflict",
+        "resource": "TIMER1",
+        "claimIds": [
+          "project:0",
+          "observed:5"
+        ],
+        "claimReferences": [
+          "pwm",
+          "servo"
+        ],
+        "blockReferences": [
+          "pwm",
+          "servo"
+        ],
+        "bindings": [
+          {
+            "claimId": "project:0",
+            "resource": "TIMER1A",
+            "ancestors": [
+              "TIMER1"
+            ],
+            "direct": false,
+            "claim": {
+              "id": "project:0",
+              "owner": "[\"ck.builtin\",\"pwm.9\"]",
+              "reference": "pwm",
+              "resource": "TIMER1A",
+              "role": "hardware-pwm",
+              "configuration": {},
+              "signals": {}
+            }
+          },
+          {
+            "claimId": "observed:5",
+            "resource": "TIMER1",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:5",
+              "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+              "reference": "servo",
+              "resource": "TIMER1",
+              "role": "servo-timing",
+              "exclusive": true,
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:6b4477836ed3a00c",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "locator": "sha256:6b4477836ed3a00c3d77a5ad1e6a8636a4ee6cc905a9d93dfc60fca654860abb",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:baf96f1d65390abd",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\Servo.h",
+            "locator": "sha256:baf96f1d65390abddb1c88121198480e4d993b7c9ef87657640082aa73944d7d",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:c18bf7dfd3804d08",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\ServoTimers.h",
+            "locator": "sha256:c18bf7dfd3804d0862572b4e0ea3b4e73431916771ceb531c28e88ed36ec4461",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:af985237cce8dcf2",
+            "source": "C:\\Users\\AI\\Documents\\CK\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino\\wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:335f45c59532cd7d",
+            "source": "C:\\Users\\AI\\Documents\\CK\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino\\Arduino.h",
+            "locator": "sha256:335f45c59532cd7df39ce1435fbf1abf8d503d42ac6085a92e0f2ff75f5fffac",
+            "confidence": "verified"
+          }
+        ],
+        "coverage": {
+          "graph": "partial",
+          "analysis": "partial",
+          "declaration": "partial",
+          "project": "partial",
+          "hardwareEvidence": "source-verified-not-hardware-tested",
+          "hardwareValidation": "not-tested",
+          "evidence": {
+            "total": 11,
+            "verified": 11,
+            "declared": 0,
+            "unknown": 0,
+            "status": "verified"
+          }
+        },
+        "explanationCode": "exclusive-conflict",
+        "canLocate": true
+      },
+      {
+        "id": "resource-preflight:warning:missing-declarations:project:",
+        "severity": "warning",
+        "code": "missing-declarations",
+        "claimIds": [],
+        "claimReferences": [],
+        "blockReferences": [],
+        "bindings": [],
+        "evidence": [],
+        "coverage": {
+          "graph": "partial",
+          "analysis": "partial",
+          "declaration": "partial",
+          "project": "partial",
+          "hardwareEvidence": "source-verified-not-hardware-tested",
+          "hardwareValidation": "not-tested",
+          "evidence": {
+            "total": 11,
+            "verified": 11,
+            "declared": 0,
+            "unknown": 0,
+            "status": "verified"
+          }
+        },
+        "explanationCode": "missing-declarations",
+        "canLocate": false
+      },
+      {
+        "id": "resource-preflight:warning:builtin-claim-not-covered:project:",
+        "severity": "warning",
+        "code": "builtin-claim-not-covered",
+        "claimIds": [],
+        "claimReferences": [],
+        "blockReferences": [],
+        "bindings": [],
+        "evidence": [],
+        "coverage": {
+          "graph": "partial",
+          "analysis": "partial",
+          "declaration": "partial",
+          "project": "partial",
+          "hardwareEvidence": "source-verified-not-hardware-tested",
+          "hardwareValidation": "not-tested",
+          "evidence": {
+            "total": 11,
+            "verified": 11,
+            "declared": 0,
+            "unknown": 0,
+            "status": "verified"
+          }
+        },
+        "explanationCode": "builtin-claim-not-covered",
+        "canLocate": false
+      },
+      {
+        "id": "compiler-latency:c66d1b174da28df6767a9b4c",
+        "severity": "warning",
+        "code": "interrupt-latency-risk",
+        "explanationCode": "interrupt-latency-risk",
+        "blockReferences": [
+          "servo",
+          "soft-serial"
+        ],
+        "claimIds": [
+          "observed:4",
+          "observed:5"
+        ],
+        "claimReferences": [
+          "Servo::attach",
+          "SoftwareSerial::begin"
+        ],
+        "sourceLabels": {
+          "soft-serial": "SoftwareSerial::begin",
+          "servo": "Servo::attach"
+        },
+        "bindings": [],
+        "evidence": [
+          {
+            "id": "compiler:6b4477836ed3a00c",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "locator": "sha256:6b4477836ed3a00c3d77a5ad1e6a8636a4ee6cc905a9d93dfc60fca654860abb",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:baf96f1d65390abd",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\Servo.h",
+            "locator": "sha256:baf96f1d65390abddb1c88121198480e4d993b7c9ef87657640082aa73944d7d",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:c18bf7dfd3804d08",
+            "source": "C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\ServoTimers.h",
+            "locator": "sha256:c18bf7dfd3804d0862572b4e0ea3b4e73431916771ceb531c28e88ed36ec4461",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:f49b152375ede361",
+            "source": "C:\\Users\\AI\\Documents\\CK\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src\\SoftwareSerial.cpp",
+            "locator": "sha256:f49b152375ede361c7475ac9a83d9fa23bef7f3c9c58c46ca036b1aa85cd65b0",
+            "confidence": "verified"
+          },
+          {
+            "id": "compiler:5897e15a3fc14307",
+            "source": "C:\\Users\\AI\\Documents\\CK\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src\\SoftwareSerial.h",
+            "locator": "sha256:5897e15a3fc14307066fbad6e201f88e39417a8d40368c21b41ea14a0abf2f25",
+            "confidence": "verified"
+          }
+        ],
+        "coverage": {
+          "graph": "partial",
+          "analysis": "partial",
+          "declaration": "partial",
+          "project": "partial",
+          "hardwareEvidence": "source-verified-not-hardware-tested",
+          "hardwareValidation": "not-tested",
+          "evidence": {
+            "total": 11,
+            "verified": 11,
+            "declared": 0,
+            "unknown": 0,
+            "status": "verified"
+          }
+        },
+        "canLocate": true
+      }
+    ],
+    "source": "resource-analysis",
+    "implementationCheck": "partial"
+  },
+  "inspector": {
+    "pins": [
+      {
+        "id": "gpio.0",
+        "aliases": [
+          "0"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:1",
+            "reference": "uart",
+            "owner": "signal:uart0:rx",
+            "role": "uart0.rx",
+            "resource": "gpio.0",
+            "signals": {}
+          }
+        ],
+        "references": [
+          "uart"
+        ],
+        "referenceCount": 1,
+        "relatedResources": [
+          {
+            "id": "uart0.rx",
+            "resource": "uart0",
+            "signal": "rx",
+            "mode": "fixed",
+            "pins": [
+              "gpio.0"
+            ],
+            "selectedPins": [
+              "gpio.0"
+            ],
+            "fixedPin": "gpio.0"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.1",
+        "aliases": [
+          "1"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:2",
+            "reference": "uart",
+            "owner": "signal:uart0:tx",
+            "role": "uart0.tx",
+            "resource": "gpio.1",
+            "signals": {}
+          }
+        ],
+        "references": [
+          "uart"
+        ],
+        "referenceCount": 1,
+        "relatedResources": [
+          {
+            "id": "uart0.tx",
+            "resource": "uart0",
+            "signal": "tx",
+            "mode": "fixed",
+            "pins": [
+              "gpio.1"
+            ],
+            "selectedPins": [
+              "gpio.1"
+            ],
+            "fixedPin": "gpio.1"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.2",
+        "aliases": [
+          "2"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.3",
+        "aliases": [
+          "3"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER2B"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "TIMER2B.output",
+            "resource": "TIMER2B",
+            "signal": "output",
+            "mode": "fixed",
+            "pins": [
+              "gpio.3"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.3"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.4",
+        "aliases": [
+          "4"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.5",
+        "aliases": [
+          "5"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER0B"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "TIMER0B.output",
+            "resource": "TIMER0B",
+            "signal": "output",
+            "mode": "fixed",
+            "pins": [
+              "gpio.5"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.5"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.6",
+        "aliases": [
+          "6"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER0A"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "TIMER0A.output",
+            "resource": "TIMER0A",
+            "signal": "output",
+            "mode": "fixed",
+            "pins": [
+              "gpio.6"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.6"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.7",
+        "aliases": [
+          "7"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.8",
+        "aliases": [
+          "8"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "observed:4",
+            "reference": "servo",
+            "owner": "servo:&servo_8",
+            "role": "servo-signal",
+            "resource": "gpio.8",
+            "signals": {}
+          }
+        ],
+        "references": [
+          "servo"
+        ],
+        "referenceCount": 1,
+        "relatedResources": [],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.9",
+        "aliases": [
+          "9"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER1A"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:0",
+            "reference": "pwm",
+            "owner": "signal:TIMER1A:output",
+            "role": "TIMER1A.output",
+            "resource": "gpio.9",
+            "signals": {}
+          }
+        ],
+        "references": [
+          "pwm"
+        ],
+        "referenceCount": 1,
+        "relatedResources": [
+          {
+            "id": "TIMER1A.output",
+            "resource": "TIMER1A",
+            "signal": "output",
+            "mode": "fixed",
+            "pins": [
+              "gpio.9"
+            ],
+            "selectedPins": [
+              "gpio.9"
+            ],
+            "fixedPin": "gpio.9"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.10",
+        "aliases": [
+          "10",
+          "SS"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER1B",
+          "SS"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "TIMER1B.output",
+            "resource": "TIMER1B",
+            "signal": "output",
+            "mode": "fixed",
+            "pins": [
+              "gpio.10"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.10"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.11",
+        "aliases": [
+          "11",
+          "MOSI"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER2A",
+          "MOSI"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "TIMER2A.output",
+            "resource": "TIMER2A",
+            "signal": "output",
+            "mode": "fixed",
+            "pins": [
+              "gpio.11"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.11"
+          },
+          {
+            "id": "spi.mosi",
+            "resource": "spi",
+            "signal": "mosi",
+            "mode": "fixed",
+            "pins": [
+              "gpio.11"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.11"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.12",
+        "aliases": [
+          "12",
+          "MISO"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "MISO"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "spi.miso",
+            "resource": "spi",
+            "signal": "miso",
+            "mode": "fixed",
+            "pins": [
+              "gpio.12"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.12"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.13",
+        "aliases": [
+          "13",
+          "LED_BUILTIN",
+          "SCK"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SCK"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "project:1",
+            "reference": "gpio",
+            "owner": "[\"ck.builtin\",\"digital-output.13\"]",
+            "role": "digital-output",
+            "resource": "gpio.13",
+            "signals": {}
+          }
+        ],
+        "references": [
+          "gpio"
+        ],
+        "referenceCount": 1,
+        "relatedResources": [
+          {
+            "id": "spi.sck",
+            "resource": "spi",
+            "signal": "sck",
+            "mode": "fixed",
+            "pins": [
+              "gpio.13"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.13"
+          },
+          {
+            "id": "board.led.led",
+            "resource": "board.led",
+            "signal": "led",
+            "mode": "fixed",
+            "pins": [
+              "gpio.13"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.13"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.14",
+        "aliases": [
+          "14",
+          "A0"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "adc.0.input",
+            "resource": "adc.0",
+            "signal": "input",
+            "mode": "fixed",
+            "pins": [
+              "gpio.14"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.14"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.15",
+        "aliases": [
+          "15",
+          "A1"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "adc.1.input",
+            "resource": "adc.1",
+            "signal": "input",
+            "mode": "fixed",
+            "pins": [
+              "gpio.15"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.15"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.16",
+        "aliases": [
+          "16",
+          "A2"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "adc.2.input",
+            "resource": "adc.2",
+            "signal": "input",
+            "mode": "fixed",
+            "pins": [
+              "gpio.16"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.16"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.17",
+        "aliases": [
+          "17",
+          "A3"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "references": [],
+        "referenceCount": 0,
+        "relatedResources": [
+          {
+            "id": "adc.3.input",
+            "resource": "adc.3",
+            "signal": "input",
+            "mode": "fixed",
+            "pins": [
+              "gpio.17"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.17"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.18",
+        "aliases": [
+          "18",
+          "A4",
+          "SDA"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SDA"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:3",
+            "reference": "untouched-expander",
+            "owner": "signal:i2c:sda",
+            "role": "i2c.sda",
+            "resource": "gpio.18",
+            "signals": {}
+          }
+        ],
+        "references": [
+          "untouched-expander"
+        ],
+        "referenceCount": 1,
+        "relatedResources": [
+          {
+            "id": "adc.4.input",
+            "resource": "adc.4",
+            "signal": "input",
+            "mode": "fixed",
+            "pins": [
+              "gpio.18"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.18"
+          },
+          {
+            "id": "i2c.sda",
+            "resource": "i2c",
+            "signal": "sda",
+            "mode": "fixed",
+            "pins": [
+              "gpio.18"
+            ],
+            "selectedPins": [
+              "gpio.18"
+            ],
+            "fixedPin": "gpio.18"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      },
+      {
+        "id": "gpio.19",
+        "aliases": [
+          "19",
+          "A5",
+          "SCL"
+        ],
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SCL"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:4",
+            "reference": "untouched-expander",
+            "owner": "signal:i2c:scl",
+            "role": "i2c.scl",
+            "resource": "gpio.19",
+            "signals": {}
+          }
+        ],
+        "references": [
+          "untouched-expander"
+        ],
+        "referenceCount": 1,
+        "relatedResources": [
+          {
+            "id": "adc.5.input",
+            "resource": "adc.5",
+            "signal": "input",
+            "mode": "fixed",
+            "pins": [
+              "gpio.19"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.19"
+          },
+          {
+            "id": "i2c.scl",
+            "resource": "i2c",
+            "signal": "scl",
+            "mode": "fixed",
+            "pins": [
+              "gpio.19"
+            ],
+            "selectedPins": [
+              "gpio.19"
+            ],
+            "fixedPin": "gpio.19"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "coverage": "partial"
+      }
+    ],
+    "buses": [
+      {
+        "id": "spi",
+        "type": "spi-controller",
+        "kind": "spi",
+        "aliases": [],
+        "sharing": "selector",
+        "signals": [
+          {
+            "id": "spi.sck",
+            "resource": "spi",
+            "signal": "sck",
+            "mode": "fixed",
+            "pins": [
+              "gpio.13"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.13"
+          },
+          {
+            "id": "spi.mosi",
+            "resource": "spi",
+            "signal": "mosi",
+            "mode": "fixed",
+            "pins": [
+              "gpio.11"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.11"
+          },
+          {
+            "id": "spi.miso",
+            "resource": "spi",
+            "signal": "miso",
+            "mode": "fixed",
+            "pins": [
+              "gpio.12"
+            ],
+            "selectedPins": [],
+            "fixedPin": "gpio.12"
+          }
+        ],
+        "devices": [],
+        "currentUsage": [],
+        "conflicts": [],
+        "status": "shared-bus",
+        "coverage": "partial"
+      },
+      {
+        "id": "i2c",
+        "type": "i2c-controller",
+        "kind": "i2c",
+        "aliases": [],
+        "sharing": "address",
+        "signals": [
+          {
+            "id": "i2c.sda",
+            "resource": "i2c",
+            "signal": "sda",
+            "mode": "fixed",
+            "pins": [
+              "gpio.18"
+            ],
+            "selectedPins": [
+              "gpio.18"
+            ],
+            "fixedPin": "gpio.18"
+          },
+          {
+            "id": "i2c.scl",
+            "resource": "i2c",
+            "signal": "scl",
+            "mode": "fixed",
+            "pins": [
+              "gpio.19"
+            ],
+            "selectedPins": [
+              "gpio.19"
+            ],
+            "fixedPin": "gpio.19"
+          }
+        ],
+        "devices": [
+          {
+            "claimId": "observed:6",
+            "reference": "untouched-expander",
+            "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+            "role": "i2c-device",
+            "address": "32",
+            "segment": "i2c",
+            "signals": {}
+          }
+        ],
+        "currentUsage": [
+          {
+            "claimId": "observed:6",
+            "reference": "untouched-expander",
+            "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+            "role": "i2c-device",
+            "resource": "i2c",
+            "discriminator": "32",
+            "signals": {}
+          }
+        ],
+        "conflicts": [],
+        "status": "normal-sharing",
+        "coverage": "partial"
+      }
+    ],
+    "uarts": [
+      {
+        "id": "uart0",
+        "type": "uart-controller",
+        "kind": "other",
+        "aliases": [
+          "Serial"
+        ],
+        "sharing": "configuration",
+        "signals": [
+          {
+            "id": "uart0.rx",
+            "resource": "uart0",
+            "signal": "rx",
+            "mode": "fixed",
+            "pins": [
+              "gpio.0"
+            ],
+            "selectedPins": [
+              "gpio.0"
+            ],
+            "fixedPin": "gpio.0"
+          },
+          {
+            "id": "uart0.tx",
+            "resource": "uart0",
+            "signal": "tx",
+            "mode": "fixed",
+            "pins": [
+              "gpio.1"
+            ],
+            "selectedPins": [
+              "gpio.1"
+            ],
+            "fixedPin": "gpio.1"
+          }
+        ],
+        "devices": [
+          {
+            "claimId": "project:2",
+            "reference": "uart",
+            "owner": "[\"ck.builtin\",\"Serial\"]",
+            "role": "hardware-uart",
+            "signals": {}
+          }
+        ],
+        "currentUsage": [
+          {
+            "claimId": "project:2",
+            "reference": "uart",
+            "owner": "[\"ck.builtin\",\"Serial\"]",
+            "role": "hardware-uart",
+            "resource": "uart0",
+            "signals": {}
+          }
+        ],
+        "conflicts": [],
+        "status": "shared-bus",
+        "coverage": "partial",
+        "rx": "gpio.0",
+        "tx": "gpio.1",
+        "usedBy": [
+          {
+            "claimId": "project:2",
+            "reference": "uart",
+            "owner": "[\"ck.builtin\",\"Serial\"]",
+            "role": "hardware-uart",
+            "resource": "uart0",
+            "signals": {}
+          }
+        ]
+      }
+    ],
+    "usbSerialJtag": [],
+    "timers": [
+      {
+        "id": "TIMER2",
+        "type": "timer",
+        "aliases": [],
+        "capabilities": [],
+        "consumers": [],
+        "conflicts": [],
+        "status": "none",
+        "allocation": "unresolved",
+        "coverage": "partial"
+      },
+      {
+        "id": "TIMER0",
+        "type": "timer",
+        "aliases": [],
+        "capabilities": [
+          "core-timebase"
+        ],
+        "consumers": [
+          {
+            "claimId": "core:timebase",
+            "reference": "core:wiring.c",
+            "owner": "arduino-core",
+            "role": "core-timebase",
+            "resource": "TIMER0"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "allocation": "static",
+        "coverage": "partial"
+      },
+      {
+        "id": "TIMER1",
+        "type": "timer",
+        "aliases": [],
+        "capabilities": [],
+        "consumers": [
+          {
+            "claimId": "project:0",
+            "reference": "pwm",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "role": "hardware-pwm",
+            "resource": "TIMER1A",
+            "assignedChannel": "TIMER1A"
+          },
+          {
+            "claimId": "observed:5",
+            "reference": "servo",
+            "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "role": "servo-timing",
+            "resource": "TIMER1"
+          }
+        ],
+        "conflicts": [
+          {
+            "code": "exclusive-conflict",
+            "resource": "TIMER1",
+            "claims": [
+              "project:0",
+              "observed:5"
+            ]
+          }
+        ],
+        "status": "conflict",
+        "allocation": "static",
+        "coverage": "partial"
+      },
+      {
+        "id": "TIMER2B",
+        "type": "pwm-channel",
+        "parent": "TIMER2",
+        "aliases": [],
+        "capabilities": [],
+        "consumers": [],
+        "conflicts": [],
+        "status": "none",
+        "allocation": "unresolved",
+        "coverage": "partial"
+      },
+      {
+        "id": "TIMER0B",
+        "type": "pwm-channel",
+        "parent": "TIMER0",
+        "aliases": [],
+        "capabilities": [],
+        "consumers": [],
+        "conflicts": [],
+        "status": "none",
+        "allocation": "unresolved",
+        "coverage": "partial"
+      },
+      {
+        "id": "TIMER0A",
+        "type": "pwm-channel",
+        "parent": "TIMER0",
+        "aliases": [],
+        "capabilities": [],
+        "consumers": [],
+        "conflicts": [],
+        "status": "none",
+        "allocation": "unresolved",
+        "coverage": "partial"
+      },
+      {
+        "id": "TIMER1A",
+        "type": "pwm-channel",
+        "parent": "TIMER1",
+        "aliases": [],
+        "capabilities": [],
+        "consumers": [
+          {
+            "claimId": "project:0",
+            "reference": "pwm",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "role": "hardware-pwm",
+            "resource": "TIMER1A",
+            "assignedChannel": "TIMER1A"
+          }
+        ],
+        "conflicts": [],
+        "status": "none",
+        "allocation": "static",
+        "coverage": "partial"
+      },
+      {
+        "id": "TIMER1B",
+        "type": "pwm-channel",
+        "parent": "TIMER1",
+        "aliases": [],
+        "capabilities": [],
+        "consumers": [],
+        "conflicts": [],
+        "status": "none",
+        "allocation": "unresolved",
+        "coverage": "partial"
+      },
+      {
+        "id": "TIMER2A",
+        "type": "pwm-channel",
+        "parent": "TIMER2",
+        "aliases": [],
+        "capabilities": [],
+        "consumers": [],
+        "conflicts": [],
+        "status": "none",
+        "allocation": "unresolved",
+        "coverage": "partial"
+      }
+    ],
+    "coverage": {
+      "graph": "partial",
+      "analysis": "partial",
+      "declaration": "partial",
+      "project": "partial",
+      "hardwareEvidence": "source-verified-not-hardware-tested",
+      "hardwareValidation": "not-tested",
+      "evidence": {
+        "total": 11,
+        "verified": 11,
+        "declared": 0,
+        "unknown": 0,
+        "status": "verified"
+      }
+    },
+    "conflicts": [
+      {
+        "code": "exclusive-conflict",
+        "resource": "TIMER1",
+        "claims": [
+          "project:0",
+          "observed:5"
+        ]
+      }
+    ],
+    "resourceTraces": [
+      {
+        "resourceId": "gpio.0",
+        "type": "gpio",
+        "aliases": [
+          "0"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:1",
+            "reference": "uart",
+            "owner": "signal:uart0:rx",
+            "role": "uart0.rx",
+            "resource": "gpio.0",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:1",
+            "owner": "signal:uart0:rx",
+            "reference": "uart",
+            "resource": "gpio.0",
+            "role": "uart0.rx",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:1",
+            "resource": "gpio.0",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:1",
+              "owner": "signal:uart0:rx",
+              "reference": "uart",
+              "resource": "gpio.0",
+              "role": "uart0.rx",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "uart"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.1",
+        "type": "gpio",
+        "aliases": [
+          "1"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:2",
+            "reference": "uart",
+            "owner": "signal:uart0:tx",
+            "role": "uart0.tx",
+            "resource": "gpio.1",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:2",
+            "owner": "signal:uart0:tx",
+            "reference": "uart",
+            "resource": "gpio.1",
+            "role": "uart0.tx",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:2",
+            "resource": "gpio.1",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:2",
+              "owner": "signal:uart0:tx",
+              "reference": "uart",
+              "resource": "gpio.1",
+              "role": "uart0.tx",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "uart"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.2",
+        "type": "gpio",
+        "aliases": [
+          "2"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.3",
+        "type": "gpio",
+        "aliases": [
+          "3"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER2B"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.4",
+        "type": "gpio",
+        "aliases": [
+          "4"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.5",
+        "type": "gpio",
+        "aliases": [
+          "5"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER0B"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.6",
+        "type": "gpio",
+        "aliases": [
+          "6"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER0A"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.7",
+        "type": "gpio",
+        "aliases": [
+          "7"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.8",
+        "type": "gpio",
+        "aliases": [
+          "8"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "observed:4",
+            "reference": "servo",
+            "owner": "servo:&servo_8",
+            "role": "servo-signal",
+            "resource": "gpio.8",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "observed:4",
+            "owner": "servo:&servo_8",
+            "reference": "servo",
+            "resource": "gpio.8",
+            "role": "servo-signal",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "observed:4",
+            "resource": "gpio.8",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:4",
+              "owner": "servo:&servo_8",
+              "reference": "servo",
+              "resource": "gpio.8",
+              "role": "servo-signal",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "servo"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.9",
+        "type": "gpio",
+        "aliases": [
+          "9"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER1A"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:0",
+            "reference": "pwm",
+            "owner": "signal:TIMER1A:output",
+            "role": "TIMER1A.output",
+            "resource": "gpio.9",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:0",
+            "owner": "signal:TIMER1A:output",
+            "reference": "pwm",
+            "resource": "gpio.9",
+            "role": "TIMER1A.output",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:0",
+            "resource": "gpio.9",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:0",
+              "owner": "signal:TIMER1A:output",
+              "reference": "pwm",
+              "resource": "gpio.9",
+              "role": "TIMER1A.output",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "pwm"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.10",
+        "type": "gpio",
+        "aliases": [
+          "10",
+          "SS"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER1B",
+          "SS"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.11",
+        "type": "gpio",
+        "aliases": [
+          "11",
+          "MOSI"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER2A",
+          "MOSI"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.12",
+        "type": "gpio",
+        "aliases": [
+          "12",
+          "MISO"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "MISO"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.13",
+        "type": "gpio",
+        "aliases": [
+          "13",
+          "LED_BUILTIN",
+          "SCK"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SCK"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "project:1",
+            "reference": "gpio",
+            "owner": "[\"ck.builtin\",\"digital-output.13\"]",
+            "role": "digital-output",
+            "resource": "gpio.13",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:1",
+            "owner": "[\"ck.builtin\",\"digital-output.13\"]",
+            "reference": "gpio",
+            "resource": "gpio.13",
+            "role": "digital-output",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:1",
+            "resource": "gpio.13",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "project:1",
+              "owner": "[\"ck.builtin\",\"digital-output.13\"]",
+              "reference": "gpio",
+              "resource": "gpio.13",
+              "role": "digital-output",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "gpio"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.14",
+        "type": "gpio",
+        "aliases": [
+          "14",
+          "A0"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.15",
+        "type": "gpio",
+        "aliases": [
+          "15",
+          "A1"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.16",
+        "type": "gpio",
+        "aliases": [
+          "16",
+          "A2"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.17",
+        "type": "gpio",
+        "aliases": [
+          "17",
+          "A3"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.18",
+        "type": "gpio",
+        "aliases": [
+          "18",
+          "A4",
+          "SDA"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SDA"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:3",
+            "reference": "untouched-expander",
+            "owner": "signal:i2c:sda",
+            "role": "i2c.sda",
+            "resource": "gpio.18",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:3",
+            "owner": "signal:i2c:sda",
+            "reference": "untouched-expander",
+            "resource": "gpio.18",
+            "role": "i2c.sda",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:3",
+            "resource": "gpio.18",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:3",
+              "owner": "signal:i2c:sda",
+              "reference": "untouched-expander",
+              "resource": "gpio.18",
+              "role": "i2c.sda",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "untouched-expander"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.19",
+        "type": "gpio",
+        "aliases": [
+          "19",
+          "A5",
+          "SCL"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SCL"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:4",
+            "reference": "untouched-expander",
+            "owner": "signal:i2c:scl",
+            "role": "i2c.scl",
+            "resource": "gpio.19",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:4",
+            "owner": "signal:i2c:scl",
+            "reference": "untouched-expander",
+            "resource": "gpio.19",
+            "role": "i2c.scl",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:4",
+            "resource": "gpio.19",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:4",
+              "owner": "signal:i2c:scl",
+              "reference": "untouched-expander",
+              "resource": "gpio.19",
+              "role": "i2c.scl",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "untouched-expander"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER2",
+        "type": "timer",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER0",
+        "type": "timer",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [
+          "core-timebase"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "core:timebase",
+            "reference": "core:wiring.c",
+            "owner": "arduino-core",
+            "role": "core-timebase",
+            "resource": "TIMER0",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "core:timebase",
+            "owner": "arduino-core",
+            "reference": "core:wiring.c",
+            "resource": "TIMER0",
+            "role": "core-timebase",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "core:timebase",
+            "resource": "TIMER0",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "core:timebase",
+              "owner": "arduino-core",
+              "reference": "core:wiring.c",
+              "resource": "TIMER0",
+              "role": "core-timebase",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "core:wiring.c"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER1",
+        "type": "timer",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [
+          {
+            "claimId": "project:0",
+            "reference": "pwm",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "role": "hardware-pwm",
+            "resource": "TIMER1A",
+            "signals": {},
+            "direct": false
+          },
+          {
+            "claimId": "observed:5",
+            "reference": "servo",
+            "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "role": "servo-timing",
+            "resource": "TIMER1",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:0",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "reference": "pwm",
+            "resource": "TIMER1A",
+            "role": "hardware-pwm",
+            "configuration": {},
+            "signals": {}
+          },
+          {
+            "id": "observed:5",
+            "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "reference": "servo",
+            "resource": "TIMER1",
+            "role": "servo-timing",
+            "exclusive": true,
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:0",
+            "resource": "TIMER1A",
+            "ancestors": [
+              "TIMER1"
+            ],
+            "direct": false,
+            "claim": {
+              "id": "project:0",
+              "owner": "[\"ck.builtin\",\"pwm.9\"]",
+              "reference": "pwm",
+              "resource": "TIMER1A",
+              "role": "hardware-pwm",
+              "configuration": {},
+              "signals": {}
+            }
+          },
+          {
+            "claimId": "observed:5",
+            "resource": "TIMER1",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:5",
+              "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+              "reference": "servo",
+              "resource": "TIMER1",
+              "role": "servo-timing",
+              "exclusive": true,
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "pwm",
+          "servo"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [
+          {
+            "code": "exclusive-conflict",
+            "resource": "TIMER1",
+            "claims": [
+              "project:0",
+              "observed:5"
+            ]
+          }
+        ],
+        "status": "conflict"
+      },
+      {
+        "resourceId": "TIMER2B",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER0B",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER0A",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER1A",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [
+          {
+            "claimId": "project:0",
+            "reference": "pwm",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "role": "hardware-pwm",
+            "resource": "TIMER1A",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:0",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "reference": "pwm",
+            "resource": "TIMER1A",
+            "role": "hardware-pwm",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:0",
+            "resource": "TIMER1A",
+            "ancestors": [
+              "TIMER1"
+            ],
+            "direct": true,
+            "claim": {
+              "id": "project:0",
+              "owner": "[\"ck.builtin\",\"pwm.9\"]",
+              "reference": "pwm",
+              "resource": "TIMER1A",
+              "role": "hardware-pwm",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "pwm"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER1B",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER2A",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc",
+        "type": "adc-controller",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.0",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.1",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.2",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.3",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.4",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.5",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "uart0",
+        "type": "uart-controller",
+        "aliases": [
+          "Serial"
+        ],
+        "sharing": "configuration",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [
+          {
+            "claimId": "project:2",
+            "reference": "uart",
+            "owner": "[\"ck.builtin\",\"Serial\"]",
+            "role": "hardware-uart",
+            "resource": "uart0",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:2",
+            "owner": "[\"ck.builtin\",\"Serial\"]",
+            "reference": "uart",
+            "resource": "uart0",
+            "role": "hardware-uart",
+            "configuration": {
+              "baud": 9600
+            },
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:2",
+            "resource": "uart0",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "project:2",
+              "owner": "[\"ck.builtin\",\"Serial\"]",
+              "reference": "uart",
+              "resource": "uart0",
+              "role": "hardware-uart",
+              "configuration": {
+                "baud": 9600
+              },
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "uart"
+        ],
+        "evidence": [
+          {
+            "id": "core.6",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial0.cpp",
+            "locator": "sha256:388bd9bcd3ff9c2b30a1d6d9a14a4b61a5ab070cc8000f186138c0d15565adf6",
+            "confidence": "verified"
+          },
+          {
+            "id": "uno-pinout",
+            "source": "https://content.arduino.cc/assets/A000066-full-pinout.pdf",
+            "locator": "D0/RX=PD0/RXD; D1/TX=PD1/TXD",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "spi",
+        "type": "spi-controller",
+        "aliases": [],
+        "sharing": "selector",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.9",
+            "source": "packages/arduino/hardware/avr/1.8.8/libraries/SPI/src/SPI.cpp",
+            "locator": "sha256:adae94aae5f04be3225a568a1ed932a917160c0859e51ee3850fa0da4cf4e345",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "i2c",
+        "type": "i2c-controller",
+        "aliases": [],
+        "sharing": "address",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [
+          {
+            "claimId": "observed:6",
+            "reference": "untouched-expander",
+            "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+            "role": "i2c-device",
+            "resource": "i2c",
+            "discriminator": "32",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "observed:6",
+            "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+            "reference": "untouched-expander",
+            "resource": "i2c",
+            "role": "i2c-device",
+            "discriminator": "32",
+            "segment": "i2c",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "observed:6",
+            "resource": "i2c",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:6",
+              "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+              "reference": "untouched-expander",
+              "resource": "i2c",
+              "role": "i2c-device",
+              "discriminator": "32",
+              "segment": "i2c",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "untouched-expander"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.8",
+            "source": "packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.c",
+            "locator": "sha256:846c0a685d1796990c8c5d06df4364fcf8d4657c2221161a613f8cafb232301d",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "board.led",
+        "type": "onboard-device",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      }
+    ],
+    "conflictTraces": [
+      {
+        "conflict": {
+          "code": "exclusive-conflict",
+          "resource": "TIMER1",
+          "claims": [
+            "project:0",
+            "observed:5"
+          ]
+        },
+        "resourceId": "TIMER1",
+        "resourceType": "timer",
+        "capabilities": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:0",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "reference": "pwm",
+            "resource": "TIMER1A",
+            "role": "hardware-pwm",
+            "configuration": {},
+            "signals": {}
+          },
+          {
+            "id": "observed:5",
+            "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "reference": "servo",
+            "resource": "TIMER1",
+            "role": "servo-timing",
+            "exclusive": true,
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:0",
+            "resource": "TIMER1A",
+            "ancestors": [
+              "TIMER1"
+            ],
+            "direct": false,
+            "claim": {
+              "id": "project:0",
+              "owner": "[\"ck.builtin\",\"pwm.9\"]",
+              "reference": "pwm",
+              "resource": "TIMER1A",
+              "role": "hardware-pwm",
+              "configuration": {},
+              "signals": {}
+            }
+          },
+          {
+            "claimId": "observed:5",
+            "resource": "TIMER1",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:5",
+              "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+              "reference": "servo",
+              "resource": "TIMER1",
+              "role": "servo-timing",
+              "exclusive": true,
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "pwm",
+          "servo"
+        ]
+      }
+    ],
+    "traces": [
+      {
+        "resourceId": "gpio.0",
+        "type": "gpio",
+        "aliases": [
+          "0"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:1",
+            "reference": "uart",
+            "owner": "signal:uart0:rx",
+            "role": "uart0.rx",
+            "resource": "gpio.0",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:1",
+            "owner": "signal:uart0:rx",
+            "reference": "uart",
+            "resource": "gpio.0",
+            "role": "uart0.rx",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:1",
+            "resource": "gpio.0",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:1",
+              "owner": "signal:uart0:rx",
+              "reference": "uart",
+              "resource": "gpio.0",
+              "role": "uart0.rx",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "uart"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.1",
+        "type": "gpio",
+        "aliases": [
+          "1"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:2",
+            "reference": "uart",
+            "owner": "signal:uart0:tx",
+            "role": "uart0.tx",
+            "resource": "gpio.1",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:2",
+            "owner": "signal:uart0:tx",
+            "reference": "uart",
+            "resource": "gpio.1",
+            "role": "uart0.tx",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:2",
+            "resource": "gpio.1",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:2",
+              "owner": "signal:uart0:tx",
+              "reference": "uart",
+              "resource": "gpio.1",
+              "role": "uart0.tx",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "uart"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.2",
+        "type": "gpio",
+        "aliases": [
+          "2"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.3",
+        "type": "gpio",
+        "aliases": [
+          "3"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER2B"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.4",
+        "type": "gpio",
+        "aliases": [
+          "4"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.5",
+        "type": "gpio",
+        "aliases": [
+          "5"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER0B"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.6",
+        "type": "gpio",
+        "aliases": [
+          "6"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER0A"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.7",
+        "type": "gpio",
+        "aliases": [
+          "7"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.8",
+        "type": "gpio",
+        "aliases": [
+          "8"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "observed:4",
+            "reference": "servo",
+            "owner": "servo:&servo_8",
+            "role": "servo-signal",
+            "resource": "gpio.8",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "observed:4",
+            "owner": "servo:&servo_8",
+            "reference": "servo",
+            "resource": "gpio.8",
+            "role": "servo-signal",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "observed:4",
+            "resource": "gpio.8",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:4",
+              "owner": "servo:&servo_8",
+              "reference": "servo",
+              "resource": "gpio.8",
+              "role": "servo-signal",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "servo"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.9",
+        "type": "gpio",
+        "aliases": [
+          "9"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER1A"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:0",
+            "reference": "pwm",
+            "owner": "signal:TIMER1A:output",
+            "role": "TIMER1A.output",
+            "resource": "gpio.9",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:0",
+            "owner": "signal:TIMER1A:output",
+            "reference": "pwm",
+            "resource": "gpio.9",
+            "role": "TIMER1A.output",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:0",
+            "resource": "gpio.9",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:0",
+              "owner": "signal:TIMER1A:output",
+              "reference": "pwm",
+              "resource": "gpio.9",
+              "role": "TIMER1A.output",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "pwm"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.10",
+        "type": "gpio",
+        "aliases": [
+          "10",
+          "SS"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER1B",
+          "SS"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.11",
+        "type": "gpio",
+        "aliases": [
+          "11",
+          "MOSI"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "TIMER2A",
+          "MOSI"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.12",
+        "type": "gpio",
+        "aliases": [
+          "12",
+          "MISO"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "MISO"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.13",
+        "type": "gpio",
+        "aliases": [
+          "13",
+          "LED_BUILTIN",
+          "SCK"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SCK"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "project:1",
+            "reference": "gpio",
+            "owner": "[\"ck.builtin\",\"digital-output.13\"]",
+            "role": "digital-output",
+            "resource": "gpio.13",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:1",
+            "owner": "[\"ck.builtin\",\"digital-output.13\"]",
+            "reference": "gpio",
+            "resource": "gpio.13",
+            "role": "digital-output",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:1",
+            "resource": "gpio.13",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "project:1",
+              "owner": "[\"ck.builtin\",\"digital-output.13\"]",
+              "reference": "gpio",
+              "resource": "gpio.13",
+              "role": "digital-output",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "gpio"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.14",
+        "type": "gpio",
+        "aliases": [
+          "14",
+          "A0"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.15",
+        "type": "gpio",
+        "aliases": [
+          "15",
+          "A1"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.16",
+        "type": "gpio",
+        "aliases": [
+          "16",
+          "A2"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.17",
+        "type": "gpio",
+        "aliases": [
+          "17",
+          "A3"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output"
+        ],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.18",
+        "type": "gpio",
+        "aliases": [
+          "18",
+          "A4",
+          "SDA"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SDA"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:3",
+            "reference": "untouched-expander",
+            "owner": "signal:i2c:sda",
+            "role": "i2c.sda",
+            "resource": "gpio.18",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:3",
+            "owner": "signal:i2c:sda",
+            "reference": "untouched-expander",
+            "resource": "gpio.18",
+            "role": "i2c.sda",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:3",
+            "resource": "gpio.18",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:3",
+              "owner": "signal:i2c:sda",
+              "reference": "untouched-expander",
+              "resource": "gpio.18",
+              "role": "i2c.sda",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "untouched-expander"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "gpio.19",
+        "type": "gpio",
+        "aliases": [
+          "19",
+          "A5",
+          "SCL"
+        ],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [
+          "digital-input",
+          "digital-output",
+          "SCL"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "binding:4",
+            "reference": "untouched-expander",
+            "owner": "signal:i2c:scl",
+            "role": "i2c.scl",
+            "resource": "gpio.19",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "binding:4",
+            "owner": "signal:i2c:scl",
+            "reference": "untouched-expander",
+            "resource": "gpio.19",
+            "role": "i2c.scl",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "binding:4",
+            "resource": "gpio.19",
+            "ancestors": [],
+            "direct": false,
+            "claim": {
+              "id": "binding:4",
+              "owner": "signal:i2c:scl",
+              "reference": "untouched-expander",
+              "resource": "gpio.19",
+              "role": "i2c.scl",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "untouched-expander"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER2",
+        "type": "timer",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER0",
+        "type": "timer",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [
+          "core-timebase"
+        ],
+        "currentUsage": [
+          {
+            "claimId": "core:timebase",
+            "reference": "core:wiring.c",
+            "owner": "arduino-core",
+            "role": "core-timebase",
+            "resource": "TIMER0",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "core:timebase",
+            "owner": "arduino-core",
+            "reference": "core:wiring.c",
+            "resource": "TIMER0",
+            "role": "core-timebase",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "core:timebase",
+            "resource": "TIMER0",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "core:timebase",
+              "owner": "arduino-core",
+              "reference": "core:wiring.c",
+              "resource": "TIMER0",
+              "role": "core-timebase",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "core:wiring.c"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER1",
+        "type": "timer",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [
+          {
+            "claimId": "project:0",
+            "reference": "pwm",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "role": "hardware-pwm",
+            "resource": "TIMER1A",
+            "signals": {},
+            "direct": false
+          },
+          {
+            "claimId": "observed:5",
+            "reference": "servo",
+            "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "role": "servo-timing",
+            "resource": "TIMER1",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:0",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "reference": "pwm",
+            "resource": "TIMER1A",
+            "role": "hardware-pwm",
+            "configuration": {},
+            "signals": {}
+          },
+          {
+            "id": "observed:5",
+            "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+            "reference": "servo",
+            "resource": "TIMER1",
+            "role": "servo-timing",
+            "exclusive": true,
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:0",
+            "resource": "TIMER1A",
+            "ancestors": [
+              "TIMER1"
+            ],
+            "direct": false,
+            "claim": {
+              "id": "project:0",
+              "owner": "[\"ck.builtin\",\"pwm.9\"]",
+              "reference": "pwm",
+              "resource": "TIMER1A",
+              "role": "hardware-pwm",
+              "configuration": {},
+              "signals": {}
+            }
+          },
+          {
+            "claimId": "observed:5",
+            "resource": "TIMER1",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:5",
+              "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+              "reference": "servo",
+              "resource": "TIMER1",
+              "role": "servo-timing",
+              "exclusive": true,
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "pwm",
+          "servo"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.4",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+            "locator": "sha256:586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [
+          {
+            "code": "exclusive-conflict",
+            "resource": "TIMER1",
+            "claims": [
+              "project:0",
+              "observed:5"
+            ]
+          }
+        ],
+        "status": "conflict"
+      },
+      {
+        "resourceId": "TIMER2B",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER0B",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER0A",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER1A",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [
+          {
+            "claimId": "project:0",
+            "reference": "pwm",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "role": "hardware-pwm",
+            "resource": "TIMER1A",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:0",
+            "owner": "[\"ck.builtin\",\"pwm.9\"]",
+            "reference": "pwm",
+            "resource": "TIMER1A",
+            "role": "hardware-pwm",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:0",
+            "resource": "TIMER1A",
+            "ancestors": [
+              "TIMER1"
+            ],
+            "direct": true,
+            "claim": {
+              "id": "project:0",
+              "owner": "[\"ck.builtin\",\"pwm.9\"]",
+              "reference": "pwm",
+              "resource": "TIMER1A",
+              "role": "hardware-pwm",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "pwm"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER1B",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "TIMER2A",
+        "type": "pwm-channel",
+        "aliases": [],
+        "sharing": "exclusive",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc",
+        "type": "adc-controller",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.0",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.1",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.2",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.3",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.4",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "adc.5",
+        "type": "adc-channel",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.5",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+            "locator": "sha256:af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "uart0",
+        "type": "uart-controller",
+        "aliases": [
+          "Serial"
+        ],
+        "sharing": "configuration",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [
+          {
+            "claimId": "project:2",
+            "reference": "uart",
+            "owner": "[\"ck.builtin\",\"Serial\"]",
+            "role": "hardware-uart",
+            "resource": "uart0",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "project:2",
+            "owner": "[\"ck.builtin\",\"Serial\"]",
+            "reference": "uart",
+            "resource": "uart0",
+            "role": "hardware-uart",
+            "configuration": {
+              "baud": 9600
+            },
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "project:2",
+            "resource": "uart0",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "project:2",
+              "owner": "[\"ck.builtin\",\"Serial\"]",
+              "reference": "uart",
+              "resource": "uart0",
+              "role": "hardware-uart",
+              "configuration": {
+                "baud": 9600
+              },
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "uart"
+        ],
+        "evidence": [
+          {
+            "id": "core.6",
+            "source": "packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial0.cpp",
+            "locator": "sha256:388bd9bcd3ff9c2b30a1d6d9a14a4b61a5ab070cc8000f186138c0d15565adf6",
+            "confidence": "verified"
+          },
+          {
+            "id": "uno-pinout",
+            "source": "https://content.arduino.cc/assets/A000066-full-pinout.pdf",
+            "locator": "D0/RX=PD0/RXD; D1/TX=PD1/TXD",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "spi",
+        "type": "spi-controller",
+        "aliases": [],
+        "sharing": "selector",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.9",
+            "source": "packages/arduino/hardware/avr/1.8.8/libraries/SPI/src/SPI.cpp",
+            "locator": "sha256:adae94aae5f04be3225a568a1ed932a917160c0859e51ee3850fa0da4cf4e345",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "i2c",
+        "type": "i2c-controller",
+        "aliases": [],
+        "sharing": "address",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [
+          {
+            "claimId": "observed:6",
+            "reference": "untouched-expander",
+            "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+            "role": "i2c-device",
+            "resource": "i2c",
+            "discriminator": "32",
+            "signals": {},
+            "direct": true
+          }
+        ],
+        "claims": [
+          {
+            "id": "observed:6",
+            "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+            "reference": "untouched-expander",
+            "resource": "i2c",
+            "role": "i2c-device",
+            "discriminator": "32",
+            "segment": "i2c",
+            "configuration": {},
+            "signals": {}
+          }
+        ],
+        "bindings": [
+          {
+            "claimId": "observed:6",
+            "resource": "i2c",
+            "ancestors": [],
+            "direct": true,
+            "claim": {
+              "id": "observed:6",
+              "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+              "reference": "untouched-expander",
+              "resource": "i2c",
+              "role": "i2c-device",
+              "discriminator": "32",
+              "segment": "i2c",
+              "configuration": {},
+              "signals": {}
+            }
+          }
+        ],
+        "blockReferences": [
+          "untouched-expander"
+        ],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          },
+          {
+            "id": "core.8",
+            "source": "packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.c",
+            "locator": "sha256:846c0a685d1796990c8c5d06df4364fcf8d4657c2221161a613f8cafb232301d",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      },
+      {
+        "resourceId": "board.led",
+        "type": "onboard-device",
+        "aliases": [],
+        "sharing": "shared",
+        "reserved": false,
+        "capabilities": [],
+        "currentUsage": [],
+        "claims": [],
+        "bindings": [],
+        "blockReferences": [],
+        "evidence": [
+          {
+            "id": "core.2",
+            "source": "packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h",
+            "locator": "sha256:d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+            "confidence": "verified"
+          }
+        ],
+        "conflicts": [],
+        "status": "none"
+      }
+    ],
+    "gaps": [
+      {
+        "code": "missing-declarations"
+      },
+      {
+        "block": "servo",
+        "code": "builtin-claim-not-covered"
+      },
+      {
+        "block": "soft-serial",
+        "code": "builtin-claim-not-covered"
+      },
+      {
+        "block": "untouched-expander",
+        "code": "builtin-claim-not-covered"
+      }
+    ],
+    "counts": {
+      "resources": 40,
+      "routes": 20,
+      "claims": 7,
+      "bindings": 12,
+      "conflicts": 1
+    }
+  },
+  "analysis": {
+    "coverage": "partial",
+    "bindings": [
+      {
+        "claim": {
+          "id": "project:0",
+          "reference": "pwm",
+          "owner": "[\"ck.builtin\",\"pwm.9\"]",
+          "resource": "TIMER1A",
+          "role": "hardware-pwm",
+          "configuration": {},
+          "signals": {}
+        },
+        "resource": {
+          "id": "TIMER1A",
+          "type": "pwm-channel",
+          "sharing": "exclusive",
+          "evidence": [
+            "core.2"
+          ],
+          "parent": "TIMER1"
+        },
+        "ancestors": [
+          "TIMER1"
+        ]
+      },
+      {
+        "claim": {
+          "id": "binding:0",
+          "owner": "signal:TIMER1A:output",
+          "reference": "pwm",
+          "resource": "gpio.9",
+          "role": "TIMER1A.output"
+        },
+        "resource": {
+          "id": "gpio.9",
+          "type": "gpio",
+          "sharing": "exclusive",
+          "evidence": [
+            "core.2"
+          ],
+          "aliases": [
+            "9"
+          ],
+          "capabilities": [
+            "digital-input",
+            "digital-output",
+            "TIMER1A"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "project:1",
+          "reference": "gpio",
+          "owner": "[\"ck.builtin\",\"digital-output.13\"]",
+          "resource": "gpio.13",
+          "role": "digital-output",
+          "configuration": {},
+          "signals": {}
+        },
+        "resource": {
+          "id": "gpio.13",
+          "type": "gpio",
+          "sharing": "exclusive",
+          "evidence": [
+            "core.2"
+          ],
+          "aliases": [
+            "13",
+            "LED_BUILTIN",
+            "SCK"
+          ],
+          "capabilities": [
+            "digital-input",
+            "digital-output",
+            "SCK"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "project:2",
+          "reference": "uart",
+          "owner": "[\"ck.builtin\",\"Serial\"]",
+          "resource": "uart0",
+          "role": "hardware-uart",
+          "configuration": {
+            "baud": 9600
+          },
+          "signals": {}
+        },
+        "resource": {
+          "id": "uart0",
+          "type": "uart-controller",
+          "sharing": "configuration",
+          "evidence": [
+            "core.6",
+            "uno-pinout"
+          ],
+          "aliases": [
+            "Serial"
+          ],
+          "configurationKeys": [
+            "baud"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "binding:1",
+          "owner": "signal:uart0:rx",
+          "reference": "uart",
+          "resource": "gpio.0",
+          "role": "uart0.rx"
+        },
+        "resource": {
+          "id": "gpio.0",
+          "type": "gpio",
+          "sharing": "exclusive",
+          "evidence": [
+            "core.2"
+          ],
+          "aliases": [
+            "0"
+          ],
+          "capabilities": [
+            "digital-input",
+            "digital-output"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "binding:2",
+          "owner": "signal:uart0:tx",
+          "reference": "uart",
+          "resource": "gpio.1",
+          "role": "uart0.tx"
+        },
+        "resource": {
+          "id": "gpio.1",
+          "type": "gpio",
+          "sharing": "exclusive",
+          "evidence": [
+            "core.2"
+          ],
+          "aliases": [
+            "1"
+          ],
+          "capabilities": [
+            "digital-input",
+            "digital-output"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "core:timebase",
+          "owner": "arduino-core",
+          "reference": "core:wiring.c",
+          "resource": "TIMER0",
+          "role": "core-timebase"
+        },
+        "resource": {
+          "id": "TIMER0",
+          "type": "timer",
+          "sharing": "shared",
+          "evidence": [
+            "core.2",
+            "core.4"
+          ],
+          "capabilities": [
+            "core-timebase"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "observed:4",
+          "reference": "servo",
+          "owner": "servo:&servo_8",
+          "resource": "gpio.8",
+          "role": "servo-signal"
+        },
+        "resource": {
+          "id": "gpio.8",
+          "type": "gpio",
+          "sharing": "exclusive",
+          "evidence": [
+            "core.2"
+          ],
+          "aliases": [
+            "8"
+          ],
+          "capabilities": [
+            "digital-input",
+            "digital-output"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "observed:5",
+          "reference": "servo",
+          "owner": "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp",
+          "resource": "TIMER1",
+          "role": "servo-timing",
+          "exclusive": true
+        },
+        "resource": {
+          "id": "TIMER1",
+          "type": "timer",
+          "sharing": "shared",
+          "evidence": [
+            "core.2",
+            "core.4"
+          ],
+          "capabilities": []
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "observed:6",
+          "reference": "untouched-expander",
+          "owner": "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]",
+          "resource": "i2c",
+          "role": "i2c-device",
+          "discriminator": "32",
+          "segment": "i2c"
+        },
+        "resource": {
+          "id": "i2c",
+          "type": "i2c-controller",
+          "sharing": "address",
+          "evidence": [
+            "core.2",
+            "core.8"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "binding:3",
+          "owner": "signal:i2c:sda",
+          "reference": "untouched-expander",
+          "resource": "gpio.18",
+          "role": "i2c.sda"
+        },
+        "resource": {
+          "id": "gpio.18",
+          "type": "gpio",
+          "sharing": "exclusive",
+          "evidence": [
+            "core.2"
+          ],
+          "aliases": [
+            "18",
+            "A4",
+            "SDA"
+          ],
+          "capabilities": [
+            "digital-input",
+            "digital-output",
+            "SDA"
+          ]
+        },
+        "ancestors": []
+      },
+      {
+        "claim": {
+          "id": "binding:4",
+          "owner": "signal:i2c:scl",
+          "reference": "untouched-expander",
+          "resource": "gpio.19",
+          "role": "i2c.scl"
+        },
+        "resource": {
+          "id": "gpio.19",
+          "type": "gpio",
+          "sharing": "exclusive",
+          "evidence": [
+            "core.2"
+          ],
+          "aliases": [
+            "19",
+            "A5",
+            "SCL"
+          ],
+          "capabilities": [
+            "digital-input",
+            "digital-output",
+            "SCL"
+          ]
+        },
+        "ancestors": []
+      }
+    ],
+    "conflicts": [
+      {
+        "code": "exclusive-conflict",
+        "resource": "TIMER1",
+        "claims": [
+          "project:0",
+          "observed:5"
+        ]
+      }
+    ],
+    "gaps": [
+      {
+        "code": "missing-declarations"
+      }
+    ],
+    "usages": [
+      {
+        "resource": "gpio.0",
+        "roles": [
+          "uart0.rx"
+        ],
+        "owners": [
+          "signal:uart0:rx"
+        ],
+        "references": [
+          "uart"
+        ]
+      },
+      {
+        "resource": "gpio.1",
+        "roles": [
+          "uart0.tx"
+        ],
+        "owners": [
+          "signal:uart0:tx"
+        ],
+        "references": [
+          "uart"
+        ]
+      },
+      {
+        "resource": "gpio.8",
+        "roles": [
+          "servo-signal"
+        ],
+        "owners": [
+          "servo:&servo_8"
+        ],
+        "references": [
+          "servo"
+        ]
+      },
+      {
+        "resource": "gpio.9",
+        "roles": [
+          "TIMER1A.output"
+        ],
+        "owners": [
+          "signal:TIMER1A:output"
+        ],
+        "references": [
+          "pwm"
+        ]
+      },
+      {
+        "resource": "gpio.13",
+        "roles": [
+          "digital-output"
+        ],
+        "owners": [
+          "[\"ck.builtin\",\"digital-output.13\"]"
+        ],
+        "references": [
+          "gpio"
+        ]
+      },
+      {
+        "resource": "gpio.18",
+        "roles": [
+          "i2c.sda"
+        ],
+        "owners": [
+          "signal:i2c:sda"
+        ],
+        "references": [
+          "untouched-expander"
+        ]
+      },
+      {
+        "resource": "gpio.19",
+        "roles": [
+          "i2c.scl"
+        ],
+        "owners": [
+          "signal:i2c:scl"
+        ],
+        "references": [
+          "untouched-expander"
+        ]
+      },
+      {
+        "resource": "TIMER0",
+        "roles": [
+          "core-timebase"
+        ],
+        "owners": [
+          "arduino-core"
+        ],
+        "references": [
+          "core:wiring.c"
+        ]
+      },
+      {
+        "resource": "TIMER1",
+        "roles": [
+          "servo-timing"
+        ],
+        "owners": [
+          "implementation:C:\\Users\\AI\\Documents\\CK\\artifacts\\provider-recognition-common\\official-libraries\\unpacked\\Servo-1.3.0\\src\\avr\\Servo.cpp"
+        ],
+        "references": [
+          "servo"
+        ]
+      },
+      {
+        "resource": "TIMER1A",
+        "roles": [
+          "hardware-pwm"
+        ],
+        "owners": [
+          "[\"ck.builtin\",\"pwm.9\"]"
+        ],
+        "references": [
+          "pwm"
+        ]
+      },
+      {
+        "resource": "uart0",
+        "roles": [
+          "hardware-uart"
+        ],
+        "owners": [
+          "[\"ck.builtin\",\"Serial\"]"
+        ],
+        "references": [
+          "uart"
+        ]
+      },
+      {
+        "resource": "i2c",
+        "roles": [
+          "i2c-device"
+        ],
+        "owners": [
+          "[\"C:\\\\Users\\\\AI\\\\Documents\\\\CK\\\\packages\\\\block-libraries\\\\ck_hw_pcf8574\",\"i2c\",\"32\"]"
+        ],
+        "references": [
+          "untouched-expander"
+        ]
+      }
+    ]
+  }
+}

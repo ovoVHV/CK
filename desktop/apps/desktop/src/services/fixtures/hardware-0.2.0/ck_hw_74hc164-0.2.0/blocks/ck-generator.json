@@ -1,0 +1,22 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_74hc164_write",
+      "kind": "statement",
+      "template": "ckKit164Write({{field:DATA}}, {{field:CLOCK}}, {{field:CLEAR}}, {{value:BYTE}}, {{field:ORDER}});",
+      "includes": {
+        "driver": "#include <CKKit164.h>"
+      }
+    },
+    {
+      "type": "ck_hw_74hc164_clear",
+      "kind": "statement",
+      "template": "ckKit164Clear({{field:CLEAR}});",
+      "includes": {
+        "driver": "#include <CKKit164.h>"
+      }
+    }
+  ]
+}

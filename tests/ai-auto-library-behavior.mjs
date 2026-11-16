@@ -1,0 +1,22 @@
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {spawnSync} from 'node:child_process';import {createHash} from 'node:crypto';
+const source=path.resolve(process.argv[2]),live=JSON.parse(fs.readFileSync(path.join(source,'report.json'),'utf8'));
+assert.equal(live.status,'PASS');
+const out=path.join(source,'behavior-'+Date.now());fs.mkdirSync(out,{recursive:true});
+const vc='C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC',compiler=vc+'/Tools/MSVC/14.50.35717/bin/Hostx64/x64';
+const include=path.resolve('tests/ai-ui'),driver=path.join(include,'median-project-behavior.cpp');
+const sources=live.libraries.flatMap(row=>{const dir=path.join(row.installed,'src');return fs.existsSync(dir)?fs.readdirSync(dir).filter(n=>/\.(?:c|cpp)$/.test(n)).map(n=>path.join(dir,n)):[];});
+const dirs=live.libraries.map(row=>path.join(row.installed,'src'));
+const hashes=Object.fromEntries([path.join(source,'project.ino'),...live.libraries.flatMap(row=>{const dir=path.join(row.installed,'src');return fs.existsSync(dir)?fs.readdirSync(dir).map(n=>path.join(dir,n)):[];})].map(file=>[file,createHash('sha256').update(fs.readFileSync(file)).digest('hex')]));
+const cpp=path.join(out,'project.cpp'),exe=path.join(out,'project.exe'),cmd=path.join(out,'run.cmd');
+const rules=live.libraries.flatMap(row=>JSON.parse(fs.readFileSync(path.join(row.installed,'blocks/ck-generator.json'),'utf8')).rules);
+const reset=rules.find(r=>r.kind==='statement'&&!r.template.includes('{{')),push=rules.find(r=>r.kind==='statement'&&r.template.includes('{{value:')),read=rules.find(r=>r.kind==='expression');
+assert(reset&&push&&read,'Expected reusable reset/push/read primitive API');
+const macros=`#define CK_TEST_MEDIAN_RESET() ${reset.template.trim()}\n#define CK_TEST_MEDIAN_PUSH(v) ${push.template.trim().replace(/\{\{value:[A-Za-z0-9_]+\}\}/g,'(v)')}\n#define CK_TEST_MEDIAN_READ() (${read.template.trim()})\n`;
+fs.writeFileSync(cpp,`#include "${include.replaceAll('\\','/')}/Arduino.h"\n#include "${path.join(source,'project.ino').replaceAll('\\','/')}"\n${macros}#include "${driver.replaceAll('\\','/')}"\n`);
+fs.writeFileSync(cmd,`@echo off\r\ncall "${vc}/Auxiliary/Build/vcvars64.bat" >nul\r\nif errorlevel 1 exit /b 1\r\n"${compiler}/cl.exe" /nologo /std:c++17 /EHsc /utf-8 /fsanitize=address /Zi /I"${include}" ${dirs.map(d=>'/I"'+d+'"').join(' ')} "${cpp}" ${sources.map(s=>'"'+s+'"').join(' ')} /Fe:"${exe}" /Fo:"${out}/" /Fd:"${out}/project.pdb" /link /INCREMENTAL:NO\r\nexit /b %errorlevel%\r\n`);
+const built=spawnSync('cmd.exe',['/d','/c',cmd],{encoding:'utf8',windowsHide:true,timeout:60000});
+fs.writeFileSync(path.join(out,'compile.log'),(built.stdout||'')+(built.stderr||''));
+const report={status:'FAIL',hardware:false,sourceModified:false,sourceFiles:hashes,host:'MSVC AddressSanitizer, simulated Arduino APIs, 32-bit unsigned long; host int is 32-bit rather than AVR 16-bit',hostCompile:built.status===0?'PASS':'FAIL',scenarios:[]};
+if(built.status===0)for(const mode of ['normal','rollover']){const run=spawnSync(exe,[mode],{encoding:'utf8',windowsHide:true,timeout:15000,env:{...process.env,PATH:compiler+';'+process.env.PATH}});report.scenarios.push({mode,status:run.status===0?'PASS':'FAIL',stdout:run.stdout,stderr:run.stderr,error:run.error?.message});}
+if(report.scenarios.length===2&&report.scenarios.every(r=>r.status==='PASS'))report.status='PASS';
+fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({...report,out},null,2));if(report.status!=='PASS')process.exitCode=1;

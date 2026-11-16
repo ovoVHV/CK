@@ -1,0 +1,47 @@
+{
+  "schema": "ck-generator",
+  "version": 1,
+  "rules": [
+    {
+      "type": "ck_hw_stepper_28byj48_begin",
+      "kind": "statement",
+      "template": "ckKitStepperBegin({{field:IN1}}, {{field:IN2}}, {{field:IN3}}, {{field:IN4}}, {{field:SPEED}}, {{field:ACCEL}});",
+      "includes": {
+        "driver": "#include <CKKitStepper.h>"
+      }
+    },
+    {
+      "type": "ck_hw_stepper_28byj48_target",
+      "kind": "statement",
+      "template": "ckKitStepperTarget({{value:POSITION}});",
+      "includes": {
+        "driver": "#include <CKKitStepper.h>"
+      }
+    },
+    {
+      "type": "ck_hw_stepper_28byj48_run",
+      "kind": "statement",
+      "template": "ckKitStepperRun();",
+      "includes": {
+        "driver": "#include <CKKitStepper.h>"
+      }
+    },
+    {
+      "type": "ck_hw_stepper_28byj48_remaining",
+      "kind": "expression",
+      "template": "ckKitStepperRemaining()",
+      "includes": {
+        "driver": "#include <CKKitStepper.h>"
+      },
+      "order": 0
+    },
+    {
+      "type": "ck_hw_stepper_28byj48_release",
+      "kind": "statement",
+      "template": "ckKitStepperRelease();",
+      "includes": {
+        "driver": "#include <CKKitStepper.h>"
+      }
+    }
+  ]
+}

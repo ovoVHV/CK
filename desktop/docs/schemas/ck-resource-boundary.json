@@ -1,0 +1,7 @@
+{
+  "maxDepth": 16,
+  "maxNodes": 20000,
+  "maxTextBytes": 524288,
+  "maxStringLength": 4096,
+  "forbiddenKeys": ["__proto__", "prototype", "constructor"]
+}

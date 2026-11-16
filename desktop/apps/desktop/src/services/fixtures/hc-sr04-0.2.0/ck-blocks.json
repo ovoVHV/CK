@@ -1,0 +1,181 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_hc_sr04",
+  "display_name": "CK HC-SR04 超声波",
+  "description": "HC-SR04 超声波独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_hc_sr04",
+    "HC-SR04 超声波",
+    "HC-SR04 Ultrasonic"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_common_hc_sr04_distance",
+      "display_name": "测量 HC-SR04 距离 cm",
+      "description": "测量 HC-SR04 距离 cm",
+      "category": "HC-SR04 超声波",
+      "kind": "value",
+      "keywords": [
+        "ck_hw_hc_sr04",
+        "HC-SR04 超声波",
+        "HC-SR04 Ultrasonic"
+      ],
+      "semantics": {
+        "purpose": "测量 HC-SR04 距离 cm",
+        "behavior": "测量 HC-SR04 距离 cm。Trig/Echo 是用户接线，不是自动选针。5 V Echo 接 3.3 V 主板前须电平转换。超时返回 -1；不是实测精度证明。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_hc_sr04"
+        ]
+      },
+      "fields": [
+        {
+          "name": "TRIG",
+          "kind": "number",
+          "description": "TRIG",
+          "required": true,
+          "default": 5
+        },
+        {
+          "name": "ECHO",
+          "kind": "number",
+          "description": "ECHO",
+          "required": true,
+          "default": 6
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "value",
+        "types": [
+          "Number"
+        ],
+        "description": "测量 HC-SR04 距离 cm"
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitHcSr04.h",
+          "headers": [
+            "CKKitHcSr04.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "trig",
+            "source": {
+              "kind": "field",
+              "name": "TRIG"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: TRIG"
+          },
+          {
+            "kind": "gpio",
+            "id": "echo",
+            "source": {
+              "kind": "field",
+              "name": "ECHO"
+            },
+            "access": "read",
+            "sharing": "shared",
+            "quantity": 1,
+            "capabilities": [
+              "digital-input"
+            ],
+            "description": "Explicit GPIO binding: ECHO"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "trig-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "TRIG",
+                "valueType": "id"
+              }
+            },
+            {
+              "id": "echo-gpio",
+              "role": "digital-input",
+              "resource": {
+                "kind": "field",
+                "name": "ECHO",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "expression",
+        "deterministic": true,
+        "includes": [
+          "CKKitHcSr04.h"
+        ],
+        "emissions": [
+          {
+            "section": "expression",
+            "description": "测量 HC-SR04 距离 cm",
+            "template": "ckKitHcSr04({{field:TRIG}}, {{field:ECHO}})"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_common_hc_sr04_distance-example",
+          "title": "测量 HC-SR04 距离 cm",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "TRIG": 5,
+            "ECHO": 6
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "type": "ck_common_hc_sr04_distance",
+    "message0": "测量 HC-SR04 距离 cm TRIG %1 ECHO %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "TRIG",
+        "value": 5,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "ECHO",
+        "value": 6,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "测量 HC-SR04 距离 cm",
+    "helpUrl": "",
+    "output": "Number"
+  }
+]

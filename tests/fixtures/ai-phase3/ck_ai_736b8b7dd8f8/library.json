@@ -1,0 +1,10 @@
+{
+  "id": "ck_ai_736b8b7dd8f8",
+  "name": "5点中值滤波（保留小数）",
+  "version": "1.0.0",
+  "description": "5点窗口中值滤波，样本与中值以 double 保存，偶数个样本取中间两数平均并保留小数（301、800 得 550.5），不足5个按实际样本数计算。",
+  "author": "CK AI assisted",
+  "architectures": [
+    "avr"
+  ]
+}

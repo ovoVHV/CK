@@ -1,0 +1,6 @@
+{
+  "endpoint": "https://ckswitch.site/ck-updates/preview/windows-x86_64/latest.json",
+  "downloadPrefix": "https://ckswitch.site/ck-updates/releases/",
+  "publicKey": "5ba3d4eaebda530d264e2eaacba8d86a421bee7f48d4979cb3e8441dce2a2290",
+  "channel": "preview"
+}

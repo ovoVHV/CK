@@ -1,0 +1,134 @@
+[
+  {
+    "type": "ck_hw_lcd1602_i2c_begin",
+    "message0": "初始化 I2C LCD1602 7 位地址（十进制） %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "ADDRESS",
+        "value": 39,
+        "min": 8,
+        "max": 119,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "初始化 I2C LCD1602",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_lcd1602_i2c_print",
+    "message0": "LCD1602 显示内容 列 %1 行 %2 内容 %3",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "COL",
+        "value": 0,
+        "min": 0,
+        "max": 15,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "ROW",
+        "value": 0,
+        "min": 0,
+        "max": 1,
+        "precision": 1
+      },
+      {
+        "type": "input_value",
+        "name": "TEXT",
+        "check": "String"
+      }
+    ],
+    "colour": 190,
+    "tooltip": "LCD1602 显示内容",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_lcd1602_i2c_clear",
+    "message0": "清空 LCD1602",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "清空 LCD1602",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_lcd1602_i2c_backlight",
+    "message0": "LCD1602 背光 背光 %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "ON",
+        "options": [
+          [
+            "开启",
+            "1"
+          ],
+          [
+            "关闭",
+            "0"
+          ]
+        ]
+      }
+    ],
+    "colour": 190,
+    "tooltip": "LCD1602 背光",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_common_lcd1602_print",
+    "message0": "LCD1602 显示文字（旧工程兼容） 地址 %1 文本 %2 列 %3 行 %4",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "ADDRESS",
+        "options": [
+          [
+            "0x27",
+            "0x27"
+          ],
+          [
+            "0x3F",
+            "0x3F"
+          ]
+        ]
+      },
+      {
+        "type": "field_input",
+        "name": "TEXT",
+        "text": "Hello CK"
+      },
+      {
+        "type": "field_number",
+        "name": "COL",
+        "value": 0,
+        "min": 0,
+        "max": 15,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "ROW",
+        "value": 0,
+        "min": 0,
+        "max": 1,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "LCD1602 显示文字（旧工程兼容）",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "category",
+    "name": "74HC595 移位寄存器",
+    "colour": 190,
+    "contents": [
+      {
+        "kind": "block",
+        "type": "ck_hw_74hc595_write"
+      }
+    ]
+  }
+]

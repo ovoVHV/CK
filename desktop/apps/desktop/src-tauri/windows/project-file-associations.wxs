@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Component
+        Id="CKProjectAssociationIconsComponent"
+        Guid="39477977-5C52-4951-890C-6E1976E70601"
+      >
+        <!--
+          The MSI package is per-machine. Keep the icon registrations in the
+          same machine scope as the advertised ProgId/Extension rows emitted
+          for the appsdesktop.exe component. Changing this component GUID is
+          intentional: its registry key path moved from HKCU to HKLM.
+        -->
+        <RegistryKey
+          Root="HKLM"
+          Key="Software\Classes\CK.ck\DefaultIcon"
+          ForceDeleteOnUninstall="yes"
+        >
+          <RegistryValue Type="string" Value="[INSTALLDIR]appsdesktop.exe,0" KeyPath="yes" />
+        </RegistryKey>
+        <RegistryKey
+          Root="HKLM"
+          Key="Software\Classes\CK.maker\DefaultIcon"
+          ForceDeleteOnUninstall="yes"
+        >
+          <RegistryValue Type="string" Value="[INSTALLDIR]appsdesktop.exe,0" />
+        </RegistryKey>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="CKProjectAssociationIcons">
+      <ComponentRef Id="CKProjectAssociationIconsComponent" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>

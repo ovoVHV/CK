@@ -1,0 +1,106 @@
+[
+  {
+    "type": "ck_hw_stepper_28byj48_begin",
+    "message0": "初始化 28BYJ-48 IN1 %1 IN2 %2 IN3 %3 IN4 %4 最大半步/秒 %5 加速度 %6",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "IN1",
+        "value": 8,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "IN2",
+        "value": 9,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "IN3",
+        "value": 10,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "IN4",
+        "value": 11,
+        "min": 0,
+        "max": 69,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "SPEED",
+        "value": 500,
+        "min": 1,
+        "max": 2000,
+        "precision": 1
+      },
+      {
+        "type": "field_number",
+        "name": "ACCEL",
+        "value": 200,
+        "min": 1,
+        "max": 2000,
+        "precision": 1
+      }
+    ],
+    "colour": 190,
+    "tooltip": "初始化 28BYJ-48",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_stepper_28byj48_target",
+    "message0": "步进电机移动到半步位置 绝对半步位置 %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "POSITION",
+        "check": "Number"
+      }
+    ],
+    "colour": 190,
+    "tooltip": "步进电机移动到半步位置",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_stepper_28byj48_run",
+    "message0": "运行步进电机一步（循环调用）",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "运行步进电机一步（循环调用）",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  },
+  {
+    "type": "ck_hw_stepper_28byj48_remaining",
+    "message0": "步进电机剩余半步数",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "步进电机剩余半步数",
+    "helpUrl": "",
+    "output": "Number"
+  },
+  {
+    "type": "ck_hw_stepper_28byj48_release",
+    "message0": "释放步进电机线圈",
+    "args0": [],
+    "colour": 190,
+    "tooltip": "释放步进电机线圈",
+    "helpUrl": "",
+    "previousStatement": null,
+    "nextStatement": null
+  }
+]

@@ -1,0 +1,32 @@
+.article .evidence-label { color: #a5420e; font-size: 12px; font-weight: 700; letter-spacing: .04em; margin-bottom: 12px; }
+.experiment-explainer { padding-left: 20px; border-left: 3px solid #c04b0d; }
+.experiment-explainer strong { display: block; margin-bottom: 8px; color: #36362f; }
+.experiment-list { display: grid; gap: 24px; margin: 30px 0 44px; }
+.experiment-card { border: 1px solid #d5d5c8; background: #fcfcf7; padding: 26px; min-width: 0; }
+.article .experiment-meta { color: #777766; font-size: 11px; margin: 0 0 10px; }
+.article .experiment-card h3 { font-size: 21px; margin: 0 0 10px; color: #32332c; }
+.article .experiment-card header > p:last-child { font-size: 13px; margin: 0; }
+.experiment-times { display: grid; grid-template-columns: 1fr 28px 1fr; gap: 16px; align-items: center; padding: 24px 0 20px; margin-top: 20px; border-top: 1px solid #ddddd1; }
+.experiment-times > div { min-width: 0; }
+.experiment-times > div > span { display: block; color: #68685a; font-size: 12px; }
+.experiment-times strong { display: block; font-size: 30px; letter-spacing: -.8px; margin: 8px 0; font-variant-numeric: tabular-nums; white-space: nowrap; color: #393a32; }
+.experiment-times > div:last-child strong { color: #b2460e; }
+.experiment-times small { font-size: 13px; font-weight: 400; }
+.article .experiment-times p { font-size: 12px; margin: 0; line-height: 1.8; }
+.experiment-arrow { font-size: 24px; color: #8b8d7a; text-align: center; }
+.article .experiment-gain { background: #eeeee2; padding: 14px 16px; margin: 0; }
+.experiment-gain strong { display: block; font-size: 17px; color: #35362e; }
+.experiment-gain span { display: block; font-size: 12px; margin-top: 4px; }
+.article .experiment-sampling { font-size: 11px; color: #747461; margin: 16px 0 12px; }
+.experiment-card summary { cursor: pointer; font-size: 12px; color: #555646; padding: 4px 0; }
+.experiment-card summary:focus-visible { outline: 2px solid #b2460e; outline-offset: 4px; }
+.article .experiment-card details p { font-size: 12px; margin: 10px 0 0; line-height: 1.85; }
+@media (max-width: 560px) {
+  .experiment-card { padding: 20px 16px; }
+  .article .experiment-card h3 { font-size: 19px; }
+  .experiment-times { gap: 8px; grid-template-columns: 1fr 18px 1fr; }
+  .experiment-times strong { font-size: 24px; letter-spacing: -.5px; }
+  .experiment-times > div > span { font-size: 10px; }
+  .experiment-arrow { font-size: 20px; }
+  .experiment-gain strong { font-size: 16px; }
+}

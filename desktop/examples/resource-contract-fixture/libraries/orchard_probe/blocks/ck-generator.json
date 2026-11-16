@@ -1,0 +1,5 @@
+{
+  "schema": "ck-generator", "version": 1,
+  "rules": [{ "type": "orchard_probe_read", "kind": "expression", "order": 2,
+    "template": "orchardProbe({{value:ADDRESS}})", "includes": { "probe": "#include <OrchardProbe.h>" } }]
+}

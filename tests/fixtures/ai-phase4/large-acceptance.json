@@ -1,0 +1,348 @@
+{
+  "version": 1,
+  "requirements": [
+    {
+      "id": "r_hi",
+      "text": "五样本中值≥650（上阈值由700改为650）且D2急停未触发时，D9输出高电平",
+      "method": "simulation"
+    },
+    {
+      "id": "r_lo",
+      "text": "五样本中值≤300时D9输出低电平（下阈值300不变）",
+      "method": "simulation"
+    },
+    {
+      "id": "r_mid",
+      "text": "中值处于301–649中间区间时D9保持原状态不变",
+      "method": "simulation"
+    },
+    {
+      "id": "r_estop",
+      "text": "D2低电平时D9立即被关闭，且急停优先于阈值判定（中值很高也不点亮D9）",
+      "method": "simulation"
+    },
+    {
+      "id": "r_sample_estop",
+      "text": "急停期间仍每20ms采样，中值持续更新（串口能看到新中值）",
+      "method": "simulation"
+    },
+    {
+      "id": "r_resume",
+      "text": "急停释放后按最新中值恢复D9（高则亮、低则灭）",
+      "method": "simulation"
+    },
+    {
+      "id": "r_blink",
+      "text": "D13每250ms独立翻转",
+      "method": "simulation"
+    },
+    {
+      "id": "r_serial",
+      "text": "串口115200输出中值（内容为真实中值数值）",
+      "method": "simulation"
+    },
+    {
+      "id": "r_serial_100ms",
+      "text": "串口输出周期由200ms改为100ms（不阻塞采样与心跳）",
+      "method": "review"
+    },
+    {
+      "id": "r_no_delay",
+      "text": "代码不使用delay，采样20ms/心跳250ms/串口100ms各自独立millis计时",
+      "method": "review"
+    },
+    {
+      "id": "r_lib",
+      "text": "保留五样本中值库CkMedian5Float及D9/D13/D2/A0原引脚配置，原有功能不丢失",
+      "method": "review"
+    },
+    {
+      "id": "r_precision",
+      "text": "中值库小数接口精度与millis回绕行为未核对，标为待核对",
+      "method": "review"
+    },
+    {
+      "id": "r_hw",
+      "text": "真机接线、实际电平与ADC噪声在实板上未验证",
+      "method": "hardware"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "s_high675",
+      "name": "A0=675高于新阈值650点亮D9并串口输出中值",
+      "durationMs": 400,
+      "inputs": [
+        {
+          "atMs": 0,
+          "pin": "A0",
+          "value": 675
+        },
+        {
+          "atMs": 0,
+          "pin": "D2",
+          "value": 1
+        }
+      ],
+      "assertions": [
+        {
+          "id": "a_hi",
+          "requirement": "r_hi",
+          "kind": "pin",
+          "atMs": 300,
+          "pin": "D9",
+          "value": 1
+        },
+        {
+          "id": "a_serial675",
+          "requirement": "r_serial",
+          "kind": "serial",
+          "fromMs": 250,
+          "toMs": 400,
+          "contains": "675"
+        }
+      ]
+    },
+    {
+      "id": "s_low_close",
+      "name": "A0低值200使D9关闭（下阈值300）",
+      "durationMs": 900,
+      "inputs": [
+        {
+          "atMs": 0,
+          "pin": "A0",
+          "value": 900
+        },
+        {
+          "atMs": 0,
+          "pin": "D2",
+          "value": 1
+        },
+        {
+          "atMs": 400,
+          "pin": "A0",
+          "value": 200
+        }
+      ],
+      "assertions": [
+        {
+          "id": "a_low_pre",
+          "requirement": "r_hi",
+          "kind": "pin",
+          "atMs": 300,
+          "pin": "D9",
+          "value": 1
+        },
+        {
+          "id": "a_low_off",
+          "requirement": "r_lo",
+          "kind": "pin",
+          "atMs": 700,
+          "pin": "D9",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "s_mid_hold",
+      "name": "中值进入中间区间500时D9保持点亮",
+      "durationMs": 800,
+      "inputs": [
+        {
+          "atMs": 0,
+          "pin": "A0",
+          "value": 900
+        },
+        {
+          "atMs": 0,
+          "pin": "D2",
+          "value": 1
+        },
+        {
+          "atMs": 400,
+          "pin": "A0",
+          "value": 500
+        }
+      ],
+      "assertions": [
+        {
+          "id": "a_mid_pre",
+          "requirement": "r_hi",
+          "kind": "pin",
+          "atMs": 300,
+          "pin": "D9",
+          "value": 1
+        },
+        {
+          "id": "a_mid_hold",
+          "requirement": "r_mid",
+          "kind": "pin",
+          "atMs": 750,
+          "pin": "D9",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "s_estop_resume_low",
+      "name": "急停优先关D9、期间继续采样、释放后按低中值保持灭",
+      "durationMs": 1000,
+      "inputs": [
+        {
+          "atMs": 0,
+          "pin": "A0",
+          "value": 900
+        },
+        {
+          "atMs": 0,
+          "pin": "D2",
+          "value": 1
+        },
+        {
+          "atMs": 400,
+          "pin": "D2",
+          "value": 0
+        },
+        {
+          "atMs": 500,
+          "pin": "A0",
+          "value": 200
+        },
+        {
+          "atMs": 700,
+          "pin": "D2",
+          "value": 1
+        }
+      ],
+      "assertions": [
+        {
+          "id": "a_est_pre",
+          "requirement": "r_hi",
+          "kind": "pin",
+          "atMs": 300,
+          "pin": "D9",
+          "value": 1
+        },
+        {
+          "id": "a_est_off",
+          "requirement": "r_estop",
+          "kind": "pin",
+          "atMs": 450,
+          "pin": "D9",
+          "value": 0
+        },
+        {
+          "id": "a_est_sample",
+          "requirement": "r_sample_estop",
+          "kind": "serial",
+          "fromMs": 620,
+          "toMs": 700,
+          "contains": "200"
+        },
+        {
+          "id": "a_est_release_low",
+          "requirement": "r_resume",
+          "kind": "pin",
+          "atMs": 950,
+          "pin": "D9",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "s_estop_resume_high",
+      "name": "急停期间中值升到900也不点亮，释放后恢复点亮",
+      "durationMs": 1100,
+      "inputs": [
+        {
+          "atMs": 0,
+          "pin": "A0",
+          "value": 200
+        },
+        {
+          "atMs": 0,
+          "pin": "D2",
+          "value": 1
+        },
+        {
+          "atMs": 400,
+          "pin": "D2",
+          "value": 0
+        },
+        {
+          "atMs": 500,
+          "pin": "A0",
+          "value": 900
+        },
+        {
+          "atMs": 800,
+          "pin": "D2",
+          "value": 1
+        }
+      ],
+      "assertions": [
+        {
+          "id": "a_eh_pre",
+          "requirement": "r_lo",
+          "kind": "pin",
+          "atMs": 300,
+          "pin": "D9",
+          "value": 0
+        },
+        {
+          "id": "a_eh_hold",
+          "requirement": "r_estop",
+          "kind": "pin",
+          "atMs": 750,
+          "pin": "D9",
+          "value": 0
+        },
+        {
+          "id": "a_eh_resume",
+          "requirement": "r_resume",
+          "kind": "pin",
+          "atMs": 1050,
+          "pin": "D9",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "s_blink_serial",
+      "name": "D13心跳独立翻转且串口持续输出",
+      "durationMs": 1100,
+      "inputs": [
+        {
+          "atMs": 0,
+          "pin": "A0",
+          "value": 675
+        },
+        {
+          "atMs": 0,
+          "pin": "D2",
+          "value": 1
+        }
+      ],
+      "assertions": [
+        {
+          "id": "a_blink",
+          "requirement": "r_blink",
+          "kind": "edges",
+          "fromMs": 100,
+          "toMs": 1100,
+          "pin": "D13",
+          "min": 3,
+          "max": 6
+        },
+        {
+          "id": "a_serial_late",
+          "requirement": "r_serial",
+          "kind": "serial",
+          "fromMs": 800,
+          "toMs": 1100,
+          "contains": "675"
+        }
+      ]
+    }
+  ]
+}

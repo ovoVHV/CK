@@ -1,0 +1,4 @@
+{
+  "payload": "{\"schema\":1,\"app\":\"ck-build-engine-v91\",\"channel\":\"preview\",\"target\":\"windows-x86_64\",\"version\":\"9.1.0-alpha.29\",\"notes\":\"修复新安装核心包后，首次编译在宿主工具链身份校验中长时间等待的问题。\\n\\nWindows 工具链内容检查采用有上限的并行文件打开，仍逐文件读取全部内容、按原顺序计算 SHA-256，保留完整目录成员、前后身份检查及最终产物独立核验。有效工具链的身份值与旧版保持一致。该优化面向通用工具链验证，不针对某个示例或 WiFi 库。\\n\\n保留 alpha.28 的同窗口安装核心包后自动检测 V9 能力。升级保留已有工程、核心包和数据目录，无需卸载或重新安装核心包。实际耗时受机器、磁盘及系统状态影响。\\n\\n修复任务栏图标将 16×16 帧放大导致模糊的问题。小尺寸使用独立调整的 CK 笔画和电路线，安装器、启动器和桌面 EXE 同步更新，保留黑白橙品牌配色。\",\"publishedAt\":\"2026-11-09T05:09:09.423Z\",\"url\":\"https://ckswitch.site/ck-updates/releases/9.1.0-alpha.29/CK-V9.1.0-alpha.29-Setup-x64.exe\",\"size\":59515850,\"sha256\":\"54a14544f28ae855a92b8b1a9e7ab9ca5c01e607db90a4b4f4e3df788863c048\"}",
+  "signature": "1cc4868c881ef5eba827a53410dbe400dc88bc6864b9e120a9748e2412467a77917dae5627c0e51ef1dc9424818fa743eded20a9e7f4592ce8bc47deca94b10a"
+}

@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash,createPrivateKey,createPublicKey,sign,verify} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const [installer,notesFile,outDir,keyFile=path.join(root,'local/release-keys/update-ed25519.pem')]=process.argv.slice(2);
+if(!installer||!notesFile||!outDir)throw Error('Usage: sign-update INSTALLER NOTES OUTPUT_DIRECTORY [PRIVATE_KEY]');
+const channel=JSON.parse(fs.readFileSync(path.join(root,'update-protocol/channel.json'),'utf8'));
+const {version}=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
+if(path.basename(installer)!==`CK-V${version}-Setup-x64.exe`)throw Error('Installer filename does not match product version');
+const bytes=fs.readFileSync(installer);
+if(bytes.length===0||bytes.length>512*1024*1024)throw Error('Installer size outside allowed range');
+const privateKey=createPrivateKey(fs.readFileSync(keyFile));
+const publicKey=createPublicKey(privateKey);
+if(publicKey.export({type:'spki',format:'der'}).subarray(-32).toString('hex')!==channel.publicKey)throw Error('Signing key does not match embedded client key');
+const payload=JSON.stringify({schema:1,app:'ck-build-engine-v91',channel:channel.channel,target:'windows-x86_64',version,notes:fs.readFileSync(notesFile,'utf8').trim(),publishedAt:new Date().toISOString(),url:`${channel.downloadPrefix}${version}/${path.basename(installer)}`,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
+const signature=sign(null,Buffer.from(payload),privateKey);
+if(!verify(null,Buffer.from(payload),publicKey,signature))throw Error('Self verification failed');
+fs.mkdirSync(outDir,{recursive:true});
+fs.writeFileSync(path.join(outDir,'latest.json'),JSON.stringify({payload,signature:signature.toString('hex')},null,2)+'\n');
+fs.writeFileSync(path.join(outDir,'release-info.json'),JSON.stringify(JSON.parse(payload),null,2)+'\n');
+console.log(JSON.stringify({version,bytes:bytes.length,manifest:path.join(outDir,'latest.json'),endpoint:channel.endpoint}));

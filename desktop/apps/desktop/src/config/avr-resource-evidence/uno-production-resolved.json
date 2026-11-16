@@ -1,0 +1,58 @@
+{
+  "buildSignatureAfter": "c7f17172f3cb2be5c8b2037956c0a7788fa2fd4b186492ee86fc24730bc9232d",
+  "buildSignatureBefore": "c7f17172f3cb2be5c8b2037956c0a7788fa2fd4b186492ee86fc24730bc9232d",
+  "cases": {
+    "menuContamination": {
+      "coreVersion": "1.8.8",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:uno:cpu=contaminated",
+      "mcu": "atmega328p",
+      "options": {
+        "cpu": "contaminated"
+      },
+      "variant": "standard"
+    },
+    "normal": {
+      "coreVersion": "1.8.8",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:uno",
+      "mcu": "atmega328p",
+      "options": {},
+      "variant": "standard"
+    },
+    "wrongCore": {
+      "coreVersion": "0.0.0",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:uno",
+      "mcu": "atmega328p",
+      "options": {},
+      "variant": "standard"
+    },
+    "wrongCpu": {
+      "coreVersion": "1.8.8",
+      "fCpu": "8000000L",
+      "fqbn": "arduino:avr:uno",
+      "mcu": "atmega328p",
+      "options": {},
+      "variant": "standard"
+    },
+    "wrongMcu": {
+      "coreVersion": "1.8.8",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:uno",
+      "mcu": "atmega168",
+      "options": {},
+      "variant": "standard"
+    },
+    "wrongVariant": {
+      "coreVersion": "1.8.8",
+      "fCpu": "16000000L",
+      "fqbn": "arduino:avr:uno",
+      "mcu": "atmega328p",
+      "options": {},
+      "variant": "eightanaloginputs"
+    }
+  },
+  "productionCompilePair": "PASS",
+  "requestUnchanged": true
+}

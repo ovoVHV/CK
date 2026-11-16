@@ -1,0 +1,288 @@
+{
+  "schema_version": 2,
+  "id": "ck_hw_ir_sender",
+  "display_name": "CK 红外发射器",
+  "description": "红外发射器独立积木包。仅声明 AVR；硬件实测未执行。",
+  "defaultLocale": "zh-CN",
+  "keywords": [
+    "ck_hw_ir_sender",
+    "红外发射器",
+    "IR Transmitter"
+  ],
+  "license": {
+    "spdx_id": "MIT",
+    "file": "LICENSE"
+  },
+  "compatibility": {
+    "boards": [
+      "*"
+    ],
+    "architectures": [
+      "avr"
+    ]
+  },
+  "dependencies": [
+    {
+      "kind": "arduino-library",
+      "id": "IRremote",
+      "version": "4.6.1",
+      "headers": [
+        "IRremote.hpp"
+      ],
+      "optional": false,
+      "reason": "Pinned upstream implementation; installed separately."
+    }
+  ],
+  "entrypoints": {
+    "blocks": "blocks/blocks.json",
+    "generator": "blocks/ck-generator.json",
+    "toolbox": "blocks/toolbox.json"
+  },
+  "blocks": [
+    {
+      "type": "ck_hw_ir_sender_begin",
+      "display_name": "初始化红外发射器",
+      "description": "初始化红外发射器",
+      "category": "红外发射器",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_ir_sender",
+        "红外发射器",
+        "IR Transmitter"
+      ],
+      "semantics": {
+        "purpose": "初始化红外发射器",
+        "behavior": "初始化红外发射器。通过独立发射模块发送 NEC 地址/命令。不是任意家电遥控码库。先初始化；发送时会占用 CPU 时间，可能干扰同时接收。IR LED 需合适的限流/驱动电路。",
+        "side_effects": [
+          "Explicit initialization of user-configured pins / peripheral."
+        ],
+        "concepts": [
+          "ck_hw_ir_sender"
+        ]
+      },
+      "fields": [
+        {
+          "name": "PIN",
+          "kind": "number",
+          "description": "PIN",
+          "required": true,
+          "default": 3
+        }
+      ],
+      "inputs": [],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitIrSender.h",
+          "headers": [
+            "CKKitIrSender.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "IRremote",
+          "version": "4.6.1",
+          "headers": [
+            "IRremote.hpp"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [
+          {
+            "kind": "gpio",
+            "id": "pin",
+            "source": {
+              "kind": "field",
+              "name": "PIN"
+            },
+            "access": "write",
+            "sharing": "exclusive",
+            "quantity": 1,
+            "capabilities": [
+              "digital-output"
+            ],
+            "description": "Explicit GPIO binding: PIN"
+          }
+        ],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": [
+            {
+              "id": "pin-gpio",
+              "role": "digital-output",
+              "resource": {
+                "kind": "field",
+                "name": "PIN",
+                "valueType": "id"
+              }
+            }
+          ]
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitIrSender.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "初始化红外发射器",
+            "template": "ckKitIrSendBegin({{field:PIN}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_ir_sender_begin-example",
+          "title": "初始化红外发射器",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {
+            "PIN": 3
+          },
+          "input_values": {},
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    },
+    {
+      "type": "ck_hw_ir_sender_nec",
+      "display_name": "发送 NEC 红外帧",
+      "description": "发送 NEC 红外帧",
+      "category": "红外发射器",
+      "kind": "statement",
+      "keywords": [
+        "ck_hw_ir_sender",
+        "红外发射器",
+        "IR Transmitter"
+      ],
+      "semantics": {
+        "purpose": "发送 NEC 红外帧",
+        "behavior": "发送 NEC 红外帧。通过独立发射模块发送 NEC 地址/命令。不是任意家电遥控码库。先初始化；发送时会占用 CPU 时间，可能干扰同时接收。IR LED 需合适的限流/驱动电路。",
+        "side_effects": [],
+        "concepts": [
+          "ck_hw_ir_sender"
+        ]
+      },
+      "fields": [],
+      "inputs": [
+        {
+          "name": "ADDRESS",
+          "kind": "value",
+          "description": "地址",
+          "required": true,
+          "check": "Number",
+          "default": 0
+        },
+        {
+          "name": "COMMAND",
+          "kind": "value",
+          "description": "命令",
+          "required": true,
+          "check": "Number",
+          "default": 52
+        },
+        {
+          "name": "REPEATS",
+          "kind": "value",
+          "description": "重复次数",
+          "required": true,
+          "check": "Number",
+          "default": 0
+        }
+      ],
+      "output": {
+        "connection": "none",
+        "types": [],
+        "description": "No output."
+      },
+      "dependencies": [
+        {
+          "kind": "header",
+          "id": "CKKitIrSender.h",
+          "headers": [
+            "CKKitIrSender.h"
+          ],
+          "optional": false,
+          "reason": "Independent package-local wrapper."
+        },
+        {
+          "kind": "arduino-library",
+          "id": "IRremote",
+          "version": "4.6.1",
+          "headers": [
+            "IRremote.hpp"
+          ],
+          "optional": false,
+          "reason": "Pinned upstream implementation; installed separately."
+        }
+      ],
+      "hardware": {
+        "resources": [],
+        "claims": {
+          "version": 1,
+          "coverage": "partial",
+          "templates": []
+        },
+        "architectures": [
+          "avr"
+        ],
+        "notes": [
+          "Only explicitly declared pins/bus are covered. Provider timing, interrupts and cross-library interactions are not fully modeled."
+        ]
+      },
+      "generation": {
+        "language": "arduino-cpp",
+        "shape": "statement",
+        "deterministic": true,
+        "includes": [
+          "CKKitIrSender.h"
+        ],
+        "emissions": [
+          {
+            "section": "statement",
+            "description": "发送 NEC 红外帧",
+            "template": "ckKitIrSendNec({{value:ADDRESS}}, {{value:COMMAND}}, {{value:REPEATS}});"
+          }
+        ]
+      },
+      "constraints": [],
+      "examples": [
+        {
+          "id": "ck_hw_ir_sender_nec-example",
+          "title": "发送 NEC 红外帧",
+          "description": "See examples/Smoke/Smoke.ino; wiring is explicit.",
+          "field_values": {},
+          "input_values": {
+            "ADDRESS": 0,
+            "COMMAND": 52,
+            "REPEATS": 0
+          },
+          "expected_behavior": "Compilation is tested separately; physical behavior requires the matching hardware and wiring."
+        }
+      ],
+      "errors": []
+    }
+  ]
+}
