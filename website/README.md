@@ -15,7 +15,7 @@ node website/serve.mjs
 
 本地查看 `http://127.0.0.1:4178`。本地预览没有更新服务路由，会保留随页面生成的已核验版本；线上从同源更新清单读取发布版本并核验 Ed25519 签名后替换下载链接、摘要与说明。
 
-构建默认使用 `local/alpha32-signed/release-info.json` 作为静态回退记录。发布新页面时设置 `CK_LAB_RELEASE_INFO` 指向已签名发布产生的 `release-info.json`。不能把未上传的安装包记录用作公开下载目标。
+构建默认使用随源码保存的 `website/published-release.json` 签名清单，构建时先验证 Ed25519 签名，作为静态回退记录。发布新安装包后，核验线上清单与安装包 SHA-256，再更新此文件并重新发布网站；首页和下载页即使无法在线检查更新也能显示正确版本。需要临时覆盖时设置 `CK_LAB_RELEASE_ENVELOPE` 指向相同格式的签名清单。不能把未上传的安装包记录用作公开下载目标。
 
 功能文案在 `product-content.mjs`，功能页面为 `/features/`，性能和免责声明为 `/performance/`。`performance-summary.json` 是从已有报告整理的公开摘要，保留原报告摘要和每组比较对象；项目方的约 40% 当前实测反馈与历史组件/调度对照分开说明。官网更新不表示重跑了编译性能实验。
 

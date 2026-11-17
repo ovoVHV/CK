@@ -2,6 +2,7 @@ import {editorSection} from './editor-content.mjs';
 import {driversPage,stageDrivers} from './drivers.mjs';
 import {driverGuidePage} from './driver-guide.mjs';
 import {visualStories} from './visuals.mjs';
+import {verifyRelease} from './release.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
@@ -13,8 +14,8 @@ const require=createRequire(path.join(repo,'desktop/apps/desktop/package.json'))
 const {build}=require('esbuild');
 const out=path.join(root,'dist');fs.mkdirSync(out,{recursive:true});
 const e=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const current=process.env.CK_LAB_RELEASE_INFO||path.join(repo,'local/alpha32-signed/release-info.json');
-const release=JSON.parse(fs.readFileSync(current,'utf8'));
+const current=process.env.CK_LAB_RELEASE_ENVELOPE||path.join(root,'published-release.json');
+const release=await verifyRelease(JSON.parse(fs.readFileSync(current,'utf8')));
 const version=release.version;
 if(!/^9\.1\.0-alpha\.\d+$/.test(version)||!/^[a-f0-9]{64}$/i.test(release.sha256))throw Error('Invalid verified release record');
 const download=`https://ckswitch.site/ck-updates/releases/${version}/CK-V${version}-Setup-x64.exe`;
