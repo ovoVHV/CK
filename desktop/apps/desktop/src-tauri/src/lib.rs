@@ -23634,6 +23634,7 @@ mod logging;
 mod package_quality;
 mod project;
 mod project_build_target;
+mod source_project;
 mod ipc_error;
 mod project_open;
 mod project_checkpoints;
@@ -23870,6 +23871,8 @@ pub fn run() {
             project::delete_project,
             project::rename_project,
             project::save_project,
+            source_project::open_source_project,
+            source_project::save_source_project,
             project::save_project_as,
             project::load_project,
             project::get_project_roots,

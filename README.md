@@ -6,9 +6,9 @@
 
 CK 面向 Arduino 兼容硬件，把 Blockly 编辑、AI 编程、原生增量编译、上传、串口调试、库管理和工程恢复放在同一个 Windows 桌面应用中。
 
-当前源码版本：**9.1.0-alpha.47**，预览版。原作者与维护者：**CKYAN（[@ovoVHV](https://github.com/ovoVHV)）**。
+当前源码版本：**9.1.0-alpha.48**，预览版。原作者与维护者：**CKYAN（[@ovoVHV](https://github.com/ovoVHV)）**。
 
-[作者声明与署名方式](AUTHORS.md) · [源码构建](docs/BUILDING.md) · [AI 使用说明](docs/ai-assistant-guide.md) · [问题反馈](https://github.com/ovoVHV/CK/issues)
+[下载安装包](https://ckswitch.site/download/) · [作者声明与署名方式](AUTHORS.md) · [源码构建](docs/BUILDING.md) · [AI 使用说明](docs/ai-assistant-guide.md) · [问题反馈](https://github.com/ovoVHV/CK/issues)
 
 **CK LAB 官方QQ群：1080798212**（交流使用、反馈问题与编译性能日志）。
 
@@ -17,6 +17,7 @@ CK 面向 Arduino 兼容硬件，把 Blockly 编辑、AI 编程、原生增量�
 | 能力 | 可以做什么 |
 | --- | --- |
 | 图形化编辑 | Blockly 积木、同步 C++ 代码、搜索和快速插入、第三方积木库；工程保存板卡与配置 |
+| 工程内源码编程 | 同一工程切换积木 / 源码，手写 Arduino C/C++，共用 V9 编译、上传、串口和日志；支持 .ino 导入导出 |
 | AI 编程 | 自填 API 地址、模型和密钥；聊天管理、上下文压缩、思考强度、图片与文件附件；读工程、改积木、补库、编译和修复 |
 | AI 制作库 | 生成声明式积木与 C++ 库，校验、试编译后安装加载；支持完整 Arduino 库文件夹结构 |
 | 本地编译加速 | CK Build Engine V9 自行管理库发现、依赖图、对象、PCH、链接和镜像任务；Rust 完整资产校验与 Windows 进程管理 |
@@ -27,6 +28,8 @@ CK 面向 Arduino 兼容硬件，把 Blockly 编辑、AI 编程、原生增量�
 | 连接与调试 | 驱动指南、串口监视与曲线、已接入目标的积木运行轨迹和软断点 |
 
 编译在本机完成，**不需要联网来获得编译加速**，也不要求管理员服务。首次下载 Core、工具或库需要联网；使用远程 AI API 时，相关上下文会发送给用户选择的模型服务。
+
+alpha.48 的源码模式支持单文件 Sketch 和已安装的 C++ 库，手写内容随 `.ck`、检查点和恢复稿保存；编译使用当前选中模式的程序。切回积木不会将任意 C++ 自动转换成积木。多文件源码工程、源码 AI 和源码调试尚未提供，见 [源码编程说明](docs/source-editor.md) 与 [本版验证范围](docs/alpha.48-publication.md)。
 
 ## 性能与测试范围
 

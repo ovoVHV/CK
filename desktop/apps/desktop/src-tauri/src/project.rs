@@ -164,7 +164,7 @@ fn replace_project_file(source: &Path, destination: &Path) -> std::io::Result<()
 /// Write a single-file project through a same-directory temporary file and an
 /// atomic replacement. Keeping the temporary file beside the destination is
 /// required: a rename across filesystems is not atomic.
-fn atomic_write_project_file(path: &Path, data: &[u8]) -> Result<(), String> {
+pub(crate) fn atomic_write_project_file(path: &Path, data: &[u8]) -> Result<(), String> {
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())

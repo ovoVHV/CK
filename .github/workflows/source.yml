@@ -44,6 +44,8 @@ jobs:
         run: node --test tests/*.test.mjs
       - name: AI service tests
         run: node --test desktop/apps/desktop/src/services/ai*.test.mjs
+      - name: Integrated source editor tests
+        run: node --test desktop/apps/desktop/src/components/SourceCodeEditor.test.mjs desktop/apps/desktop/src/services/source_project.test.mjs desktop/apps/desktop/src/services/workspace_source.test.mjs
       - name: Build frontend
         run: npm --prefix desktop/apps/desktop run build:web
       - name: Check desktop Rust source

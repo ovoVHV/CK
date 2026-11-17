@@ -1,7 +1,7 @@
 import { captureProjectBuildTarget, readProjectBuildTarget, projectBuildTargetDifference, targetFromRecordedFqbn, sourceWithBuildTarget, type ProjectBuildTarget, type ProjectBuildEnvironment } from '../services/project_build_target';
 import { BuildActivitySpinner } from './BuildActivitySpinner';
 import { clearCompileErrors, markCompileError, revealCompileError } from '../services/compile_block_feedback';
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StatusFooter } from './StatusFooter';
 import { publishProjectStatus } from './project_status_session';
@@ -107,6 +107,9 @@ import { SerialMonitor, SerialTerminalRef } from './SerialMonitor'; // Import ne
 import { SerialPlotter } from './SerialPlotter';
 import { EngineeringHealthDock } from './EngineeringHealthDock';
 import { CodePreviewDock } from './CodePreviewDock';
+import './WorkspaceSourcePane.css';
+const WorkspaceSourcePane = lazy(() => import('./WorkspaceSourcePane').then(module => ({ default: module.WorkspaceSourcePane })));
+import { getWorkspaceSource, setWorkspaceSource, subscribeWorkspaceSource, selectSourceMode, workspaceCompileCode, type WorkspaceSource } from '../services/workspace_source';
 import { BuildIssueCards } from './BuildIssueCards';
 import { AiAssistantPanel } from './AiAssistantPanel';
 import { compileAiCandidate, generateAiCandidate } from '../services/ai_candidate';
@@ -632,7 +635,7 @@ const UnsavedChangesDialog = ({
                     </div>
                 </div>
                 <div id="ck-unsaved-description" className="space-y-3 px-5 py-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                    <p>当前工程的积木、板卡或编译选项已经修改。要{actionLabel}，请选择如何处理这些修改。</p>
+                    <p>当前工程的积木、源码、板卡或编译选项已经修改。要{actionLabel}，请选择如何处理这些修改。</p>
                     <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-400">
                         {willCreateCheckpoint
                             ? '选择不保存时，CK 会先创建一个本地保护检查点，之后仍可从“工程检查点”恢复。'
@@ -790,9 +793,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     const [consoleOpen, setConsoleOpen] = useState(false);
     const [isConsoleDetached, setIsConsoleDetached] = useState(false);
     const [codeViewOpen, setCodeViewOpen] = useState(false);
+    const [workspaceSource, setWorkspaceSourceState] = useState<WorkspaceSource | null>(null);
+    const workspaceSourceRef = useRef<WorkspaceSource | null>(null);
+    const sourceMode = workspaceSource?.mode === 'source';
+    const sourceBuildCodeRef = useRef<string | null>(null);
     const [aiOpen, setAiOpen] = useState(false);
     const [aiIntent, setAiIntent] = useState<AiIntent>({ id: 0, kind: 'generate' });
     const openAi = useCallback((intent: Omit<AiIntent, 'id'> = { kind: 'generate' }) => {
+        if (workspaceSourceRef.current?.mode === 'source') return;
         workspaceRef.current?.hideChaff();
         setCodeViewOpen(false); setIsEngineeringHealthOpen(false);
         setAiIntent({ ...intent, id: Date.now() }); setAiOpen(true);
@@ -943,6 +951,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     }, []);
 
     const openEngineeringHealth = useCallback(() => {
+        if (workspaceSourceRef.current?.mode === 'source') {
+            showToast('源码的编译诊断请查看输出日志；积木工程检查请切回积木', 'info');
+            return;
+        }
         setAiOpen(false);
         // At compact desktop widths two simultaneous inspectors leave too little room
         // for Blockly. Treat the health dock as the active inspector in that case.
@@ -956,6 +968,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     }, [initialCheckOpen, openEngineeringHealth]);
 
     const toggleCodeView = useCallback(() => {
+        if (workspaceSourceRef.current?.mode === 'source') return;
         setAiOpen(false);
         workspaceRef.current?.hideChaff();
         if (codeViewOpen) {
@@ -2666,7 +2679,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         // Custom serializer state (including breakpoints and mutators) stays opaque.
         const state = Blockly.serialization.workspaces.save(workspace);
         const workspaceJson = JSON.stringify(state);
-        const code = arduinoGenerator.workspaceToCode(workspace);
+        const code = workspaceCompileCode(workspace, ws => arduinoGenerator.workspaceToCode(ws));
         const blockCount = workspace.getAllBlocks(false)
             .filter(block => !(block as any).isInFlyout)
             .length;
@@ -2729,7 +2742,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             workspaceJson: exactWorkspaceJson,
             code: protectedWorkspace
                 ? generatedCodeRef.current
-                : workspace ? arduinoGenerator.workspaceToCode(workspace) : '',
+                : workspace ? workspaceCompileCode(workspace, ws => arduinoGenerator.workspaceToCode(ws)) : '',
             board: activeBoard,
             boardPackageId: activeBoardPackageId,
             options: JSON.stringify(buildTarget.options),
@@ -2785,6 +2798,11 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         options: CompileRunOptions = {},
     ): Promise<boolean> => {
         if (isCompilingRef.current || projectLoadingRef.current) return false;
+        const sourceBuild = workspaceSourceRef.current?.mode === 'source';
+        if (sourceBuild && (options.uploadMode === 'debug' || options.uploadMode === 'trace')) {
+            showToast('积木断点与运行轨迹仅用于积木模式，请先切回积木', 'info');
+            return false;
+        }
         if (unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure) {
             showToast('工程处于只读保护模式，已阻止编译和上传', 'error');
             appendCompileLog(
@@ -2880,7 +2898,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             appendCompileLog('\n[积木运行时门禁] 当前精确板卡包的扩展仍在加载，本次构建尚未开始。\n');
             return false;
         }
-        const disallowedExtensionRuntimes = findDisallowedExtensionBlockRuntimes(
+        const disallowedExtensionRuntimes = sourceBuild ? [] : findDisallowedExtensionBlockRuntimes(
             (workspaceRef.current?.getAllBlocks(false) || [])
                 .filter(block => !(block as any).isInFlyout)
                 .map(block => String(block.type || '')),
@@ -2903,6 +2921,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         // Pin safety must run before Blockly code generation. In particular,
         // the custom-board "undeclared pin" sentinel must never be allowed to
         // enter generated C++ when the active package has no trusted catalog.
+        if (!sourceBuild) {
         const pinBoardCatalog = createPinBoardCatalog(
             availableBoards,
             activeBoardPackage,
@@ -2978,13 +2997,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         } finally {
             setIsResourcePreflightRunning(false);
         }
+        }
 
         const isForceRebuild = pendingForceRebuildRef.current;
         pendingForceRebuildRef.current = false;
         let compileCode: string;
         try {
             compileCode = resolveCompileSource(
-                options.codeOverride,
+                sourceBuild ? workspaceSourceRef.current!.code : options.codeOverride,
                 workspaceRef.current,
                 workspace => arduinoGenerator.workspaceToCode(workspace),
                 generatedCodeRef.current || generatedCode,
@@ -2997,7 +3017,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             setConsoleTab('compile');
             return false;
         }
-        if (options.codeOverride === undefined) {
+        if (options.codeOverride === undefined && !sourceBuild) {
             // Keep the preview/debug snapshot aligned with the exact source sent
             // to the backend. The visible Blockly workspace is authoritative.
             generatedCodeRef.current = compileCode;
@@ -3019,7 +3039,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         // still reporting diagnostics. Debug/trace overrides are re-frozen here
         // as long as they retain the inline provenance boundaries.
         const frozenCompileSourceMap = freezeCompileSourceMap(compileCode, { file: 'sketch.ino' });
-        compileSourceMapSessionRef.current = {
+        sourceBuildCodeRef.current = sourceBuild ? compileCode : null;
+        compileSourceMapSessionRef.current = sourceBuild ? null : {
             sourceMap: frozenCompileSourceMap,
             code: compileCode,
             runId: '',
@@ -3030,7 +3051,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 frozenCompileSourceMap,
             ),
         };
-        const compileSourceMapJson = JSON.stringify(compileSourceMapSessionRef.current.sourceMap);
+        const compileSourceMapJson = sourceBuild ? null : JSON.stringify(frozenCompileSourceMap);
         const foregroundWarmupRequest = createSilentPrecompileRequest(
             effectiveCompileFqbn,
             extensionsReloadSeq,
@@ -3313,7 +3334,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 projectPath: currentPathRef.current,
                 requestedFqbn: effectiveCompileFqbnRef.current,
                 sessionId: compileSessionRef.current,
-                codeFingerprint: computeCodeFingerprint(generatedCodeRef.current || ''),
+                codeFingerprint: computeCodeFingerprint(workspaceSourceRef.current?.mode === 'source' ? workspaceSourceRef.current.code : generatedCodeRef.current || ''),
                 runId: foregroundBuildRunIdRef.current || '',
             };
             if (!isSameCompileResourceTarget(resourceTargetIdentity, currentTargetIdentity)) {
@@ -3467,7 +3488,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 const resourceWorkspace = workspaceRef.current;
                 let resourceWorkspaceBefore: string | null = null;
                 try {
-                    if (resourceWorkspace && !options.codeOverride) resourceWorkspaceBefore = JSON.stringify(Blockly.serialization.workspaces.save(resourceWorkspace));
+                    if (resourceWorkspace && !options.codeOverride && !sourceBuild) resourceWorkspaceBefore = JSON.stringify(Blockly.serialization.workspaces.save(resourceWorkspace));
                 } catch { /* Optional analysis must not block compilation. */ }
                 const resultJson = await invoke('compile_sketch', {
                     code: compileCode,
@@ -3537,7 +3558,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 }).then(capture => {
                                     if (!observationIsCurrent()) return;
                                     const evaluation = integrateCompilerResources(
-                                        productionSnapshot, capture, compileCode, JSON.parse(compileSourceMapJson),
+                                        productionSnapshot, capture, compileCode, JSON.parse(compileSourceMapJson || 'null'),
                                         { runId: buildEvidence.runId, alias: compileSourceMapSessionRef.current?.trustedSketchAlias ?? null },
                                     );
                                     if (!evaluation) {
@@ -4369,7 +4390,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         clearBlockBreakpoints(workspace);
         workspace.clear();
         Blockly.serialization.workspaces.load(rawState, workspace);
-        const restoredCode = checkpoint.code || arduinoGenerator.workspaceToCode(workspace);
+        const restoredCode = arduinoGenerator.workspaceToCode(workspace);
         generatedCodeRef.current = restoredCode;
         setGeneratedCode(restoredCode);
         setPinPreflightReport(null);
@@ -4434,7 +4455,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const workspace = workspaceRef.current;
         if (!workspace) throw new Error('积木工作区尚未就绪');
         const workspaceJson = JSON.stringify(Blockly.serialization.workspaces.save(workspace));
-        const code = arduinoGenerator.workspaceToCode(workspace);
+        const code = workspaceCompileCode(workspace, ws => arduinoGenerator.workspaceToCode(ws));
         const profile = String(compileDoctorReport?.profile || compileEnvironmentSnapshot?.profile || '');
         const optimization = /quick-fast|shared-fast/i.test(profile) ? '-O1' : undefined;
         const comparableBuildEvidence = compileEnvironmentSnapshot
@@ -5355,6 +5376,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     }, [breakpointIds, generatedCode]);
 
     const handleStartBlockDebug = async () => {
+        if (workspaceSourceRef.current?.mode === 'source') return;
         const workspace = workspaceRef.current;
         if (!workspace || isCompilingRef.current) return;
         if (deviceHealthRunningRef.current) {
@@ -5458,6 +5480,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     };
 
     const handleStartBlockTrace = async () => {
+        if (workspaceSourceRef.current?.mode === 'source') return;
         const workspace = workspaceRef.current;
         if (!workspace || isCompilingRef.current) return;
         generatedCodeRef.current = arduinoGenerator.workspaceToCode(workspace);
@@ -5570,7 +5593,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     useEffect(() => {
         const scheduler = silentPrecompileSchedulerRef.current;
         if (!scheduler) return;
-        const code = String(generatedCode || '');
+        const code = String(sourceMode ? workspaceSource!.code : generatedCode || '');
         const board = String(effectiveCompileFqbn || '').trim();
         if (projectLoadedRevision <= 0
             || boardOptionsStatus === 'loading'
@@ -5598,7 +5621,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             codeFingerprint,
             code,
         ));
-    }, [activeBoard, activeBoardPackageId, boardOptionsStatus, computeCodeFingerprint, computeIncludeSignature, effectiveCompileFqbn, extensionsLoadedBoard, extensionsLoadedBoardPackageId, extensionsReady, extensionsReloadSeq, generatedCode, projectLoadedRevision]);
+    }, [activeBoard, activeBoardPackageId, boardOptionsStatus, computeCodeFingerprint, computeIncludeSignature, effectiveCompileFqbn, extensionsLoadedBoard, extensionsLoadedBoardPackageId, extensionsReady, extensionsReloadSeq, generatedCode, projectLoadedRevision, workspaceSource, sourceMode]);
 
     const buildCkFunctionFlyout = useCallback(() => {
         return CK_FUNCTION_FLYOUT_BLOCK_TYPES
@@ -6277,6 +6300,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         });
 
         workspaceRef.current = ws;
+        const unsubscribeSource = subscribeWorkspaceSource(ws, state => {
+            workspaceSourceRef.current = state;
+            setWorkspaceSourceState(state);
+        });
         setBlocklyWorkspace(ws);
         const viewportCulling = installBlocklyViewportCulling(ws, {
             overviewLabel: () => appI18n.t('workspacePerformance.overview'),
@@ -6498,6 +6525,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             if (viewportCullingRef.current === viewportCulling) viewportCullingRef.current = null;
             window.removeEventListener('resize', handleResize);
             unsubscribeBreakpoints();
+            unsubscribeSource();
             const wsAny = ws as any;
             const toolboxRoot = wsAny.__ckToolboxDomRoot as Element | undefined;
             const refreshHandler = wsAny.__ckToolboxDomRefreshHandler as EventListener | undefined;
@@ -6804,6 +6832,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 }
                             } else {
                                 workspaceRef.current.clear();
+                                setWorkspaceSource(workspaceRef.current, null);
                                 const xmlDom = Blockly.utils.xml.textToDom(data.xml);
                                 Blockly.Xml.domToWorkspace(xmlDom, workspaceRef.current);
                             }
@@ -6831,6 +6860,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
                     } else {
                         loadedProjectWorkspaceFormatRef.current = 'json';
+                        setWorkspaceSource(workspaceRef.current, null);
                         clearBlockBreakpoints(workspaceRef.current);
                         workspaceRef.current.clear();
                         setUnknownBlockProtection(null);
@@ -7036,7 +7066,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             // @ts-ignore
             const state = Blockly.serialization.workspaces.save(workspaceRef.current);
             const json = JSON.stringify(state);
-            const code = arduinoGenerator.workspaceToCode(workspaceRef.current);
+            const code = workspaceCompileCode(workspaceRef.current, ws => arduinoGenerator.workspaceToCode(ws));
 
             // Robust Tauri v2 detection
             const isTauri = typeof window !== 'undefined' &&
@@ -7159,6 +7189,79 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         formalSaveQueueRef.current!.request()
     ), []);
 
+    const editorSwitchBlocked = Boolean(isCompiling || isBuildPreparing || projectLoadProgress || unknownBlockProtection
+        || projectLoadSafetyError || rendererRecoveryFailure || blockDebugSession.active || !dirtyTrackingReadyRef.current);
+    const updateProjectSource = (state: WorkspaceSource) => {
+        const workspace = workspaceRef.current;
+        if (!workspace || isCompilingRef.current || projectLoadingRef.current) return;
+        setWorkspaceSource(workspace, state);
+        setCompileIssues([]);
+        setCompileDoctorReport(null);
+        setCompileResourceReport(null);
+        setPinPreflightReport(null);
+        setResourcePreflightReport(null);
+        compileSourceMapSessionRef.current = null;
+        clearCompileErrors(workspace);
+        scheduleProjectDirtyComparison(workspace, 0);
+        scheduleRecoveryDraftRef.current();
+    };
+    const switchEditorMode = (mode: 'blocks' | 'source') => {
+        const workspace = workspaceRef.current;
+        if (!workspace || editorSwitchBlocked) return;
+        try {
+            workspace.hideChaff();
+            setAiOpen(false); setCodeViewOpen(false); setIsEngineeringHealthOpen(false);
+            const previous = getWorkspaceSource(workspace);
+            if (mode === 'source') {
+                const generated = stripBlockMarkers(arduinoGenerator.workspaceToCode(workspace));
+                updateProjectSource(selectSourceMode(previous, generated));
+            } else if (previous) updateProjectSource({ ...previous, mode });
+            requestAnimationFrame(() => Blockly.svgResize(workspace));
+        } catch (error) { showToast(`切换失败：${String(error)}`, 'error'); }
+    };
+    const replaceSourceFromBlocks = async () => {
+        const workspace = workspaceRef.current;
+        if (!workspace || editorSwitchBlocked) return;
+        const previous = getWorkspaceSource(workspace);
+        const generated = stripBlockMarkers(arduinoGenerator.workspaceToCode(workspace));
+        if (previous?.code !== generated && !await dialog.confirm({ title: '用积木重新生成源码？',
+            message: '这会替换当前手写源码。取消可继续保留源码；积木内容不会改变。', type: 'warning' })) return;
+        if (workspaceRef.current !== workspace || getWorkspaceSource(workspace) !== previous || isCompilingRef.current) return;
+        updateProjectSource(selectSourceMode(null, generated));
+    };
+    const exportProjectSource = async () => {
+        try {
+            const code = workspaceSourceRef.current?.code;
+            if (code === undefined) return;
+            const contents = sourceWithBuildTarget(code, captureBuildTarget());
+            const path = await save({ defaultPath: 'sketch.ino', filters: [{ name: 'Arduino 源码', extensions: ['ino'] }] });
+            if (path) { await writeTextFile(path, contents); showToast('源码已导出，包含板卡配置注释', 'success'); }
+        } catch (error) { showToast(`导出失败：${String(error)}`, 'error'); }
+    };
+    const importProjectSource = async () => {
+        const workspace = workspaceRef.current;
+        const pathAtStart = currentPath;
+        const previous = getWorkspaceSource(workspace);
+        if (!workspace || editorSwitchBlocked) return;
+        try {
+            const selected = await open({ multiple: false, filters: [{ name: 'Arduino 源码', extensions: ['ino'] }] });
+            if (typeof selected !== 'string') return;
+            const loaded = await invoke<{ document: { code: string; target: ProjectBuildTarget | null } }>('open_source_project', { path: selected });
+            const target = loaded.document.target;
+            if (!await dialog.confirm({ title: '导入源码到当前工程？', message: '当前源码将被替换，积木继续保留。'
+                + (target ? ` 同时恢复文件记录的板卡配置：${target.fqbn}（Core ${target.coreVersion || '未记录'}）。` : ' 沿用当前工程的板卡配置。'), type: 'warning' })) return;
+            if (currentPathRef.current !== pathAtStart || workspaceRef.current !== workspace || getWorkspaceSource(workspace) !== previous || isCompilingRef.current) return;
+            updateProjectSource({ version: 1, mode: 'source', code: loaded.document.code,
+                generatedBase: stripBlockMarkers(arduinoGenerator.workspaceToCode(workspace)) });
+            if (target) {
+                updateRecordedBuildTarget(target);
+                setActiveBoard(target.board, target.boardPackageId);
+                setBoardOptions(target.options);
+            }
+            showToast('源码已导入，保存工程即可一并保留', 'success');
+        } catch (error) { showToast(`导入失败：${String(error)}`, 'error'); }
+    };
+
     // Keyboard Shortcuts
     useEffect(() => {
         const handleKeyDown = async (e: KeyboardEvent) => {
@@ -7262,7 +7365,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 // @ts-ignore
                 const state = Blockly.serialization.workspaces.save(workspaceRef.current);
                 const json = JSON.stringify(state);
-                const code = arduinoGenerator.workspaceToCode(workspaceRef.current);
+                const code = workspaceCompileCode(workspaceRef.current, ws => arduinoGenerator.workspaceToCode(ws));
                 const savedBuildTarget = captureBuildTarget();
                 const capturedRecordedTarget = recordedBuildTargetRef.current;
                 const capturedBoard = activeBoardDirtyRef.current;
@@ -7381,7 +7484,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             if (JSON.stringify(captureBuildTarget()) !== JSON.stringify(buildTarget)) return null;
             return {
                 workspaceJson,
-                sourceCode: generated.code ?? arduinoGenerator.workspaceToCode(workspace),
+                sourceCode: snapshot.ckSource?.mode === 'source' ? snapshot.ckSource.code : generated.code ?? arduinoGenerator.workspaceToCode(workspace),
                 board: activeBoard,
                 fqbn: effectiveCompileFqbn,
                 boardPackageId: activeBoardPackageId,
@@ -7616,7 +7719,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             clearBlockBreakpoints(workspace);
             workspace.clear();
             Blockly.serialization.workspaces.load(state, workspace);
-            const code = candidate.draft.sourceCode || arduinoGenerator.workspaceToCode(workspace);
+            const code = arduinoGenerator.workspaceToCode(workspace);
             generatedCodeRef.current = code;
             setGeneratedCode(code);
             setCompileDoctorReport(null);
@@ -8320,7 +8423,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                                 void handleStartBlockDebug();
                                             }}
                                             className="flex min-h-9 w-full items-center gap-2 rounded px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                                            disabled={!activePort || liveBreakpointIds.length === 0 || isCompiling || isDeviceHealthRunning || blockDebugSession.active}
+                                            disabled={sourceMode || !activePort || liveBreakpointIds.length === 0 || isCompiling || isDeviceHealthRunning || blockDebugSession.active}
                                             role="menuitem"
                                             title={!activePort
                                                 ? buildT('toolbar.selectPort')
@@ -8349,7 +8452,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     </div>
 
                     <button type="button" data-ck-role="ai-assistant-trigger" aria-label="打开 CK AI 积木助手" aria-expanded={aiOpen}
-                        onClick={() => aiOpen ? setAiOpen(false) : openAi()}
+                        disabled={sourceMode} title={sourceMode ? "AI 积木助手用于积木模式" : "AI 积木助手"} onClick={() => aiOpen ? setAiOpen(false) : openAi()}
                         className={`h-10 shrink-0 rounded-md border px-2.5 flex items-center gap-1.5 text-xs font-semibold transition-colors ${aiOpen ? 'border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-300' : 'border-slate-200 text-slate-600 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:text-slate-300'}`}>
                         <Sparkles size={16} /><span>AI</span>
                     </button>
@@ -8362,7 +8465,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         </button>
                         <button
                             onClick={() => void handleStartBlockTrace()}
-                            disabled={isCompiling || isDeviceHealthRunning || blockDebugSession.active}
+                            disabled={sourceMode || isCompiling || isDeviceHealthRunning || blockDebugSession.active}
                             className="h-9 px-2.5 rounded flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-300 dark:hover:bg-slate-700"
                             title="运行轨迹：上传采样固件，不暂停开发板程序"
                         >
@@ -8418,7 +8521,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                     </button>
                                     <button
                                         onClick={() => runViewMenuAction(() => void handleStartBlockTrace())}
-                                        disabled={isCompiling || isDeviceHealthRunning || blockDebugSession.active}
+                                        disabled={sourceMode || isCompiling || isDeviceHealthRunning || blockDebugSession.active}
                                         className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50"
                                         role="menuitem"
                                         title="上传采样固件，不暂停开发板程序"
@@ -8487,6 +8590,20 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     disabled={!buildEnvironment.resolved || !activeCoreVersion || isCompiling}
                     className="rounded border border-amber-400 px-2 py-1 font-semibold disabled:opacity-40">采用当前环境</button>}
             </div>}
+            <div className="ck-editor-modes" data-ck-role="editor-mode-bar">
+                <div className="ck-editor-tabs" role="tablist" aria-label="编程模式">
+                    <button type="button" role="tab" data-ck-role="edit-blocks" aria-selected={!sourceMode} disabled={editorSwitchBlocked} onClick={() => switchEditorMode('blocks')}>积木</button>
+                    <button type="button" role="tab" data-ck-role="edit-source" aria-selected={sourceMode} disabled={editorSwitchBlocked} onClick={() => switchEditorMode('source')}>源码</button>
+                </div>
+                <span className="ck-editor-mode-note" role="status">{sourceMode
+                    ? workspaceSource!.code === stripBlockMarkers(generatedCode) ? '编译当前源码 · 与积木生成代码一致' : '编译当前源码 · 手写修改已独立保留，不会反向转换为积木'
+                    : workspaceSource ? '编译当前积木 · 手写源码保留在“源码”页中' : '同一工程可切换积木与源码，共用板卡和编译加速'}</span>
+                {sourceMode && <div className="ck-editor-source-actions">
+                    <button disabled={editorSwitchBlocked} onClick={() => { void importProjectSource(); }}>导入 .ino</button>
+                    <button disabled={editorSwitchBlocked} onClick={() => { void exportProjectSource(); }}>导出 .ino</button>
+                    <button disabled={editorSwitchBlocked} onClick={() => { void replaceSourceFromBlocks(); }}>从积木更新</button>
+                </div>}
+            </div>
             {/* Main Content */}
             <div className={`ck-workspace-main flex flex-1 min-h-0 overflow-hidden min-w-0 w-full max-w-full relative z-0 transition-all duration-300 ${isConfigOpen ? 'blur-[2px] opacity-90' : ''} `}>
                 {/* Sidebar with Categories */}
@@ -8496,8 +8613,13 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     HOWEVER, looking at the code structure:
                 */}
                 <div className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]">
-                    <div className="absolute inset-0" ref={blocklyDiv} style={{ touchAction: 'none' }}></div>
-                    <BlockDock
+                    <div className="absolute inset-0" ref={blocklyDiv} style={{ touchAction: 'none', visibility: sourceMode ? 'hidden' : 'visible' }} aria-hidden={sourceMode} inert={sourceMode}></div>
+                    {sourceMode && <Suspense fallback={<div role="status" className="m-auto p-4 text-sm text-slate-500">正在载入源码编辑器…</div>}><WorkspaceSourcePane code={workspaceSource!.code} documentKey={currentPath + ':' + projectLoadedRevision}
+                        dark={resolvedTheme === 'dark'} readOnly={Boolean(isCompiling || isBuildPreparing || projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure)}
+                        log={sourceBuildCodeRef.current === workspaceSource!.code ? compileLog : ''}
+                        onChange={code => { if (workspaceSourceRef.current) updateProjectSource({ ...workspaceSourceRef.current, code }); }}
+                        onSave={() => { void handleSave(); }} onBuild={() => { void handleCompileAndUpload(false); }} onNotice={message => showToast(message, 'error')} /></Suspense>}
+                    {!sourceMode && <BlockDock
                         resourceView={hardwareResourceInspector}
                         workspace={blocklyWorkspace}
                         renderer={blocklyRendererForVisualStyle(blocklyVisualStyle)}
@@ -8505,7 +8627,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         visualStyle={blocklyVisualStyle}
                         disabled={Boolean(projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure)}
                         onNotice={(message, type) => showToast(message, type)}
-                    />
+                    />}
                     {projectLoadProgress && (
                         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/50" data-ck-role="project-load-progress" role="dialog" aria-modal="true" aria-label={t('workspacePerformance.loading')}>
                             <div className="w-96 max-w-[90vw] rounded-xl border border-slate-300 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900">
@@ -8566,7 +8688,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             </div>
                         </div>
                     )}
-                    <div
+                    {!sourceMode && <div
                         className={`ck-toolbox-search-dock-overlay ${isBlockSearchActive ? 'is-active' : ''}`}
                         role="search"
                         aria-label={blockSearchResultCount == null
@@ -8617,8 +8739,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 <X size={13} />
                             </button>
                         )}
-                    </div>
-                    {toolboxLoading && (
+                    </div>}
+                    {toolboxLoading && !sourceMode && (
                         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 bg-white/90 backdrop-blur-sm shadow-md rounded-full px-4 py-1.5 flex items-center gap-2 text-xs text-slate-500 border border-slate-200 animate-in fade-in duration-200 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-400">
                             <Loader2 size={12} className="animate-spin text-brand-500" />
                             {editorTranslate('blockDock.toolbox.loading')}
@@ -8683,14 +8805,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             } }),
                     }}
                     boardLabel={`${activeBoard}${activeCoreVersion ? ` · ${activeCoreVersion}` : ''}`}
-                    disabledReason={projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure ? '工程正在载入或处于保护状态，请先处理。' : !buildEnvironment.resolved ? '板卡参数尚未就绪，请先完成板卡设置。' : isCompiling || isBuildPreparing ? '正在编译或上传，完成后可继续发送或应用修改。' : blockDebugSession.active ? '调试中，请先结束调试。' : undefined}
+                    disabledReason={sourceMode ? '当前为源码模式；切回积木后可使用 AI 积木助手。' : projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure ? '工程正在载入或处于保护状态，请先处理。' : !buildEnvironment.resolved ? '板卡参数尚未就绪，请先完成板卡设置。' : isCompiling || isBuildPreparing ? '正在编译或上传，完成后可继续发送或应用修改。' : blockDebugSession.active ? '调试中，请先结束调试。' : undefined}
                     onClose={() => setAiOpen(false)} onCode={toggleCodeView}
                     onLayout={() => { if (workspaceRef.current) Blockly.svgResize(workspaceRef.current); }}
                     beforeApply={() => captureWorkspaceCheckpoint('AI 修改前')}
                     onCompile={async () => ({ ok: await handleCompileAndUpload(false), log: compileLogRef.current })}
                 />
                 {/* Right: Code Preview */}
-                {codeViewOpen && (
+                {codeViewOpen && !sourceMode && (
                     <CodePreviewDock onLayout={() => { if (workspaceRef.current) Blockly.svgResize(workspaceRef.current); }}>
                         <div className="h-10 bg-[#f4f7fa] border-b border-[#dce3ec] flex items-center justify-between px-3 shrink-0 dark:border-slate-700 dark:bg-slate-900">
                             <div className="flex items-center gap-2 min-w-0">
@@ -8732,7 +8854,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     </CodePreviewDock>
                 )}
 
-                {isEngineeringHealthOpen && (
+                {isEngineeringHealthOpen && !sourceMode && (
                     <EngineeringHealthDock
                         onOpenLibraries={() => setIsLibManagerOpen(true)}
                         onOpenCheckpoints={() => setIsCheckpointsOpen(true)}

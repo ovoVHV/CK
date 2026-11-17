@@ -20,6 +20,7 @@ Arduino board cores, GCC, GNU ld, upload tools and libraries are separate depend
 - Exact JavaScript dependencies: `desktop/apps/desktop/package-lock.json` (including Blockly, React, Tauri API, xterm, AJV, charts and avr8js).
 - Exact Rust dependencies: `desktop/Cargo.lock`, `native/Cargo.lock`, `update-protocol/Cargo.lock`, `host-contract-tests/Cargo.lock`.
 - avr8js 0.21.1: MIT; see `licenses/avr8js-MIT.txt`.
+- CodeMirror 6 source editor, Lezer parsers and supporting packages: MIT; exact versions are pinned in the desktop lockfile, with notices in `licenses/CodeMirror-MIT.txt`.
 - Blockly media and other checked-in assets retain their copyright notices. Examples and test libraries with a `LICENSE` retain that license.
 - USB driver archives are not part of this source publication. The website catalog records upstream sources and checksums; CP210x and FTDI remain vendor-direct downloads.
 

@@ -34,7 +34,7 @@ pub(super) fn validate_receipt(receipt: &Value, id: &str, source: &str, fqbn: &s
     anyhow::ensure!(receipt["requestId"] == id, "V9 request identity mismatch");
     anyhow::ensure!(receipt["sourceSha256"] == source, "V9 source identity mismatch");
     anyhow::ensure!(receipt["fqbn"] == fqbn, "V9 target mismatch");
-    anyhow::ensure!(receipt["protocolVersion"] == 1 && receipt["engineVersion"] == "9.1.0-alpha.47", "V9 protocol mismatch");
+    anyhow::ensure!(receipt["protocolVersion"] == 1 && receipt["engineVersion"] == "9.1.0-alpha.48", "V9 protocol mismatch");
     if receipt["success"] != true {
         // Keep compiler diagnostics as real lines. Serializing the error object
         // escapes paths/newlines and prevents the host from proving the sketch
@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn stale_failed_and_unknown_protocol_results_are_rejected() {
         let base = json!({"requestId":"request","sourceSha256":"source","fqbn":"board",
-            "protocolVersion":1,"engineVersion":"9.1.0-alpha.47","success":true});
+            "protocolVersion":1,"engineVersion":"9.1.0-alpha.48","success":true});
         assert!(validate_receipt(&base, "request", "source", "board").is_ok());
         for key in ["requestId", "sourceSha256", "fqbn", "protocolVersion", "engineVersion", "success"] {
             let mut changed = base.clone(); changed[key] = json!("invalid");
@@ -93,7 +93,7 @@ mod tests {
     fn failed_build_preserves_multiline_diagnostics_after_identity_checks() {
         let diagnostic = "C:\\CKData\\tmp\\CK_Builds\\v9\\sessions\\abc\\source\\sketch\\sketch.ino:7:3: error: 'variable' was not declared in this scope\r\n  variable = 0;\r\n";
         let mut receipt = json!({"requestId":"request","sourceSha256":"source","fqbn":"board",
-            "protocolVersion":1,"engineVersion":"9.1.0-alpha.47","success":false,
+            "protocolVersion":1,"engineVersion":"9.1.0-alpha.48","success":false,
             "error":{"code":"BUILD_FAILED","fallbackSafe":false,"message":diagnostic}});
         let error = validate_receipt(&receipt, "request", "source", "board").unwrap_err().to_string();
         assert_eq!(error, format!("V9 build failed [BUILD_FAILED]:\n{}", diagnostic));
