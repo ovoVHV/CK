@@ -67,7 +67,7 @@ async function screenshots() {
         for(const [name,width,height,themeIndex] of [['light-1280',1280,800,0],['dark-900',900,650,1]]) {
             await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
             await client.evaluate(`window.dispatchEvent(new StorageEvent('storage',{key:'app_theme',newValue:${JSON.stringify(themeIndex===0?'light':'dark')}}))`);await delay(250);
-            const layout=await client.evaluate(`['.ck-editor-modes','.ck-source-pane','.ck-source-edit-area','.ck-source-status'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {selector,x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}})`);
+            const layout=await client.evaluate(`['.ck-editor-tabs','.ck-source-pane','.ck-source-edit-area','.ck-source-status'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {selector,x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}})`);
             for(const r of layout)assert.ok(r.x>=-1&&r.right<=width+1&&r.y>=0&&r.bottom<=height+1&&r.height>=20,JSON.stringify(r));
             fs.writeFileSync(path.join(out,name+'.png'),Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));report.checks.push({screenshot:name+'.png',layout});record();
         }
@@ -115,14 +115,17 @@ try {
     report.checkpoint=checkpoint;report.checks.push('Source diagnostics locate line 2; manual source participates in actual native checkpoint persistence');record();
     // Export and import through real persistence commands, with only picker answers supplied.
     const exported=path.join(out,'中文导出.ino');await client.evaluate(`window.__integratedPickers.push(${JSON.stringify(exported)})`);
-    await client.evaluate(`[...document.querySelectorAll('.ck-editor-source-actions button')].find(b=>b.textContent==='导出 .ino').click()`);
+    await click('[data-ck-role="source-actions"]');
+    await client.evaluate(`[...document.querySelectorAll('#ck-source-actions button')].find(b=>b.textContent==='导出 .ino').click()`);
     for(let i=0;i<50&&!fs.existsSync(exported);i++)await delay(100);
     assert.ok(fs.readFileSync(exported,'utf8').includes(edited));
     const imported='// 导入当前工程\nvoid setup() {}\nvoid loop() { delay(100); }\n';const input=path.join(out,'导入.ino');fs.writeFileSync(input,imported);
-    await client.evaluate(`window.__integratedPickers.push(${JSON.stringify(input)});[...document.querySelectorAll('.ck-editor-source-actions button')].find(b=>b.textContent==='导入 .ino').click()`);
+    await click('[data-ck-role="source-actions"]');
+    await client.evaluate(`window.__integratedPickers.push(${JSON.stringify(input)});[...document.querySelectorAll('#ck-source-actions button')].find(b=>b.textContent==='导入 .ino').click()`);
     await wait(`Boolean(document.querySelector('[data-ck-action="submit-confirm"]'))`,'import confirmation');await click('[data-ck-action="submit-confirm"]');
     await wait(`document.querySelector('.ck-source-pane .cm-content')?.textContent.includes('导入当前工程')`,'imported code');assert.equal((await snapshot()).ckSource.code,imported);
-    await client.evaluate(`[...document.querySelectorAll('.ck-editor-source-actions button')].find(b=>b.textContent==='从积木更新').click()`);
+    await click('[data-ck-role="source-actions"]');
+    await client.evaluate(`[...document.querySelectorAll('#ck-source-actions button')].find(b=>b.textContent==='从积木重新生成').click()`);
     await wait(`Boolean(document.querySelector('[data-ck-action="cancel-confirm"]'))`,'replace confirmation');await click('[data-ck-action="cancel-confirm"]');assert.equal((await snapshot()).ckSource.code,imported);
     // Unsaved navigation can be cancelled; it cannot quietly drop the hand-written program.
     await client.evaluate(`window.__TAURI_INTERNALS__.invoke('plugin:event|emit',{event:'ck-project-open-requested',payload:${JSON.stringify({requestId:randomUUID(),path:other,source:'source-unsaved-regression'})}})`);

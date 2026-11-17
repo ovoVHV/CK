@@ -1,7 +1,7 @@
 import { captureProjectBuildTarget, readProjectBuildTarget, projectBuildTargetDifference, targetFromRecordedFqbn, sourceWithBuildTarget, type ProjectBuildTarget, type ProjectBuildEnvironment } from '../services/project_build_target';
 import { BuildActivitySpinner } from './BuildActivitySpinner';
 import { clearCompileErrors, markCompileError, revealCompileError } from '../services/compile_block_feedback';
-import React, { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StatusFooter } from './StatusFooter';
 import { publishProjectStatus } from './project_status_session';
@@ -108,7 +108,9 @@ import { SerialPlotter } from './SerialPlotter';
 import { EngineeringHealthDock } from './EngineeringHealthDock';
 import { CodePreviewDock } from './CodePreviewDock';
 import './WorkspaceSourcePane.css';
-const WorkspaceSourcePane = lazy(() => import('./WorkspaceSourcePane').then(module => ({ default: module.WorkspaceSourcePane })));
+import { WorkspaceModeSwitch } from './WorkspaceModeSwitch';
+const prepareSourcePane = () => import('./WorkspaceSourcePane');
+const WorkspaceSourcePane = lazy(() => prepareSourcePane().then(module => ({ default: module.WorkspaceSourcePane })));
 import { getWorkspaceSource, setWorkspaceSource, subscribeWorkspaceSource, selectSourceMode, workspaceCompileCode, type WorkspaceSource } from '../services/workspace_source';
 import { BuildIssueCards } from './BuildIssueCards';
 import { AiAssistantPanel } from './AiAssistantPanel';
@@ -7216,9 +7218,19 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 const generated = stripBlockMarkers(arduinoGenerator.workspaceToCode(workspace));
                 updateProjectSource(selectSourceMode(previous, generated));
             } else if (previous) updateProjectSource({ ...previous, mode });
-            requestAnimationFrame(() => Blockly.svgResize(workspace));
         } catch (error) { showToast(`切换失败：${String(error)}`, 'error'); }
     };
+    // Hide the entire Blockly DOM tree before paint. Descendants can override
+    // inherited visibility, so visibility:hidden alone is insufficient here.
+    useLayoutEffect(() => {
+        if (!blocklyWorkspace) return;
+        blocklyWorkspace.setVisible(!sourceMode);
+        if (!sourceMode) Blockly.svgResize(blocklyWorkspace);
+    }, [sourceMode, blocklyWorkspace]);
+    useEffect(() => {
+        const timer = setTimeout(() => { void prepareSourcePane(); }, 500);
+        return () => clearTimeout(timer);
+    }, []);
     const replaceSourceFromBlocks = async () => {
         const workspace = workspaceRef.current;
         if (!workspace || editorSwitchBlocked) return;
@@ -7957,7 +7969,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             resizeFrame = requestAnimationFrame(() => {
                 resizeFrame = null;
                 const workspace = workspaceRef.current;
-                if (workspace) Blockly.svgResize(workspace);
+                if (workspace && workspaceSourceRef.current?.mode !== 'source') Blockly.svgResize(workspace);
             });
         };
         const resizeObserver = new ResizeObserver(scheduleBlocklyResize);
@@ -8134,7 +8146,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         <ArrowLeft size={19} />
                         <span className="text-xs font-bold">返回</span>
                     </button>
-                    <BrandLogo className="h-8 w-[66px]" />
+                    <BrandLogo className="ck-workspace-brand h-8 w-[66px]" />
+                    <WorkspaceModeSwitch source={sourceMode} disabled={editorSwitchBlocked} onChange={switchEditorMode} onPrepareSource={() => { void prepareSourcePane(); }} />
                     <div className="hidden min-[1200px]:flex min-w-0 flex-col justify-center mr-1">
                         <span className="flex items-center gap-1.5 font-bold text-sm text-slate-900 leading-4 whitespace-nowrap dark:text-slate-100">
                             CK
@@ -8217,7 +8230,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     </div>
                 </div>
 
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 shrink-0">
+                <div className="ck-workspace-toolbar-actions ml-auto flex items-center gap-2 shrink-0">
                     <div className="h-10 flex items-stretch bg-white border border-[#dce3ec] rounded-md relative z-20 dark:border-slate-700 dark:bg-slate-800">
                         <button
                             onClick={() => setIsConfigOpen(true)}
@@ -8590,35 +8603,22 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     disabled={!buildEnvironment.resolved || !activeCoreVersion || isCompiling}
                     className="rounded border border-amber-400 px-2 py-1 font-semibold disabled:opacity-40">采用当前环境</button>}
             </div>}
-            <div className="ck-editor-modes" data-ck-role="editor-mode-bar">
-                <div className="ck-editor-tabs" role="tablist" aria-label="编程模式">
-                    <button type="button" role="tab" data-ck-role="edit-blocks" aria-selected={!sourceMode} disabled={editorSwitchBlocked} onClick={() => switchEditorMode('blocks')}>积木</button>
-                    <button type="button" role="tab" data-ck-role="edit-source" aria-selected={sourceMode} disabled={editorSwitchBlocked} onClick={() => switchEditorMode('source')}>源码</button>
-                </div>
-                <span className="ck-editor-mode-note" role="status">{sourceMode
-                    ? workspaceSource!.code === stripBlockMarkers(generatedCode) ? '编译当前源码 · 与积木生成代码一致' : '编译当前源码 · 手写修改已独立保留，不会反向转换为积木'
-                    : workspaceSource ? '编译当前积木 · 手写源码保留在“源码”页中' : '同一工程可切换积木与源码，共用板卡和编译加速'}</span>
-                {sourceMode && <div className="ck-editor-source-actions">
-                    <button disabled={editorSwitchBlocked} onClick={() => { void importProjectSource(); }}>导入 .ino</button>
-                    <button disabled={editorSwitchBlocked} onClick={() => { void exportProjectSource(); }}>导出 .ino</button>
-                    <button disabled={editorSwitchBlocked} onClick={() => { void replaceSourceFromBlocks(); }}>从积木更新</button>
-                </div>}
-            </div>
             {/* Main Content */}
-            <div className={`ck-workspace-main flex flex-1 min-h-0 overflow-hidden min-w-0 w-full max-w-full relative z-0 transition-all duration-300 ${isConfigOpen ? 'blur-[2px] opacity-90' : ''} `}>
+            <div className={`ck-workspace-main flex flex-1 min-h-0 overflow-hidden min-w-0 w-full max-w-full relative z-0 ${isConfigOpen ? 'blur-[2px] opacity-90' : ''} `}>
                 {/* Sidebar with Categories */}
                 {/* ... (Categories logic is inside Blockly, but if there's a custom sidebar, handle it here) ... */}
                 {/* In this project, the categories in the screenshot are likely the Blockly Toolbox. 
                     If they are not blurring, it might be because they are positioned absolutely outside this div.
                     HOWEVER, looking at the code structure:
                 */}
-                <div className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]">
-                    <div className="absolute inset-0" ref={blocklyDiv} style={{ touchAction: 'none', visibility: sourceMode ? 'hidden' : 'visible' }} aria-hidden={sourceMode} inert={sourceMode}></div>
-                    {sourceMode && <Suspense fallback={<div role="status" className="m-auto p-4 text-sm text-slate-500">正在载入源码编辑器…</div>}><WorkspaceSourcePane code={workspaceSource!.code} documentKey={currentPath + ':' + projectLoadedRevision}
+                <div className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]" data-editor-mode={sourceMode ? 'source' : 'blocks'}>
+                    <div id="ck-blocks-panel" role="tabpanel" aria-labelledby="ck-blocks-tab" className="ck-blocks-panel absolute inset-0" ref={blocklyDiv} style={{ touchAction: 'none', display: sourceMode ? 'none' : undefined }} aria-hidden={sourceMode} inert={sourceMode}></div>
+                    {workspaceSource && <div id="ck-source-panel" role="tabpanel" aria-labelledby="ck-source-tab" className="ck-source-panel" hidden={!sourceMode} inert={!sourceMode}><Suspense fallback={<div role="status" className="ck-source-loading">正在准备编辑器…</div>}><WorkspaceSourcePane active={sourceMode} dirty={isProjectDirty} followsBlocks={workspaceSource.code === stripBlockMarkers(generatedCode)} actionsDisabled={editorSwitchBlocked}
+                        onImport={() => { void importProjectSource(); }} onExport={() => { void exportProjectSource(); }} onRegenerate={() => { void replaceSourceFromBlocks(); }} code={workspaceSource.code} documentKey={currentPath + ':' + projectLoadedRevision}
                         dark={resolvedTheme === 'dark'} readOnly={Boolean(isCompiling || isBuildPreparing || projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure)}
                         log={sourceBuildCodeRef.current === workspaceSource!.code ? compileLog : ''}
                         onChange={code => { if (workspaceSourceRef.current) updateProjectSource({ ...workspaceSourceRef.current, code }); }}
-                        onSave={() => { void handleSave(); }} onBuild={() => { void handleCompileAndUpload(false); }} onNotice={message => showToast(message, 'error')} /></Suspense>}
+                        onSave={() => { void handleSave(); }} onBuild={() => { void handleCompileAndUpload(false); }} onNotice={message => showToast(message, 'error')} /></Suspense></div>}
                     {!sourceMode && <BlockDock
                         resourceView={hardwareResourceInspector}
                         workspace={blocklyWorkspace}

@@ -6,7 +6,7 @@
 
 CK 面向 Arduino 兼容硬件，把 Blockly 编辑、AI 编程、原生增量编译、上传、串口调试、库管理和工程恢复放在同一个 Windows 桌面应用中。
 
-当前源码版本：**9.1.0-alpha.48**，预览版。原作者与维护者：**CKYAN（[@ovoVHV](https://github.com/ovoVHV)）**。
+当前源码版本：**9.1.0-alpha.49**，预览版。原作者与维护者：**CKYAN（[@ovoVHV](https://github.com/ovoVHV)）**。
 
 [下载安装包](https://ckswitch.site/download/) · [作者声明与署名方式](AUTHORS.md) · [源码构建](docs/BUILDING.md) · [AI 使用说明](docs/ai-assistant-guide.md) · [问题反馈](https://github.com/ovoVHV/CK/issues)
 
