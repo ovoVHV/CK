@@ -60,9 +60,9 @@ try {
     for (const [name, width, height, theme] of [['light-1280', 1280, 800, 'light'], ['light-1024', 1024, 768, 'light'], ['light-900', 900, 650, 'light'], ['dark-900', 900, 650, 'dark'], ['dark-1440', 1440, 900, 'dark']]) {
         await command('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
         await client.evaluate(`window.dispatchEvent(new StorageEvent('storage',{key:'app_theme',newValue:${JSON.stringify(theme)}}))`); await delay(150);
-        const layout = await client.evaluate(`(()=>{const selectors=['.ck-workspace-header>.flex','.ck-workspace-toolbar-actions','.ck-editor-tabs','.ck-source-filebar','.ck-source-edit-area','.ck-source-status'];return selectors.map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {selector,x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}})})()`);
+        const layout = await client.evaluate(`(()=>{const selectors=['.ck-project-tools','.ck-device-tools','.ck-workspace-toolbar-actions','.ck-editor-tabs','.ck-source-filebar','.ck-source-edit-area','.ck-source-status'];return selectors.map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {selector,x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}})})()`);
         for (const r of layout) assert.ok(r.x >= 0 && r.right <= width + 1 && r.y >= 0 && r.bottom <= height + 1 && r.height >= 20, JSON.stringify({ name, r }));
-        assert.ok(layout[0].right + 4 <= layout[1].x, 'Header controls overlap: ' + JSON.stringify({ name, layout }));
+        assert.ok(layout[0].right + 3 <= layout[1].x && layout[1].right + 3 <= layout[2].x, 'Header controls overlap: ' + JSON.stringify({ name, layout }));
         await capture(name); report.checks.push({ name, layout });
     }
     await click('[data-ck-role="source-actions"]'); await capture('source-menu');

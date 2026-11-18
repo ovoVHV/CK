@@ -19,10 +19,18 @@ const save=async()=>{await key('s','KeyS',83,2);await delay(800);};
 async function drag(selector,dx,dy){const r=await rect(selector),x=r.x+r.width/2,y=r.y+r.height/2;await client.input('Input.dispatchMouseEvent',{type:'mouseMoved',x,y});await client.input('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,x,y});for(let i=1;i<=8;i++){await client.input('Input.dispatchMouseEvent',{type:'mouseMoved',button:'left',buttons:1,x:x+dx*i/8,y:y+dy*i/8});await delay(20);}await client.input('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,x:x+dx,y:y+dy});await delay(150);}
 const file=path.join(out,'同步与面板.ck');
 try{
+ await wait(`document.body.innerText.includes('我的工程')`);
  const ws={blocks:{languageVersion:0,blocks:[{type:'controls_loop_custom',id:'polish-loop',x:70,y:70,inputs:{DO:{block:{type:'delay_ms',id:'polish-delay',fields:{MS:100}}}}}]}};
  fs.writeFileSync(file,JSON.stringify({format:'ck-project',schema_version:1,migration_version:1,name:'同步与面板',board:'arduino:avr:uno',board_package_id:'arduino:avr:uno',options:'{}',xml:JSON.stringify(ws)}));
- await client.evaluate(`window.__TAURI_INTERNALS__.invoke('plugin:event|emit',{event:'ck-project-open-requested',payload:${JSON.stringify({requestId:randomUUID(),path:file,source:'workspace-polish'})}})`);
+ const openFixture = JSON.stringify({requestId:randomUUID(),path:file,source:'workspace-polish'});
+ for(let i=0;i<25;i++){if(await client.evaluate(`Boolean(window.CK_NATIVE_REGRESSION?.getCurrent()?.workspace?.getBlockById('polish-delay'))`))break;
+  await client.evaluate(`window.__TAURI_INTERNALS__.invoke('plugin:event|emit',{event:'ck-project-open-requested',payload:${openFixture}})`);await delay(400);}
  await wait(`window.CK_NATIVE_REGRESSION?.getCurrent()?.workspace.getBlockById('polish-delay') && document.querySelector('[data-ck-role="edit-source"]')?.disabled===false`);
+ await click('.ck-target-detail summary');assert.ok(await client.evaluate(`document.querySelector('.ck-target-detail').open`));
+ await client.evaluate(`document.querySelector('.ck-target-detail summary').focus()`);await key('Escape','Escape',27);
+ assert.equal(await client.evaluate(`document.querySelector('.ck-target-detail').open`),false);
+ await click('[data-ck-role="toolbar-port-select"]');await wait(`Boolean(document.querySelector('.ck-device-tools [role="menu"]'))`);
+ await click('.ck-device-tools .fixed');
  await client.evaluate(`window.__polishCalls=[];window.__polishErrors=[];window.addEventListener('error',e=>window.__polishErrors.push(String(e.error||e.message)));const original=window.fetch.bind(window);window.fetch=async(url,options)=>{const u=new URL(String(url),location.href);if(u.hostname==='ipc.localhost')window.__polishCalls.push(decodeURIComponent(u.pathname.slice(1)));return original(url,options);}`);
  await click('[data-ck-role="edit-source"]');await wait(`Boolean(document.querySelector('.cm-content'))`);
  let code=(await state()).ckSource.code;assert.match(code,/delay\(100\)/);
@@ -68,9 +76,13 @@ try{
  report.checks.push('Pointer drag expands AI and console; terminal instance preserved during resize; sizes survive close/reopen; cursor and selection restored');
  for(const [width,height,theme] of [[1440,900,'light'],[1280,800,'light'],[1024,768,'dark'],[900,650,'light'],[900,650,'dark']]){
   await command('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await client.evaluate(`window.dispatchEvent(new StorageEvent('storage',{key:'app_theme',newValue:${JSON.stringify(theme)}}))`);await delay(250);
-  const selectors=['.ck-workspace-header>.flex','.ck-workspace-toolbar-actions','[data-ck-role="library-manager-trigger"]','.ck-ai-panel','.ck-console-panel'];const rects=[];
+  const selectors=['.ck-project-tools','.ck-device-tools','.ck-workspace-toolbar-actions','[data-ck-role="library-manager-trigger"]','.ck-ai-panel','.ck-console-panel','.ck-workspace-stage'];const rects=[];
   for(const selector of selectors){const r=await rect(selector);assert.ok(r.x>=-1&&r.right<=width+1&&r.y>=0&&r.bottom<=height+1&&r.width>20,JSON.stringify({selector,width,r}));rects.push(r);}
-  assert.ok(rects[0].right+3<=rects[1].x,'Toolbar overlap '+width);
+  assert.ok(rects[0].right+3<=rects[1].x && rects[1].right+3<=rects[2].x,'Toolbar overlap '+width);
+  assert.ok(rects[3].right<=rects[1].x,'Library label overlaps the device selector '+width);
+  const search=await rect('.ck-toolbox-search-dock-overlay'), category=await rect('.ck-blockly-toolbox-root .blocklyToolboxCategory');
+  assert.ok(category.y>=search.bottom-1,'First toolbox category hidden by search '+JSON.stringify({width,search,category}));
+  assert.ok(Math.abs(rects[4].bottom-rects[5].bottom)<=1 && Math.abs(rects[4].y-rects[6].y)<=1 && rects[5].right<=rects[4].x+1,'AI/console overlap '+width);
   assert.ok(await client.evaluate(`(()=>{const e=document.querySelector('[data-ck-role="library-manager-trigger"]'),r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))})()`));
   await capture(`panels-${width}-${theme}`);report.layouts.push({width,height,theme,rects});
  }

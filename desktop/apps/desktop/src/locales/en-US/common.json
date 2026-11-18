@@ -118,6 +118,20 @@
     }
   },
   "dashboard": {
+    "home": {
+      "title": "Hardware workspace",
+      "modes": "Blocks & C++",
+      "awaitDevice": "No device",
+      "lastProject": "Last edited",
+      "check": "Quick check",
+      "history": "Last check details",
+      "filter": "Filter projects",
+      "all": "All",
+      "other": "Other boards",
+      "clear": "Clear filters",
+      "blocks_one": "{{count}} block",
+      "blocks_other": "{{count}} blocks"
+    },
     "header": {
       "subtitle": "Hardware development workspace · {{itemCount}}",
       "projectCount_one": "{{count}} project",

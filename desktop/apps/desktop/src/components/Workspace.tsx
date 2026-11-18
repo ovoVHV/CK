@@ -106,6 +106,7 @@ import { SerialPlotter } from './SerialPlotter';
 import { EngineeringHealthDock } from './EngineeringHealthDock';
 import { CodePreviewDock } from './CodePreviewDock';
 import './WorkspaceSourcePane.css';
+import './WorkspaceLayout.css';
 import { WorkspaceModeSwitch } from './WorkspaceModeSwitch';
 const prepareSourcePane = () => import('./WorkspaceSourcePane');
 const WorkspaceSourcePane = lazy(() => prepareSourcePane().then(module => ({ default: module.WorkspaceSourcePane })));
@@ -8161,8 +8162,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             />
 
             {/* Header */}
-            <header className="ck-workspace-header h-[60px] bg-[#fbfcfe] border-b border-[#dce3ec] flex items-center px-3 shrink-0 relative z-[300] gap-3 transition-colors dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex items-center gap-2 min-w-0">
+            <header className="ck-workspace-header bg-[#fbfcfe] border-b border-[#dce3ec] shrink-0 relative z-[300] dark:border-slate-800 dark:bg-slate-900">
+                <div className="ck-project-tools flex items-center min-w-0" role="group" aria-label="工程操作">
                     <button onClick={() => void handleBack()} className="h-9 px-2 flex items-center justify-center gap-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100" title="返回项目列表">
                         <ArrowLeft size={19} />
                         <span className="text-xs font-bold">返回</span>
@@ -8192,30 +8193,15 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         </span>
                     </div>
 
-                    <div className="hidden min-[1800px]:flex items-center h-9 p-0.5 bg-[#f1f4f8] border border-[#e1e7ef] rounded-md shrink-0 dark:border-slate-700 dark:bg-slate-800">
-                        <button onClick={handleOpenFile} className="h-8 px-2 flex items-center gap-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100" title="打开工程">
-                            <FolderOpen size={15} /> <span>打开</span>
+                    <div className="ck-workspace-file-group flex items-center relative">
+                        <button onClick={handleOpenFile} className="ck-file-command" title="打开工程" aria-label="打开工程">
+                            <FolderOpen size={16} /><span>打开</span>
                         </button>
-                        <button onClick={handleSave} className="h-8 px-2 flex items-center gap-1.5 rounded text-slate-600 hover:text-[var(--accent)] hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-brand-300" title="保存项目">
-                            <Save size={15} /> <span>保存</span>
+                        <button onClick={handleSave} className="ck-file-command" title={isProjectDirty ? '保存项目（有未保存修改）' : '保存项目'} aria-label="保存项目" data-dirty={isProjectDirty}>
+                            <Save size={16} /><span>保存</span>
                         </button>
-                        <button onClick={handleSaveAs} className="h-8 px-2 flex items-center gap-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100" title="另存为">
-                            <FilePlus size={15} /> <span>另存</span>
-                        </button>
-                        <button onClick={() => setIsDiagnosticBundleOpen(true)} className="h-8 px-2 flex items-center gap-1.5 rounded text-slate-600 hover:text-violet-700 hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-violet-300" title="导出或导入工程诊断包">
-                            <HeartPulse size={15} /> <span>诊断包</span>
-                        </button>
-                    </div>
-
-                    <div className="ck-workspace-file-group min-[1800px]:hidden flex items-center h-9 p-0.5 bg-[#f1f4f8] border border-[#e1e7ef] rounded-md shrink-0 relative dark:border-slate-700 dark:bg-slate-800">
-                        <button onClick={handleOpenFile} className="hidden min-[1200px]:flex h-8 px-2 items-center gap-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100" title="打开工程">
-                            <FolderOpen size={15} /> 打开
-                        </button>
-                        <button onClick={handleSave} className="hidden min-[1200px]:flex h-8 px-2 items-center gap-1.5 rounded text-slate-600 hover:text-[var(--accent)] hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-brand-300" title="保存项目">
-                            <Save size={15} /> 保存
-                        </button>
-                        <button aria-label="文件操作" onClick={() => setIsFileMenuOpen((value) => !value)} className="h-8 px-2 flex items-center gap-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100" aria-haspopup="menu" aria-expanded={isFileMenuOpen}>
-                            <FilePlus size={15} /> <span className="min-[1200px]:hidden">文件</span><span className="hidden min-[1200px]:inline">更多</span> <ChevronDown size={11} />
+                        <button data-ck-role="file-menu-trigger" aria-label="文件操作" title="更多工程操作" onClick={() => setIsFileMenuOpen((value) => !value)} className="ck-file-command" aria-haspopup="menu" aria-expanded={isFileMenuOpen}>
+                            <span>更多</span><ChevronDown size={13} />
                         </button>
                         {isFileMenuOpen && (
                             <>
@@ -8246,35 +8232,43 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             </>
                         )}
                     </div>
-                </div>
-
-                <div className="ck-workspace-toolbar-actions ml-auto flex items-center gap-2 shrink-0">
                     <button type="button" data-ck-role="library-manager-trigger" className="ck-library-toolbar-button" onClick={() => setIsLibManagerOpen(true)} title="库管理器 · 安装、启用和管理积木库" aria-label="库管理器">
                         <BookOpen size={16} /><span>库管理器</span>
                     </button>
-                    <div className="h-10 flex items-stretch bg-white border border-[#dce3ec] rounded-md relative z-20 dark:border-slate-700 dark:bg-slate-800">
+                </div>
+                    <div className="ck-device-tools flex items-center bg-white border border-[#dce3ec] relative dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="板卡与端口">
                         <button
                             onClick={() => setIsConfigOpen(true)}
                             disabled={isCompiling || isDeviceHealthRunning}
                             data-ck-role="board-config-button"
                             data-ck-board-options-status={boardOptionsStatus}
                             data-ck-board-options-compatible={Object.keys(droppedBoardOptions).length === 0 ? 'true' : 'false'}
-                            className="group h-full w-[112px] min-[1200px]:w-[150px] min-[1800px]:w-[190px] flex items-center gap-2 px-2.5 hover:bg-[#f5f8fa] transition-colors rounded-l-md min-w-0 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-700"
+                            className="ck-board-command"
                             title={`板卡设置与编译缓存\n${getBoardName()}\n${effectiveCompileFqbn}`}
                         >
                             <CircuitBoard size={17} className="text-[var(--accent)] shrink-0" />
-                            <span className="flex flex-col min-w-0 text-left leading-none">
-                                <span className="text-xs font-bold text-slate-700 whitespace-nowrap dark:text-slate-200">板卡设置</span>
-                                <span className="hidden min-[1200px]:block text-[9px] text-slate-400 truncate mt-1">{getBoardName()}</span>
-                            </span>
-                            <SlidersHorizontal size={13} className="hidden min-[1800px]:block ml-auto text-slate-400 shrink-0" />
+                            <span className="truncate">{getBoardName()}</span>
                         </button>
-
-                        <div className="w-px bg-[#e3e8ef] dark:bg-slate-700" />
+                        {currentPath && !projectLoadProgress && !projectLoadSafetyError && !buildTargetDifference &&
+                            (!recordedBuildTarget?.coreVersion || !recordedBuildTarget.optionsComplete) &&
+                            <details key={currentPath} className="ck-target-detail" onBlur={e => {
+                                if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false;
+                            }} onKeyDown={e => {
+                                if (e.key === 'Escape') { e.currentTarget.open = false; e.currentTarget.querySelector('summary')?.focus(); }
+                            }}>
+                                <summary aria-label="工程参数待补齐" title="工程参数待补齐"><AlertTriangle size={13} /></summary>
+                                <div className="ck-target-popover" data-ck-build-target-hint>
+                                    <strong>工程参数待补齐</strong>
+                                    <p>工程尚未记录完整的 Core 版本或默认板卡参数。环境就绪后，保存工程即可补齐。</p>
+                                    <button type="button" disabled={!buildEnvironment.resolved || !activeCoreVersion || editorSwitchBlocked}
+                                        onClick={() => void handleSave()}>保存并补齐</button>
+                                </div>
+                            </details>}
+                        <div className="h-4 w-px bg-[#e3e8ef] dark:bg-slate-700" />
 
                         <div className="relative h-full">
                             <button
-                                className="h-full w-[94px] min-[1800px]:w-[138px] px-2.5 flex items-center gap-2 text-left hover:bg-[#f5f8fa] transition-colors min-w-0 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-700"
+                                className="ck-port-command"
                                 onClick={() => setIsPortMenuOpen(!isPortMenuOpen)}
                                 disabled={isDeviceHealthRunning}
                                 data-ck-role="toolbar-port-select" title={activePort || '选择串口'}
@@ -8282,12 +8276,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 aria-expanded={isPortMenuOpen}
                             >
                                 <Usb size={16} className={activePort ? 'text-[var(--accent)] shrink-0' : 'text-slate-400 shrink-0'} />
-                                <span className="flex flex-col min-w-0 leading-none">
-                                    <span className="hidden min-[1800px]:block text-[9px] font-semibold text-slate-400 uppercase">串口</span>
-                                    <span className={`text-xs font-mono font-bold truncate ${activePort ? 'text-slate-700 min-[1800px]:mt-1 dark:text-slate-200' : 'text-slate-400 min-[1800px]:mt-1 dark:text-slate-500'}`}>
-                                        {activePort || <><span className="min-[1800px]:hidden">未选</span><span className="hidden min-[1800px]:inline">未连接</span></>}
-                                    </span>
-                                </span>
+                                <span className="truncate">{activePort || '未选端口'}</span>
                                 <ChevronDown size={12} className="ml-auto text-slate-400 shrink-0" />
                             </button>
 
@@ -8346,6 +8335,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         </button>
                     </div>
 
+                <div className="ck-workspace-toolbar-actions flex items-center shrink-0" role="group" aria-label="构建与视图">
                     <button
                         type="button"
                         data-ck-role="engineering-health-button"
@@ -8613,12 +8603,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 </div>
             </header>
 
-            {currentPath && !projectLoadProgress && !projectLoadSafetyError && (
-                buildTargetDifference || !recordedBuildTarget || !recordedBuildTarget.coreVersion || !recordedBuildTarget.optionsComplete
-            ) && <div data-ck-build-target-notice role="status" className="flex shrink-0 flex-wrap items-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
-                <span className="flex-1">{buildTargetDifference
-                    ? `${buildTargetDifference} 已保留原配置，编译和上传需要先确认。`
-                    : '此工程尚未完整记录 Core 版本或默认参数；环境就绪后保存，即可补齐。'}</span>
+            {currentPath && !projectLoadProgress && !projectLoadSafetyError && buildTargetDifference && <div data-ck-build-target-notice role="status" className="flex shrink-0 flex-wrap items-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+                <span className="flex-1">{buildTargetDifference} 已保留原配置，编译和上传需要先确认。</span>
                 <button type="button" className="underline" onClick={() => setIsConfigOpen(true)}>查看板卡设置</button>
                 {buildTargetDifference && <button type="button" onClick={adoptCurrentBuildEnvironment}
                     disabled={!buildEnvironment.resolved || !activeCoreVersion || isCompiling}
@@ -8626,12 +8612,6 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             </div>}
             {/* Main Content */}
             <div className={`ck-workspace-main flex flex-1 min-h-0 overflow-hidden min-w-0 w-full max-w-full relative z-0 ${isConfigOpen ? 'blur-[2px] opacity-90' : ''} `}>
-                {/* Sidebar with Categories */}
-                {/* ... (Categories logic is inside Blockly, but if there's a custom sidebar, handle it here) ... */}
-                {/* In this project, the categories in the screenshot are likely the Blockly Toolbox. 
-                    If they are not blurring, it might be because they are positioned absolutely outside this div.
-                    HOWEVER, looking at the code structure:
-                */}
                 <div className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]" data-editor-mode={sourceMode ? 'source' : 'blocks'}>
                     <div id="ck-blocks-panel" role="tabpanel" aria-labelledby="ck-blocks-tab" className="ck-blocks-panel absolute inset-0" ref={blocklyDiv} style={{ touchAction: 'none', display: sourceMode ? 'none' : undefined }} aria-hidden={sourceMode} inert={sourceMode}></div>
                     {workspaceSource && <div id="ck-source-panel" role="tabpanel" aria-labelledby="ck-source-tab" className="ck-source-panel" hidden={!sourceMode} inert={!sourceMode}><Suspense fallback={<div role="status" className="ck-source-loading">正在准备编辑器…</div>}><WorkspaceSourcePane source={workspaceSource} onResolve={resolveProjectSource} active={sourceMode} dirty={isProjectDirty} followsBlocks={workspaceSource.code === workspaceSource.generatedBase} actionsDisabled={editorSwitchBlocked}
@@ -8914,8 +8894,6 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         }}
                     />
                 )}
-            </div>
-
             {/* Bottom: Console / Serial Monitor */}
             {consoleOpen ? (
                 <ConsoleDock>
@@ -9257,7 +9235,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 </ConsoleDock>
 
             ) : isConsoleDetached ? (
-                <div
+                <button type="button"
                     onClick={() => void openDetachedConsole()}
                     className="h-7 bg-brand-50 border-t border-brand-200 flex items-center justify-between px-3 cursor-pointer hover:bg-brand-100 shrink-0 transition-colors dark:border-brand-900 dark:bg-brand-950/45 dark:hover:bg-brand-950/70"
                     title="点击聚焦串口浮窗"
@@ -9267,17 +9245,18 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         <span className="text-[10px] font-bold">串口监视器正在浮窗运行</span>
                     </div>
                     <span className="text-[9px] font-semibold text-brand-600/80 dark:text-brand-400/80">点击聚焦</span>
-                </div>
+                </button>
             ) : (
                 // Collapsed Bar
-                <div onClick={() => setConsoleOpen(true)} className="h-7 bg-[#f4f7fa] border-t border-[#dce3ec] flex items-center justify-between px-3 cursor-pointer hover:bg-white shrink-0 transition-colors dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800">
+                <button type="button" onClick={() => setConsoleOpen(true)} className="h-7 bg-[#f4f7fa] border-t border-[#dce3ec] flex items-center justify-between px-3 cursor-pointer hover:bg-white shrink-0 transition-colors dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800">
                     <div className="flex items-center space-x-2 text-slate-500">
                         <Terminal size={12} />
                         <span className="text-[10px] font-bold">打开控制台</span>
                     </div>
-                </div>
+                </button>
             )
             }
+            </div>
             <StatusFooter
                 bytesReceivedRef={bytesReceivedRef}
                 linesReceivedRef={linesReceivedRef}

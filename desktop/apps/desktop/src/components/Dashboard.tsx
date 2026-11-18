@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useHardware } from '../contexts/HardwareContext';
-import { getBoardIcon } from '../constants/boards';
+import { getBoardIcon, getBoardName } from '../constants/boards';
 import DeviceSelectorModal from './DeviceSelectorModal';
 import AppearanceSettingsModal from './AppearanceSettingsModal';
 import DataStorageSettings from './DataStorageSettings';
@@ -67,6 +67,7 @@ interface ProjectInfo {
   board: string;
   board_package_id?: string;
   last_modified: string;
+  block_count?: number;
 }
 
 interface DashboardProps {
@@ -118,23 +119,24 @@ interface ProjectRowListProps {
 function getBoardTag(board: string): string {
   try {
     const parts = String(board || '').split(':');
-    const last = parts[parts.length - 1] || board;
-    if (last.includes('=')) {
-      return last.split('=')[1] || last;
-    }
-    return last;
+    return parts[2] || board;
   } catch {
     return board;
   }
 }
 
-function inferBoardColor(board: string, boardExists: boolean): string {
-  if (!boardExists) return 'from-slate-300 to-slate-400';
-  const lower = board.toLowerCase();
-  if (lower.includes('esp32')) return 'from-[#4c6b92] to-[#5f80a8]';
-  if (lower.includes('esp8266')) return 'from-[#5f6f8a] to-[#7a8faa]';
-  if (lower.includes('arduino')) return 'from-[#4f7d93] to-[#5f92a8]';
-  return 'from-[#66788f] to-[#7d8ea5]';
+function boardFamily(board: string) {
+  const [vendor, arch] = board.toLowerCase().split(':');
+  if (!arch) return '';
+  if (vendor === 'arduino' && arch === 'avr') return 'Arduino AVR';
+  return vendor === arch ? arch.toUpperCase() : `${vendor} ${arch.toUpperCase()}`;
+}
+
+function BoardArtwork({ board, missing = false }: { board: string; missing?: boolean }) {
+  const icon = getBoardIcon(board.split(':').slice(0, 3).join(':'));
+  return missing ? <AlertTriangle aria-hidden size={28} /> : icon.startsWith('/')
+    ? <img src={icon} alt="" draggable={false} loading="lazy" />
+    : <Cpu aria-hidden size={36} />;
 }
 
 function inferBoardSolidColor(board: string, boardExists: boolean): string {
@@ -158,6 +160,7 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
   const [resourceNotice, setResourceNotice] = useState<{ message: string; error: boolean } | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [family, setFamily] = useState('all');
   const [visibleCount, setVisibleCount] = useState(20);
 
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
@@ -201,7 +204,7 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
 
   useEffect(() => {
     setVisibleCount(20);
-  }, [searchQuery]);
+  }, [searchQuery, family]);
 
   const handleLoadMore = () => setVisibleCount((prev) => prev + 20);
 
@@ -316,9 +319,16 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
   };
 
   const sourceItems = resourceTab === 'community' ? communityCases : projects;
-  const filteredProjects = sourceItems.filter(
-    (p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.board.toLowerCase().includes(searchQuery.toLowerCase()),
-  ).sort((left, right) => {
+  const labelFor = (project: ProjectInfo) => resolveBoardPackage(availableBoards, project.board, project.board_package_id)?.name
+    || getBoardName(project.board.split(':').slice(0, 3).join(':'));
+  const query = searchQuery.trim().toLowerCase();
+  const matches = sourceItems.filter(p => !query || [p.name, p.board, labelFor(p)].some(value => value.toLowerCase().includes(query)));
+  const families = [...new Set(projects.map(p => boardFamily(p.board)))].sort();
+  const isProjectPinned = (project: ProjectInfo): boolean => pinnedProjectPaths.some(
+    (path) => projectPinKey(path) === projectPinKey(project.path),
+  );
+  const filteredProjects = matches.filter(p => resourceTab !== 'projects' || family === 'all'
+    || (family === 'pinned' ? isProjectPinned(p) : boardFamily(p.board) === family)).sort((left, right) => {
     if (resourceTab !== 'projects') return 0;
     const leftPinOrder = pinnedProjectPaths.findIndex(path => projectPinKey(path) === projectPinKey(left.path));
     const rightPinOrder = pinnedProjectPaths.findIndex(path => projectPinKey(path) === projectPinKey(right.path));
@@ -329,11 +339,6 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
     return 0;
   });
 
-  const isProjectPinned = (project: ProjectInfo): boolean => pinnedProjectPaths.some(
-    (path) => projectPinKey(path) === projectPinKey(project.path),
-  );
-  const pinnedProjectCount = projects.filter(isProjectPinned).length;
-  const filteredPinnedProjects = resourceTab === 'projects' ? filteredProjects.filter(isProjectPinned) : [];
   const latestProject = projects.find(project => project.path === recentSessionPath) || projects[0] || null;
   const latestBoard = latestProject
     ? resolveBoardPackage(availableBoards, latestProject.board, latestProject.board_package_id)
@@ -413,31 +418,26 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
   };
 
   return (
-    <div className="h-screen bg-[#f5f6f8] dark:bg-slate-950 flex flex-col overflow-hidden">
-      <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 px-5 flex items-center gap-5 shrink-0">
+    <div className="ck-home h-screen bg-slate-100 dark:bg-slate-950 flex flex-col overflow-hidden">
+      <header className="ck-home-header bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center shrink-0">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <BrandLogo className="h-9 w-[76px]" />
+        <div className="ck-home-brand flex items-center gap-2.5 shrink-0">
+          <BrandLogo className="h-8 w-[52px]" />
           <div className="min-w-0">
-            <h1 className="sr-only">CK</h1>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">
-              {resourceTab === 'guide' || resourceTab === 'drivers' ? t('dashboard.sidebar.hardwareEcosystem') : t('dashboard.header.subtitle', {
-                count: sourceItems.length,
-                itemCount: t(resourceTab === 'projects'
-                  ? 'dashboard.header.projectCount'
-                  : 'dashboard.header.caseCount', { count: sourceItems.length }),
-              })}
-            </p>
+            <h1 className="text-sm font-bold">{t('dashboard.home.title')}</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{t('dashboard.home.modes')}</p>
           </div>
         </div>
 
         {/* Search - 占满中间 */}
-        <div className={`relative flex-1 ${resourceTab === 'guide' || resourceTab === 'drivers' ? 'invisible' : ''}`}>
+        <div className={`relative min-w-0 flex-1 max-w-md mr-auto ${resourceTab === 'guide' || resourceTab === 'drivers' ? 'invisible' : ''}`}>
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('dashboard.search.placeholder')}
+            aria-label={t('dashboard.search.placeholder')}
+            type="search"
             className="w-full h-9 pl-9 pr-3 rounded-full bg-slate-100/80 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 outline-none border border-transparent focus:border-brand-400/60 focus:bg-white dark:focus:bg-slate-900 focus:shadow-sm transition-all duration-200 placeholder:text-slate-400"
           />
         </div>
@@ -469,12 +469,13 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
             <span className={`relative inline-flex rounded-full h-2 w-2 ${activePort ? 'bg-white' : 'bg-amber-400'}`}></span>
           </span>
           <Usb size={14} strokeWidth={2.5} />
-          <span className="text-sm font-semibold tracking-tight">{activePort || 'COM'}</span>
+          <span className="text-xs font-semibold">{activePort || t('dashboard.home.awaitDevice')}</span>
         </button>
+        <button type="button" onClick={handleCreateProject} className="ck-home-primary"><Plus size={16} />{t('dashboard.actions.newProject')}</button>
       </header>
 
       <main className="flex-1 min-h-0 flex overflow-hidden">
-        <aside className="flex w-52 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900 px-3 py-5 flex-col gap-1.5 overflow-y-auto">
+        <aside className="ck-home-sidebar flex shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-5 flex-col gap-1.5 overflow-y-auto">
           <p className="text-xs font-bold text-slate-400 px-2 tracking-wide">{t('dashboard.sidebar.resourceManager')}</p>
           <button
             onClick={() => setResourceTab('projects')}
@@ -483,6 +484,7 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
           >
             <Box size={16} /> {t('dashboard.sidebar.myProjects')}
+            <span className="ml-auto text-xs tabular-nums">{projects.length}</span>
           </button>
           <button type="button" onClick={() => setIsLibraryManagerOpen(true)} className="h-10 px-3 rounded-xl text-slate-600 dark:text-slate-300 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800">
             <Cpu size={16} /> {t('dashboard.sidebar.componentLibrary')}
@@ -504,6 +506,9 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
             <Download size={16} /> {t('dashboard.sidebar.driverDownloads')}
           </button>
           <div className="mt-auto border-t border-slate-200 pt-4 dark:border-slate-800">
+            <button type="button" onClick={() => setIsPathSettingsOpen(true)} aria-label={t('dashboard.storage.openAria')} className="ck-home-storage">
+              <FolderOpen size={16}/>{t('dashboard.storage.title')}<ChevronRight size={14} className="ml-auto"/>
+            </button>
             <button type="button" data-ck-action="copy-official-qq-group" onClick={async () => {
               try { await navigator.clipboard.writeText(CK_OFFICIAL_QQ_GROUP); setResourceNotice({ message: `已复制 CK LAB 官方QQ群：${CK_OFFICIAL_QQ_GROUP}`, error: false }); }
               catch { setResourceNotice({ message: `请在 QQ 搜索群号：${CK_OFFICIAL_QQ_GROUP}`, error: false }); }
@@ -517,96 +522,60 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
           </div>
         </aside>
 
-        <section className="min-w-0 flex-1 overflow-auto px-4 py-5 sm:px-5 sm:py-6">
+        <section className="min-w-0 flex-1 overflow-auto">
+          <div className="ck-home-canvas">
           {resourceNotice && <div role={resourceNotice.error ? 'alert' : 'status'} className="mb-4 flex items-start justify-between gap-3 whitespace-pre-wrap break-all rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
             {resourceNotice.message}<button type="button" aria-label={t('common.actions.close')} onClick={() => setResourceNotice(null)}><X size={16} /></button>
           </div>}
           {resourceTab === 'guide' || resourceTab === 'drivers' ? <DashboardResources section={resourceTab} onOpenLink={url => void openResourceLink(url)} /> : <>
-          {resourceTab === 'projects' && !searchQuery.trim() && !isLoading ? (
-            <div className="mb-4 min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-            <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          {resourceTab === 'projects' && latestProject && !query && !isLoading ? (
+            <div key={latestProject.path} className="mb-5 min-w-0 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
+              <span className="ck-home-thumb"><BoardArtwork board={latestProject.board} missing={!latestBoard}/></span>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold tracking-wide text-brand-600 dark:text-brand-300">{t('dashboard.hero.eyebrow')}</p>
-                <h2 className="mt-1 truncate text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
-                  {latestProject
-                    ? t('dashboard.hero.continueTitle', { projectName: latestProject.name })
-                    : t('dashboard.hero.startTitle')}
+                <p className="text-xs font-bold text-brand-600 dark:text-brand-300">{t('dashboard.home.lastProject')}</p>
+                <h2 className="truncate text-lg font-bold text-slate-900 dark:text-slate-100" title={latestProject.name}>
+                  {latestProject.name}
                 </h2>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {latestProject
-                    ? t('dashboard.hero.lastModified', {
-                      boardName: latestBoard?.name || latestProject.board,
+                  {t('dashboard.hero.lastModified', {
+                      boardName: labelFor(latestProject),
                       date: latestProject.last_modified,
-                    })
-                    : t('dashboard.hero.startDescription')}
+                    })}
                 </p>
               </div>
               <div className="flex shrink-0 flex-wrap items-center gap-2">
-                {latestProject ? (
+                <button type="button" className="ck-home-secondary" onClick={() => openProjectWithBoardCheck(latestProject, true)}>{t('dashboard.home.check')}</button>
                   <button
                     type="button"
                     onClick={() => openProjectWithBoardCheck(latestProject)}
                     className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-700"
                   >
-                    <FolderOpen size={16} /> {t('dashboard.actions.continueProject')}
+                    {t('dashboard.actions.continueProject')} <ChevronRight size={16} />
                   </button>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={handleCreateProject}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-brand-200 bg-white/80 px-4 text-sm font-bold text-brand-700 transition-colors hover:border-brand-400 hover:bg-white dark:border-brand-800 dark:bg-slate-900/70 dark:text-brand-300 dark:hover:border-brand-600"
-                >
-                  <Plus size={16} /> {t('dashboard.actions.newProject')}
-                </button>
               </div>
             </div>
-            {latestProject && (
+            <details className="ck-home-history"><summary>{t('dashboard.home.history')}</summary>
               <DashboardProjectStatus path={latestProject.path} name={latestProject.name}
                 board={latestBoard?.name || latestProject.board}
                 onOpenCheck={() => openProjectWithBoardCheck(latestProject, true)} />
-            )}
+            </details>
             </div>
           ) : null}
 
-          {resourceTab === 'projects' && !searchQuery.trim() && filteredPinnedProjects.length > 0 ? (
-            <div className="mb-5 flex items-center gap-3 overflow-hidden rounded-xl border border-brand-100 bg-white/80 px-3 py-2.5 shadow-sm dark:border-brand-900/60 dark:bg-slate-900/80">
-              <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-bold text-brand-700 dark:text-brand-300">
-                <Pin size={14} fill="currentColor" /> {t('dashboard.pinned.title')}
-              </span>
-              <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
-                {filteredPinnedProjects.map((project) => (
-                  <button
-                    key={`pinned-shortcut-${project.path}`}
-                    type="button"
-                    onClick={() => {
-                      if (isSelectionMode) {
-                        toggleProjectSelection(project.path);
-                        return;
-                      }
-                      openProjectWithBoardCheck(project);
-                    }}
-                    className="inline-flex max-w-[220px] shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:bg-brand-950/50 dark:hover:text-brand-300"
-                    title={t('dashboard.pinned.open', { projectName: project.name })}
-                  >
-                    <span className="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 font-mono text-[10px] text-brand-700 dark:bg-brand-900/60 dark:text-brand-300">{getBoardTag(project.board)}</span>
-                    <span className="truncate">{project.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">
                 {t(resourceTab === 'projects' ? 'dashboard.sidebar.myProjects' : 'dashboard.sidebar.communityExamples')}
               </h2>
-              <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full font-medium">{filteredProjects.length}</span>
-              {resourceTab === 'projects' && pinnedProjectCount > 0 ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-950/50 dark:text-brand-300">
-                  <Pin size={11} /> {t('dashboard.pinned.count', { count: pinnedProjectCount })}
-                </span>
-              ) : null}
+              {resourceTab === 'projects' && projects.length > 0 && <div className="ck-home-filters" role="group" aria-label={t('dashboard.home.filter')}>
+                {['all', ...families, 'pinned'].map(key => <button type="button" key={key} aria-pressed={family === key}
+                  onClick={() => {setFamily(key); setSelectedPaths(new Set());}}>
+                  {key === 'pinned' && <Pin size={12}/>}
+                  {key === 'all' ? t('dashboard.home.all') : key === 'pinned' ? t('dashboard.project.pinned') : key || t('dashboard.home.other')}
+                  <small>{key === 'all' ? matches.length : matches.filter(p => key === 'pinned' ? isProjectPinned(p) : boardFamily(p.board) === key).length}</small>
+                </button>)}
+              </div>}
             </div>
             <div className="flex items-center gap-2">
               {resourceTab === 'community' ? (
@@ -633,14 +602,11 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
                   {t(isSelectionMode ? 'dashboard.actions.exitMultiSelect' : 'dashboard.actions.selectMultiple')}
                 </button>
               ) : null}
-              <button
-                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className="h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors flex items-center gap-2"
-                title={t(viewMode === 'grid' ? 'dashboard.view.switchToList' : 'dashboard.view.switchToGrid')}
-              >
-                {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
-                <span className="hidden sm:inline text-sm font-medium">{t(viewMode === 'grid' ? 'dashboard.view.list' : 'dashboard.view.grid')}</span>
-              </button>
+              <div className="ck-home-switch">
+                {(['grid','list'] as const).map(mode => <button key={mode} type="button" onClick={() => setViewMode(mode)} aria-pressed={viewMode === mode}>
+                  {mode === 'grid' ? <LayoutGrid size={15}/> : <List size={15}/>} {t(`dashboard.view.${mode}`)}
+                </button>)}
+              </div>
             </div>
           </div>
 
@@ -690,26 +656,14 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
             <div className="flex flex-col items-center justify-center h-52 text-slate-400 bg-slate-100/60 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl">
               <Box size={40} className="mb-2 opacity-60" />
               <p>{t(resourceTab === 'projects' ? 'dashboard.empty.noProjects' : 'dashboard.empty.noExamples')}</p>
-              {resourceTab === 'projects' ? (
+              {resourceTab === 'projects' && projects.length === 0 ? (
                 <button onClick={handleCreateProject} className="text-brand-600 dark:text-brand-300 font-bold hover:underline mt-2">
                   {t('dashboard.actions.newProject')}
                 </button>
-              ) : null}
+              ) : resourceTab === 'projects' && (query || family !== 'all') ? <button type="button" className="ck-home-secondary mt-2" onClick={() => {setSearchQuery(''); setFamily('all');}}>{t('dashboard.home.clear')}</button> : null}
             </div>
           ) : viewMode === 'grid' ? (
-            <div className="grid grid-cols-2 gap-4 pb-10 min-[900px]:grid-cols-3 min-[1250px]:grid-cols-4">
-              {resourceTab === 'projects' ? (
-                <div
-                  onClick={handleCreateProject}
-                  className="bg-white dark:bg-slate-900 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-400 dark:hover:border-brand-600 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col items-center justify-center min-h-[200px] group"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center mb-3 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/50 group-hover:scale-110 transition-all duration-300">
-                    <Plus size={28} className="text-brand-500 dark:text-brand-400" strokeWidth={2} />
-                  </div>
-                  <span className="text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{t('dashboard.actions.newProject')}</span>
-                  <span className="text-[11px] text-slate-400 mt-1">{t('dashboard.actions.newProjectDescription')}</span>
-                </div>
-              ) : null}
+            <div className="ck-home-grid">
               {filteredProjects.slice(0, visibleCount).map((project) => (
                 <ProjectCardGrid
                   key={project.path}
@@ -778,6 +732,7 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
             </div>
           )}
           </>}
+          </div>
         </section>
       </main>
 
@@ -788,17 +743,6 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
         onClose={() => setActionModal({ type: null, project: null, isOpen: false })}
         onSuccess={handleActionComplete}
       />
-
-      <button
-        type="button"
-        onClick={() => setIsPathSettingsOpen(true)}
-        title={t('dashboard.storage.title')}
-        aria-label={t('dashboard.storage.openAria')}
-        className="fixed right-4 sm:right-6 bottom-4 sm:bottom-6 z-40 inline-flex h-11 max-w-[calc(100vw-2rem)] items-center justify-center gap-2 whitespace-nowrap rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 text-sm font-semibold text-slate-600 dark:text-slate-300 shadow-lg hover:shadow-xl hover:border-brand-200 dark:hover:border-brand-800 hover:text-brand-600 dark:hover:text-brand-400 transition-all"
-      >
-        <FolderOpen size={18} className="shrink-0" />
-        <span>{t('dashboard.storage.title')}</span>
-      </button>
 
       <ProjectPathSettingsModal
         isOpen={isPathSettingsOpen}
@@ -843,8 +787,7 @@ const ProjectCardGrid = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const boardExists = availableBoards ? projectBoardExists(data, availableBoards) : true;
-  const icon = boardExists ? getBoardIcon(data.board) : '';
-  const coverTone = inferBoardColor(data.board, boardExists);
+  const label = resolveBoardPackage(availableBoards, data.board, data.board_package_id)?.name || getBoardName(data.board.split(':').slice(0,3).join(':'));
 
   return (
     <div
@@ -879,41 +822,26 @@ const ProjectCardGrid = ({
         </div>
       )}
 
-      <div className={`h-32 sm:h-36 bg-gradient-to-br ${coverTone} relative overflow-hidden flex items-center justify-center`}>
-        <div className="absolute inset-0 bg-black/5"></div>
-        {boardExists && icon.startsWith('/') ? (
-          <img
-            src={icon}
-            alt={data.board}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-contain p-2 transform will-change-transform hover:scale-105 transition-transform duration-300 z-10"
-          />
-        ) : !boardExists ? (
-          <div className="z-10 text-center text-slate-700">
-            <AlertTriangle size={34} className="mx-auto mb-2 opacity-80" />
-            <div className="text-xs font-semibold">{t('dashboard.project.boardMissing')}</div>
-          </div>
-        ) : (
-          <span className="text-6xl transform will-change-transform hover:scale-110 transition-transform duration-300 drop-shadow-sm z-10">{icon}</span>
-        )}
+      <div className="ck-home-cover relative" data-family={boardFamily(data.board)}>
+        <BoardArtwork board={data.board} missing={!boardExists}/>
 
         <div className="absolute top-2 right-2 max-w-[80%] flex justify-end z-20">
           <span
             className="bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full font-mono border border-white/20 truncate max-w-full shadow-sm"
             title={data.board}
           >
-            {getBoardTag(data.board)}
+            {getBoardTag(data.board).toUpperCase()}
           </span>
         </div>
       </div>
 
       <div className="p-3 flex-1 flex flex-col bg-white dark:bg-slate-900">
-        <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-1 truncate text-sm" title={data.name}>
-          {data.name}
+        <h3 className="font-bold text-slate-800 dark:text-slate-200 truncate" title={data.name}>
+          <button type="button" className="block w-full truncate text-left" onClick={e => {e.stopPropagation(); onClick();}}>{data.name}</button>
         </h3>
+        <p className="mb-3 truncate text-xs text-slate-500 dark:text-slate-400" title={label}>{typeof data.block_count === 'number' && `${t('dashboard.home.blocks', {count:data.block_count})} · `}{label}</p>
 
-        <div className="flex justify-between items-center mt-auto pt-2">
+        <div className="flex justify-between items-center mt-auto pt-1 border-t border-slate-100 dark:border-slate-800">
           <span className="text-xs text-slate-500 dark:text-slate-500 flex items-center">
             <Clock size={12} className="mr-1" /> {data.last_modified}
           </span>

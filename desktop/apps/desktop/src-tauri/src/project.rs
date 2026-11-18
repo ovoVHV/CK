@@ -472,12 +472,33 @@ pub struct ProjectInfo {
     pub board: String, // "Arduino Uno", "ESP32", etc.
     pub board_package_id: String,
     pub last_modified: String, // ISO 8601 or similar localized string
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub block_count: Option<usize>,
     pub options: String,       // JSON string for additional options (forceBoard etc)
 }
 
-// Config Struct
-// Config Struct
-// Config Struct
+// Count visible Blockly nodes in the saved workspace, not backup shadows or
+// objects in fields and plugin data. Older formats without a count stay unknown.
+fn dashboard_block_count(project: &serde_json::Value) -> Option<usize> {
+    let raw = project.get("xml")?.as_str()?.trim();
+    if raw.is_empty() { return Some(0); }
+    let state: serde_json::Value = serde_json::from_str(raw).ok()?;
+    let roots = state.get("blocks")?.get("blocks")?.as_array()?;
+    let mut pending: Vec<_> = roots.iter().collect();
+    let mut count = 0;
+    while let Some(node) = pending.pop() {
+        node.get("type")?.as_str()?;
+        count += 1;
+        for connection in node.get("inputs").and_then(|v| v.as_object())
+            .into_iter().flat_map(|inputs| inputs.values()).chain(node.get("next")) {
+            if let Some(child) = connection.get("block").or_else(|| connection.get("shadow")) {
+                pending.push(child);
+            }
+        }
+    }
+    Some(count)
+}
+
 // Config Struct with Migration Support
 #[derive(Debug, Serialize, Deserialize)]
 struct AppConfig {
@@ -782,6 +803,7 @@ fn create_project_in_dir(
         board,
         board_package_id: concrete_package_id,
         last_modified: "Now".to_string(),
+        block_count: Some(0),
         options: "{}".to_string(),
     })
 }
@@ -826,8 +848,10 @@ fn list_projects_in_dirs(dirs: &[PathBuf]) -> Vec<ProjectInfo> {
 
                         let mut board = "Arduino Uno".to_string();
                         let mut board_package_id = String::new();
+                        let mut block_count = None;
                         if let Ok(content) = fs::read_to_string(&path) {
                             if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+                                block_count = dashboard_block_count(&json);
                                 if let Some(b) = json.get("board").and_then(|v| v.as_str()) {
                                     board = b.to_string();
                                 }
@@ -848,6 +872,7 @@ fn list_projects_in_dirs(dirs: &[PathBuf]) -> Vec<ProjectInfo> {
                             board,
                             board_package_id,
                             last_modified: modified_str,
+                            block_count,
                             options: "{}".to_string(),
                         });
                     }
@@ -906,8 +931,10 @@ pub async fn list_community_examples(app: AppHandle) -> Result<Vec<ProjectInfo>,
 
             let mut board = "Arduino Uno".to_string();
             let mut board_package_id = String::new();
+            let mut block_count = None;
             if let Ok(content) = fs::read_to_string(&path) {
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+                    block_count = dashboard_block_count(&json);
                     if let Some(b) = json.get("board").and_then(|v| v.as_str()) {
                         board = b.to_string();
                     }
@@ -927,6 +954,7 @@ pub async fn list_community_examples(app: AppHandle) -> Result<Vec<ProjectInfo>,
                 board,
                 board_package_id,
                 last_modified: modified_str,
+                block_count,
                 options: "{}".to_string(),
             });
         }
@@ -1465,6 +1493,7 @@ pub async fn save_project_as(
         board,
         board_package_id: concrete_package_id,
         last_modified: "Now".to_string(),
+        block_count: None,
         options: options.unwrap_or_else(|| "{}".to_string()),
     })
 }

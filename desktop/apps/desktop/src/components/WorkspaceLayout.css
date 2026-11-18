@@ -1,0 +1,119 @@
+.ck-workspace-header {
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+    align-items: center;
+    min-height: 52px;
+    gap: 10px;
+    padding: 6px 12px;
+}
+.ck-project-tools, .ck-workspace-toolbar-actions { gap: 5px; }
+.ck-workspace-toolbar-actions { justify-self: end; }
+.ck-workspace-header button:focus-visible, .ck-target-detail summary:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+}
+.ck-file-command, .ck-project-tools .ck-library-toolbar-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 7px;
+    background: transparent;
+    border: 0;
+    border-radius: 5px;
+    color: inherit;
+    font-size: 12px;
+    font-weight: 550;
+    white-space: nowrap;
+}
+.ck-project-tools .ck-library-toolbar-button:hover, .ck-file-command:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+.ck-file-command[data-dirty=true]::after {
+    content: "";
+    position: absolute;
+    inset: 3px 3px auto auto;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--color-brand-500);
+}
+.ck-device-tools { border-radius: 18px; height: 36px; padding: 0 3px; }
+.ck-project-tools .ck-workspace-project-title { max-width: 115px; }
+.ck-device-tools button:disabled { opacity: .5; }
+.ck-device-tools > button:last-child { width: 28px; border-left: 0; border-radius: 0 16px 16px 0; }
+.ck-board-command, .ck-port-command {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    padding: 0 9px;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+.ck-board-command { border-radius: 16px 0 0 16px; max-width: 172px; }
+.ck-port-command { max-width: 120px; white-space: nowrap; }
+.ck-board-command:hover, .ck-port-command:hover { background: var(--accent-soft); }
+.ck-target-detail { font-size: 12px; }
+.ck-target-detail summary { display: grid; place-items: center; width: 24px; height: 32px; cursor: pointer; color: #a45a08; }
+.dark .ck-target-detail summary { color: #fdba74; }
+.ck-target-popover {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 8px); left: 0;
+    width: 258px; padding: 14px;
+    border: 1px solid #e4d5ba; border-radius: 8px;
+    background: white; box-shadow: 0 5px 16px #23262918;
+}
+.ck-target-popover p { margin: 6px 0 10px; line-height: 1.6; }
+.ck-target-popover button { color: var(--accent); font-weight: 600; }
+.dark .ck-target-popover { background: #21252a; border-color: #5e4931; }
+.ck-workspace-main {
+    display: grid;
+    grid-template: minmax(0, 1fr) auto / minmax(0, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+}
+.ck-workspace-main > .ck-workspace-stage { grid-area: 1 / 1; }
+.ck-workspace-main > aside { grid-row: 1 / 3; }
+.ck-workspace-main > .ck-ai-panel--drawer { grid-area: auto; }
+.ck-workspace-main > .ck-console-panel, .ck-workspace-main > button { grid-area: 2 / 1; min-width: 0; }
+.ck-console-panel { container-type: inline-size; }
+@container (max-width: 900px) {
+    .ck-serial-toolbar-scroll label > span, .ck-serial-toolbar-scroll .ck-serial-action-button > span,
+    .ck-serial-toolbar-scroll .ck-serial-view-button > svg { display: none; }
+    .ck-serial-toolbar-scroll .ck-serial-console-tab { padding-inline: 6px; }
+    .ck-serial-toolbar-scroll .ck-serial-control-select { min-width: 64px; }
+}
+@container (max-width: 700px) {
+    /* The port remains available in the device toolbar above the canvas. */
+    .ck-serial-toolbar-scroll label[title="当前串口端口"] { display: none; }
+    .ck-serial-toolbar-scroll .ml-auto { gap: 3px; padding-left: 4px; }
+}
+@media (max-width: 1499px) {
+    .ck-project-tools .ck-workspace-project-title, .ck-project-tools .ck-workspace-brand { display: none; }
+}
+@media (max-width: 1179px) {
+    .ck-workspace-header { grid-template-columns: auto minmax(max-content, 1fr) auto; gap: 5px; padding-inline: 8px; }
+    .ck-device-tools { justify-self: center; }
+    .ck-project-tools { gap: 3px; }
+    .ck-project-tools > button:first-child span, .ck-file-command span { display: none; }
+    .ck-project-tools .ck-file-command[data-ck-role="file-menu-trigger"] span { display: inline-flex; }
+    .ck-project-tools .ck-file-command[data-ck-role="file-menu-trigger"] { gap: 3px; padding-inline: 6px; }
+    .ck-board-command { max-width: 125px; }
+}
+@media (max-width: 1049px) {
+    .ck-project-tools .ck-editor-tabs button { padding-inline: 6px; min-width: 34px; }
+    .ck-workspace-toolbar-actions [data-ck-role=view-menu-trigger] > span,
+    .ck-workspace-toolbar-actions [data-ck-role=ai-assistant-trigger] > svg { display: none; }
+    .ck-workspace-toolbar-actions { gap: 3px; }
+    .ck-device-tools .ck-port-command { padding-inline: 5px; }
+    .ck-project-tools .ck-file-command { padding-inline: 5px; }
+}
+@media (max-width: 855px) {
+    .ck-workspace-header { grid-template-columns: 1fr auto; }
+    .ck-device-tools { grid-row: 2; grid-column: 1 / -1; justify-self: start; }
+    .ck-workspace-toolbar-actions { grid-row: 1; grid-column: 2; }
+}

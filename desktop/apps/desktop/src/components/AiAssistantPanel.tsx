@@ -227,15 +227,13 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
         const parent = panel.current?.parentElement;
         if (!parent) return;
         const resize = () => {
-            const siblingWidth = Array.from(parent.children).filter(child => child !== panel.current && !child.classList.contains('ck-workspace-stage'))
-                .reduce((total, child) => total + (getComputedStyle(child).position === 'absolute' ? 0 : child.getBoundingClientRect().width), 0);
-            const room = parent.clientWidth - siblingWidth;
-            setDrawer(room < 900); setAvailable(room < 900 ? parent.clientWidth : room); setAvailableHeight(parent.clientHeight);
+            // AI is exclusive with the code and health inspectors. The console
+            // shares the canvas column and never reduces the width or height here.
+            setDrawer(parent.clientWidth < 900); setAvailable(parent.clientWidth); setAvailableHeight(parent.clientHeight);
         };
         const observer = new ResizeObserver(resize); observer.observe(parent);
-        const observe = () => { Array.from(parent.children).forEach(child => { if (child !== panel.current && !child.classList.contains('ck-workspace-stage')) observer.observe(child); }); resize(); };
-        const mutation = new MutationObserver(observe); mutation.observe(parent, { childList: true }); observe();
-        return () => { observer.disconnect(); mutation.disconnect(); };
+        resize();
+        return () => observer.disconnect();
     }, [props.open]);
     useLayoutEffect(() => { props.onLayout(); }, [props.open, drawer]);
     useLayoutEffect(() => {
@@ -465,13 +463,12 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
             </div>
         </header>
         <div className="ck-ai-context"><CircuitBoard size={14} /><span title={props.boardLabel}>{props.boardLabel || '尚未选择板卡'}</span><span className="ck-ai-mode">{modeLabel[intent.kind]}{intent.blockId ? ' · 已选中' : ''}</span></div>
-        {!settings && !historyOpen && <><div className="ck-ai-currentchat"><span title={chat.title}>{chat.title}</span><small role="status">{storeStatus}</small></div>
+        {!settings && !historyOpen && <>{(chat.revision || messages.length || storeStatus !== '新聊天') ? <div className="ck-ai-currentchat"><span title={chat.title}>{chat.title}</span><small role="status">{storeStatus}</small></div> : null}
             <div className="ck-ai-task-modes" aria-label="AI任务模式">
                 <button type="button" aria-pressed={intent.kind !== 'library'} disabled={busy || applying} onClick={()=>startTask('generate')}>编程助手</button>
                 <button type="button" aria-pressed={intent.kind === 'library'} disabled={busy || applying} onClick={()=>startTask('library')}>制作积木库</button>
             </div>
             {intent.kind === 'library' && <label className="ck-ai-library-auto"><input type="checkbox" checked={autoInstallLibrary} disabled={busy || applying} onChange={e=>setAutoInstallLibrary(e.target.checked)}/>验证通过后自动安装并加载</label>}
-            {intent.kind !== 'library' && <p className="ck-ai-library-auto">缺少积木时，可自动补建库并继续。</p>}
         </>}
         {settings ? <form className="ck-ai-settings" onSubmit={event => { event.preventDefault(); void saveSettings(); }}>
             <button type="button" className="ck-ai-back" onClick={() => { setSettings(false); setError(''); }}><ArrowLeft size={15} />返回对话</button>
@@ -508,12 +505,11 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
             <div className="ck-ai-feed" ref={scroll} onScroll={() => { const node = scroll.current; if (node) follow.current = node.scrollHeight - node.clientHeight - node.scrollTop < 60; }}>
                 {intent.kind === 'library' && !busy && !libraryPreview && <div className="ck-ai-library-intro"><strong>把硬件能力做成可复用积木</strong><p>说明硬件型号、需要的操作和参数。已有驱动时提供接口用法；CK 会生成库、检查积木并试编译，然后按上方开关加载。</p><small>新库先适配当前板卡；缺少硬件资料时 AI 会询问，不代表真机验证。</small></div>}
                 {messages.length === 0 && intent.kind !== 'library' && <div className="ck-ai-welcome">
-                    <span className="ck-ai-eyebrow">从一个想法开始</span><h2>你说想法，<br />一起搭成积木。</h2><p>搭建新程序、修改选中部分，<br />或从编译错误找到下一步。</p>
+                    <h2>想搭建什么程序？</h2>
                     <div className="ck-ai-starters">{[
                         ['让板载 LED 每秒闪烁', '搭一个可以直接编辑的程序', Plus],
-                        ['请先读取当前程序，解释它的执行过程', '看懂已有积木的逻辑', MessageSquare],
-                        ['请读取最近的编译诊断，分析原因并提出最小修改', '从真实错误开始修复', CircleAlert],
-                    ].map(([title, detail, Icon], index) => { const Glyph = Icon as typeof Plus; return <button type="button" key={String(title)} onClick={() => startTask(index === 1 ? 'explain' : index === 2 ? 'repair' : 'generate', String(title))}><Glyph size={17} /><span><strong>{String(title)}</strong><small>{String(detail)}</small></span><ChevronRight size={14} /></button>; })}</div>
+                        ['解释当前程序', '逐步查看积木的执行顺序', MessageSquare],
+                    ].map(([title, detail, Icon], index) => { const Glyph = Icon as typeof Plus; return <button type="button" key={String(title)} onClick={() => startTask(index === 1 ? 'explain' : 'generate', String(title))}><Glyph size={17} /><span><strong>{String(title)}</strong><small>{String(detail)}</small></span><ChevronRight size={14} /></button>; })}</div>
                 </div>}
                 {storeError && <p role="alert" className="ck-ai-error">{storeError}</p>}
                 {memory && <details className="ck-ai-memory"><summary>已压缩 {memory.compressions} 次 · 原聊天仍保留</summary><p>{memory.summary}</p></details>}

@@ -14,10 +14,11 @@ const workspacePath = path.join(componentDirectory, 'Workspace.tsx');
 const appPath = path.join(sourceDirectory, 'App.tsx');
 const stylesheetPath = path.join(sourceDirectory, 'index.css');
 
-const [workspaceSource, appSource, stylesheetSource] = await Promise.all([
+const [workspaceSource, appSource, stylesheetSource, workspaceLayoutCss] = await Promise.all([
     readFile(workspacePath, 'utf8'),
     readFile(appPath, 'utf8'),
     readFile(stylesheetPath, 'utf8'),
+    readFile(path.join(componentDirectory, 'WorkspaceLayout.css'), 'utf8'),
 ]);
 
 function classNameContaining(source, marker) {
@@ -63,9 +64,7 @@ test('workspace fullscreen structure has no width cap and every flex child may s
     for (const expected of ['h-full', 'w-full', 'min-w-0', 'flex', 'flex-col', 'overflow-hidden']) {
         assert.ok(hasClass(layoutClasses.shell, expected), `workspace shell must retain ${expected}`);
     }
-    for (const expected of ['flex', 'shrink-0']) {
-        assert.ok(hasClass(layoutClasses.header, expected), `workspace header must retain ${expected}`);
-    }
+    assert.ok(hasClass(layoutClasses.header, 'shrink-0'));
     for (const expected of ['flex', 'flex-1', 'min-w-0', 'w-full', 'max-w-full', 'overflow-hidden']) {
         assert.ok(hasClass(layoutClasses.main, expected), `workspace main must retain ${expected}`);
     }
@@ -306,6 +305,7 @@ test('isolated DOM fills 1024 through 2048px viewports without a right gap or ho
       .relative { position: relative; }
       .absolute { position: absolute; }
       .inset-0 { inset: 0; }
+      ${workspaceLayoutCss}
     `;
     const html = layoutFixture(fixtureCss);
     const dataUrl = `data:text/html;base64,${Buffer.from(html).toString('base64')}`;

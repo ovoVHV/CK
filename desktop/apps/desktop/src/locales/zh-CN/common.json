@@ -118,6 +118,19 @@
     }
   },
   "dashboard": {
+    "home": {
+      "title": "硬件开发工作台",
+      "modes": "积木与 C++",
+      "awaitDevice": "待连接设备",
+      "lastProject": "上次编辑",
+      "check": "快速检查",
+      "history": "上次检查记录",
+      "filter": "筛选工程",
+      "all": "全部",
+      "other": "其他板卡",
+      "clear": "清除筛选",
+      "blocks": "{{count}} 块积木"
+    },
     "header": {
       "subtitle": "硬件开发工作台 · {{itemCount}}",
       "projectCount_one": "{{count}} 个项目",
