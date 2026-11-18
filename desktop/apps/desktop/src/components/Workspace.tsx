@@ -25,8 +25,6 @@ import {
     Loader2,
     CircuitBoard,
     ChevronDown,
-    ChevronsUpDown,
-    ChevronsDownUp,
     SlidersHorizontal,
     Search,
     Code,
@@ -111,9 +109,10 @@ import './WorkspaceSourcePane.css';
 import { WorkspaceModeSwitch } from './WorkspaceModeSwitch';
 const prepareSourcePane = () => import('./WorkspaceSourcePane');
 const WorkspaceSourcePane = lazy(() => prepareSourcePane().then(module => ({ default: module.WorkspaceSourcePane })));
-import { getWorkspaceSource, setWorkspaceSource, subscribeWorkspaceSource, selectSourceMode, workspaceCompileCode, type WorkspaceSource } from '../services/workspace_source';
+import { getWorkspaceSource, setWorkspaceSource, subscribeWorkspaceSource, selectSourceMode, syncWorkspaceSource, resolveWorkspaceSource, workspaceCompileCode, type WorkspaceSource } from '../services/workspace_source';
 import { BuildIssueCards } from './BuildIssueCards';
 import { AiAssistantPanel } from './AiAssistantPanel';
+import { ConsoleDock, ConsoleSizeToggle } from './ConsoleDock';
 import { compileAiCandidate, generateAiCandidate } from '../services/ai_candidate';
 import { createAiLibraryHost } from '../services/ai_library_host';
 import { validateAiBehavior } from '../services/ai_behavior';
@@ -1346,7 +1345,6 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     const linesReceivedRef = useRef(0);
     // const [monitorStats, setMonitorStats] = useState({ kbps: 0, lps: 0 }); // Moved to StatusFooter
 
-    const [consoleExpanded, setConsoleExpanded] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [showTimestamp, setShowTimestamp] = useState(false);
     const [consoleViewMode, setConsoleViewMode] = useState<'text' | 'plot'>('text');
@@ -1699,7 +1697,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             }, 350);
             return () => clearTimeout(timer);
         }
-    }, [consoleExpanded, consoleOpen, codeViewOpen]);
+    }, [consoleOpen, codeViewOpen]);
 
     // Cleanup Serial Monitor on Unmount/Exit
     useEffect(() => {
@@ -2679,6 +2677,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
         // This is the same complete serializer used by normal project saves.
         // Custom serializer state (including breakpoints and mutators) stays opaque.
+        if (getWorkspaceSource(workspace)) syncWorkspaceSource(workspace, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspace)));
         const state = Blockly.serialization.workspaces.save(workspace);
         const workspaceJson = JSON.stringify(state);
         const code = workspaceCompileCode(workspace, ws => arduinoGenerator.workspaceToCode(ws));
@@ -2800,7 +2799,15 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         options: CompileRunOptions = {},
     ): Promise<boolean> => {
         if (isCompilingRef.current || projectLoadingRef.current) return false;
+        if (workspaceRef.current && getWorkspaceSource(workspaceRef.current)) {
+            try { syncWorkspaceSource(workspaceRef.current, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspaceRef.current))); }
+            catch (error) { showToast(`源码同步失败：${String(error)}`, 'error'); return false; }
+        }
         const sourceBuild = workspaceSourceRef.current?.mode === 'source';
+        if (sourceBuild && workspaceSourceRef.current?.pendingGenerated !== undefined) {
+            showToast('积木与手写源码有冲突，请先在源码上方处理同步。', 'info');
+            return false;
+        }
         if (sourceBuild && (options.uploadMode === 'debug' || options.uploadMode === 'trace')) {
             showToast('积木断点与运行轨迹仅用于积木模式，请先切回积木', 'info');
             return false;
@@ -6348,6 +6355,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 // Keep the ref synchronous so grouped Blockly events compare against
                 // the latest generated source before React effects have flushed.
                 generatedCodeRef.current = code;
+                syncWorkspaceSource(ws, stripBlockMarkers(code));
                 setCodePreviewPending(false);
                 setCodePreviewError(false);
 
@@ -7066,7 +7074,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             const savedTargetBefore = recordedBuildTargetRef.current;
             showToast('正在保存...', 'loading');
             // @ts-ignore
-            const state = Blockly.serialization.workspaces.save(workspaceRef.current);
+            if (getWorkspaceSource(workspaceRef.current)) syncWorkspaceSource(workspaceRef.current, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspaceRef.current)));
+        const state = Blockly.serialization.workspaces.save(workspaceRef.current);
             const json = JSON.stringify(state);
             const code = workspaceCompileCode(workspaceRef.current, ws => arduinoGenerator.workspaceToCode(ws));
 
@@ -7241,6 +7250,17 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (workspaceRef.current !== workspace || getWorkspaceSource(workspace) !== previous || isCompilingRef.current) return;
         updateProjectSource(selectSourceMode(null, generated));
     };
+    const resolveProjectSource = (choices: Record<number, 'manual' | 'generated'>) => {
+        const workspace = workspaceRef.current;
+        if (!workspace || editorSwitchBlocked) return;
+        const previous = getWorkspaceSource(workspace);
+        if (!previous || previous.pendingGenerated === undefined) return;
+        try {
+            const next = resolveWorkspaceSource(previous, choices);
+            updateProjectSource(next);
+            showToast('源码冲突已处理，其他积木修改已合并', 'success');
+        } catch (error) { showToast(String(error), 'error'); }
+    };
     const exportProjectSource = async () => {
         try {
             const code = workspaceSourceRef.current?.code;
@@ -7375,7 +7395,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 // Capture after the native picker returns, only while the same
                 // completed project load session is still current.
                 // @ts-ignore
-                const state = Blockly.serialization.workspaces.save(workspaceRef.current);
+                if (getWorkspaceSource(workspaceRef.current)) syncWorkspaceSource(workspaceRef.current, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspaceRef.current)));
+        const state = Blockly.serialization.workspaces.save(workspaceRef.current);
                 const json = JSON.stringify(state);
                 const code = workspaceCompileCode(workspaceRef.current, ws => arduinoGenerator.workspaceToCode(ws));
                 const savedBuildTarget = captureBuildTarget();
@@ -8148,7 +8169,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     </button>
                     <BrandLogo className="ck-workspace-brand h-8 w-[66px]" />
                     <WorkspaceModeSwitch source={sourceMode} disabled={editorSwitchBlocked} onChange={switchEditorMode} onPrepareSource={() => { void prepareSourcePane(); }} />
-                    <div className="hidden min-[1200px]:flex min-w-0 flex-col justify-center mr-1">
+                    <div className="ck-workspace-project-title hidden min-[1200px]:flex min-w-0 flex-col justify-center mr-1">
                         <span className="flex items-center gap-1.5 font-bold text-sm text-slate-900 leading-4 whitespace-nowrap dark:text-slate-100">
                             CK
                             {isProjectDirty && (
@@ -8186,14 +8207,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         </button>
                     </div>
 
-                    <div className="min-[1800px]:hidden flex items-center h-9 p-0.5 bg-[#f1f4f8] border border-[#e1e7ef] rounded-md shrink-0 relative dark:border-slate-700 dark:bg-slate-800">
+                    <div className="ck-workspace-file-group min-[1800px]:hidden flex items-center h-9 p-0.5 bg-[#f1f4f8] border border-[#e1e7ef] rounded-md shrink-0 relative dark:border-slate-700 dark:bg-slate-800">
                         <button onClick={handleOpenFile} className="hidden min-[1200px]:flex h-8 px-2 items-center gap-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100" title="打开工程">
                             <FolderOpen size={15} /> 打开
                         </button>
                         <button onClick={handleSave} className="hidden min-[1200px]:flex h-8 px-2 items-center gap-1.5 rounded text-slate-600 hover:text-[var(--accent)] hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-brand-300" title="保存项目">
                             <Save size={15} /> 保存
                         </button>
-                        <button onClick={() => setIsFileMenuOpen((value) => !value)} className="h-8 px-2 flex items-center gap-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100" aria-haspopup="menu" aria-expanded={isFileMenuOpen}>
+                        <button aria-label="文件操作" onClick={() => setIsFileMenuOpen((value) => !value)} className="h-8 px-2 flex items-center gap-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-white transition-colors text-xs font-semibold whitespace-nowrap dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100" aria-haspopup="menu" aria-expanded={isFileMenuOpen}>
                             <FilePlus size={15} /> <span className="min-[1200px]:hidden">文件</span><span className="hidden min-[1200px]:inline">更多</span> <ChevronDown size={11} />
                         </button>
                         {isFileMenuOpen && (
@@ -8208,9 +8229,6 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                     </button>
                                     <button onClick={() => { void handleSaveAs(); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
                                         <FilePlus size={15} /> 另存为
-                                    </button>
-                                    <button onClick={() => { setIsLibManagerOpen(true); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <BookOpen size={15} /> 库管理器
                                     </button>
                                     <button onClick={() => { setIsCheckpointsOpen(true); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
                                         <ArchiveRestore size={15} /> 工程检查点
@@ -8231,6 +8249,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 </div>
 
                 <div className="ck-workspace-toolbar-actions ml-auto flex items-center gap-2 shrink-0">
+                    <button type="button" data-ck-role="library-manager-trigger" className="ck-library-toolbar-button" onClick={() => setIsLibManagerOpen(true)} title="库管理器 · 安装、启用和管理积木库" aria-label="库管理器">
+                        <BookOpen size={16} /><span>库管理器</span>
+                    </button>
                     <div className="h-10 flex items-stretch bg-white border border-[#dce3ec] rounded-md relative z-20 dark:border-slate-700 dark:bg-slate-800">
                         <button
                             onClick={() => setIsConfigOpen(true)}
@@ -8256,7 +8277,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 className="h-full w-[94px] min-[1800px]:w-[138px] px-2.5 flex items-center gap-2 text-left hover:bg-[#f5f8fa] transition-colors min-w-0 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-700"
                                 onClick={() => setIsPortMenuOpen(!isPortMenuOpen)}
                                 disabled={isDeviceHealthRunning}
-                                title={activePort || '选择串口'}
+                                data-ck-role="toolbar-port-select" title={activePort || '选择串口'}
                                 aria-haspopup="menu"
                                 aria-expanded={isPortMenuOpen}
                             >
@@ -8496,8 +8517,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     </div>
 
                     <div className="relative shrink-0">
-                        <button onClick={() => setIsViewMenuOpen((value) => !value)} className="h-10 px-2.5 border border-[#dce3ec] bg-white rounded-md flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" aria-haspopup="menu" aria-expanded={isViewMenuOpen}>
-                            <Code size={16} /> 视图 <ChevronDown size={12} />
+                        <button aria-label="视图菜单" data-ck-role="view-menu-trigger" onClick={() => setIsViewMenuOpen((value) => !value)} className="h-10 px-2.5 border border-[#dce3ec] bg-white rounded-md flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" aria-haspopup="menu" aria-expanded={isViewMenuOpen}>
+                            <Code size={16} /><span>视图</span><ChevronDown size={12} />
                         </button>
                         {isViewMenuOpen && (
                             <>
@@ -8613,7 +8634,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 */}
                 <div className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]" data-editor-mode={sourceMode ? 'source' : 'blocks'}>
                     <div id="ck-blocks-panel" role="tabpanel" aria-labelledby="ck-blocks-tab" className="ck-blocks-panel absolute inset-0" ref={blocklyDiv} style={{ touchAction: 'none', display: sourceMode ? 'none' : undefined }} aria-hidden={sourceMode} inert={sourceMode}></div>
-                    {workspaceSource && <div id="ck-source-panel" role="tabpanel" aria-labelledby="ck-source-tab" className="ck-source-panel" hidden={!sourceMode} inert={!sourceMode}><Suspense fallback={<div role="status" className="ck-source-loading">正在准备编辑器…</div>}><WorkspaceSourcePane active={sourceMode} dirty={isProjectDirty} followsBlocks={workspaceSource.code === stripBlockMarkers(generatedCode)} actionsDisabled={editorSwitchBlocked}
+                    {workspaceSource && <div id="ck-source-panel" role="tabpanel" aria-labelledby="ck-source-tab" className="ck-source-panel" hidden={!sourceMode} inert={!sourceMode}><Suspense fallback={<div role="status" className="ck-source-loading">正在准备编辑器…</div>}><WorkspaceSourcePane source={workspaceSource} onResolve={resolveProjectSource} active={sourceMode} dirty={isProjectDirty} followsBlocks={workspaceSource.code === workspaceSource.generatedBase} actionsDisabled={editorSwitchBlocked}
                         onImport={() => { void importProjectSource(); }} onExport={() => { void exportProjectSource(); }} onRegenerate={() => { void replaceSourceFromBlocks(); }} code={workspaceSource.code} documentKey={currentPath + ':' + projectLoadedRevision}
                         dark={resolvedTheme === 'dark'} readOnly={Boolean(isCompiling || isBuildPreparing || projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure)}
                         log={sourceBuildCodeRef.current === workspaceSource!.code ? compileLog : ''}
@@ -8897,11 +8918,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
             {/* Bottom: Console / Serial Monitor */}
             {consoleOpen ? (
-                <div
-                    className="ck-console-panel ck-serial-console-panel bg-[#fbfcfe] border-t border-[#dce3ec] flex flex-col shrink-0 relative dark:border-slate-700 dark:bg-slate-950"
-                    data-expanded={consoleExpanded}
-                    style={{ height: consoleExpanded ? 'clamp(180px, calc(100vh - 420px), 340px)' : 'clamp(144px, 22vh, 176px)', maxHeight: '45%' }}
-                >
+                <ConsoleDock>
                     {/* Toolbar */}
                     <div className="ck-serial-console-toolbar h-9 bg-[#f4f7fa] flex items-center px-2 select-none border-b border-[#dce3ec] shrink-0 min-w-0 dark:border-slate-700 dark:bg-slate-900">
                         <div className="ck-serial-toolbar-scroll flex flex-1 min-w-0 h-full items-center overflow-x-auto overflow-y-hidden">
@@ -9061,18 +9078,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         </div>
                         </div>
                         <div className="ck-serial-panel-actions flex items-center shrink-0 gap-1 pl-2 h-full">
-                            <button
-                                type="button"
-                                data-ck-action="toggle-console-size"
-                                onClick={() => setConsoleExpanded(value => !value)}
-                                aria-expanded={consoleExpanded}
-                                aria-label={consoleExpanded ? '恢复紧凑控制台' : '展开控制台'}
-                                title={consoleExpanded ? '恢复紧凑高度' : '展开查看更多输出'}
-                                className="ck-serial-icon-button h-7 px-1.5 flex items-center justify-center gap-1 rounded text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                            >
-                                {consoleExpanded ? <ChevronsDownUp size={14} /> : <ChevronsUpDown size={14} />}
-                                <span className="text-[10px] whitespace-nowrap">{consoleExpanded ? '紧凑' : '展开'}</span>
-                            </button>
+                            <ConsoleSizeToggle />
                             <button
                                 type="button"
                                 onClick={() => setConsoleOpen(false)}
@@ -9248,7 +9254,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             </button>
                         </div>
                     )}
-                </div>
+                </ConsoleDock>
 
             ) : isConsoleDetached ? (
                 <div

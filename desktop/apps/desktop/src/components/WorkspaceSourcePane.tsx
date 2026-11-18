@@ -3,9 +3,12 @@ import { Code2, ChevronDown, FileInput, FileOutput, RefreshCw } from 'lucide-rea
 import { SourceCodeEditor } from './SourceCodeEditor';
 import { sourceDiagnostics } from '../services/source_project';
 import './WorkspaceSourcePane.css';
+import { SourceSyncReview } from './SourceSyncReview';
+import type { WorkspaceSource } from '../services/workspace_source';
 
-export function WorkspaceSourcePane({ code, documentKey, active, dirty, followsBlocks, actionsDisabled, onImport, onExport, onRegenerate, dark, readOnly, log, onChange, onSave, onBuild, onNotice }: {
+export function WorkspaceSourcePane({ code, documentKey, active, dirty, followsBlocks, source, onResolve, actionsDisabled, onImport, onExport, onRegenerate, dark, readOnly, log, onChange, onSave, onBuild, onNotice }: {
     code: string; documentKey: string; active: boolean; dirty: boolean; followsBlocks: boolean; actionsDisabled: boolean;
+    source: WorkspaceSource; onResolve: (choices: Record<number, 'manual' | 'generated'>) => void;
     onImport: () => void; onExport: () => void; onRegenerate: () => void;
     dark: boolean; readOnly: boolean; log: string;
     onChange: (value: string) => void; onSave: () => void; onBuild: () => void; onNotice: (message: string) => void;
@@ -44,13 +47,14 @@ export function WorkspaceSourcePane({ code, documentKey, active, dirty, followsB
                 </div>}
             </div>
         </div>
+        {source.pendingGenerated !== undefined && <SourceSyncReview key={documentKey} source={source} disabled={actionsDisabled} onResolve={onResolve} />}
         {diagnostics.length > 0 && <div className="ck-source-errors" aria-label="源码诊断">{diagnostics.map((d, i) =>
             <button key={i} onClick={() => setReveal({ ...d, sequence: Date.now() })} title={d.message}><b>第 {d.line} 行</b><span>{d.message}</span></button>)}</div>}
         <div className="ck-source-edit-area"><SourceCodeEditor code={code} documentKey={documentKey} active={active} dark={dark} readOnly={readOnly}
             diagnostics={diagnostics} reveal={reveal} onChange={onChange} onSave={onSave} onBuild={onBuild}
             onCursor={(line, column) => setCursor({ line, column })} onRejectedEdit={onNotice} /></div>
         <div className="ck-source-status">
-            <span title="源码与积木分别保留，编译使用当前选中的模式。手写 C++ 不会反向转换为积木。">{readOnly ? '只读' : followsBlocks ? '与积木一致' : '手写源码'}</span>
+            <span title="积木修改会自动合并到源码；同一处冲突时由你选择。手写 C++ 不会反向转换为积木。">{readOnly ? '只读' : source.pendingGenerated !== undefined ? '同步待处理' : followsBlocks ? '已与积木同步' : '已同步 · 含手写修改'}</span>
             <span className="ck-source-cursor">行 {cursor.line}，列 {cursor.column}</span><span>UTF-8</span><span title="Ctrl+S 保存 · Ctrl+F 查找 · Ctrl+H 替换 · F7 编译">Arduino C++</span>
         </div>
     </section>;

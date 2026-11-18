@@ -1,0 +1,4 @@
+.ck-panel-resizer{position:absolute;z-index:45;padding:0;border:0;background:transparent;touch-action:none;user-select:none;display:flex;align-items:center;justify-content:center;color:#9aa7b8}
+.ck-panel-resizer--width{left:-4px;top:0;bottom:0;width:8px;cursor:col-resize}.ck-panel-resizer--height{top:-4px;left:0;right:0;height:8px;cursor:row-resize}
+.ck-panel-resizer span{background:currentColor;border-radius:4px;pointer-events:none}.ck-panel-resizer--width span{width:3px;height:34px}.ck-panel-resizer--height span{height:3px;width:42px}
+.ck-panel-resizer:hover,.ck-panel-resizer:focus-visible{color:var(--accent,#c65312);background:#d16b1b1f;outline:none}.dark .ck-panel-resizer{color:#6b7c91}.dark .ck-panel-resizer:hover,.dark .ck-panel-resizer:focus-visible{color:#ffb281}

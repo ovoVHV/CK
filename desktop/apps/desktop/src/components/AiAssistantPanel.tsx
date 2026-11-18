@@ -13,6 +13,7 @@ import type { AiTaskCheckpoint } from '../services/ai_task_checkpoint';
 import { validateAiContext, type AiMemory, type AiUsage, type AiChatMessage } from '../services/ai_context';
 import { DEFAULT_AI_PREFERENCES, AiChatWriter, newAiChat, loadAiPreferences, saveAiPreferences, listAiChats, loadAiChat, deleteAiChat, type AiPreferences, type AiChat, type AiChatListEntry } from '../services/ai_chat_store';
 import './AiAssistantPanel.css';
+import { PanelResizeHandle, useSavedPanelSize } from './PanelResizeHandle';
 
 export interface AiAssistantPanelProps {
     open: boolean;
@@ -95,6 +96,7 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
     const [undoState, setUndoState] = useState<string>();
     const [drawer, setDrawer] = useState(false);
     const [available, setAvailable] = useState(1200);
+    const [panelWidth, savePanelWidth] = useSavedPanelSize('ck_ai_panel_width_v2', 360);
     const [availableHeight, setAvailableHeight] = useState(600);
     const compact = availableHeight < 560;
     const panel = useRef<HTMLElement>(null);
@@ -224,9 +226,16 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
         if (!props.open) return;
         const parent = panel.current?.parentElement;
         if (!parent) return;
-        const resize = () => { setDrawer(parent.clientWidth < 980); setAvailable(parent.clientWidth); setAvailableHeight(parent.clientHeight); latest.current.onLayout(); };
-        const observer = new ResizeObserver(resize); observer.observe(parent); resize();
-        return () => observer.disconnect();
+        const resize = () => {
+            const siblingWidth = Array.from(parent.children).filter(child => child !== panel.current && !child.classList.contains('ck-workspace-stage'))
+                .reduce((total, child) => total + (getComputedStyle(child).position === 'absolute' ? 0 : child.getBoundingClientRect().width), 0);
+            const room = parent.clientWidth - siblingWidth;
+            setDrawer(room < 900); setAvailable(room < 900 ? parent.clientWidth : room); setAvailableHeight(parent.clientHeight);
+        };
+        const observer = new ResizeObserver(resize); observer.observe(parent);
+        const observe = () => { Array.from(parent.children).forEach(child => { if (child !== panel.current && !child.classList.contains('ck-workspace-stage')) observer.observe(child); }); resize(); };
+        const mutation = new MutationObserver(observe); mutation.observe(parent, { childList: true }); observe();
+        return () => { observer.disconnect(); mutation.disconnect(); };
     }, [props.open]);
     useLayoutEffect(() => { props.onLayout(); }, [props.open, drawer]);
     useLayoutEffect(() => {
@@ -241,7 +250,7 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
         const contentHeight = textarea.scrollHeight;
         textarea.style.height = `${Math.max(minimum, Math.min(maximum, contentHeight))}px`;
         textarea.style.overflowY = contentHeight > maximum ? 'auto' : 'hidden';
-    }, [draft, props.open, settings, historyOpen, available, availableHeight]);
+    }, [draft, props.open, settings, historyOpen, available, availableHeight, panelWidth]);
     useEffect(() => {
         if (follow.current && scroll.current) scroll.current.scrollTop = messages.length || preview || error || notice ? scroll.current.scrollHeight : 0;
     }, [messages, stream, step, preview, expanded, error, notice]);
@@ -437,11 +446,14 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
     };
     const close = () => { if (busy) stop(); props.onClose(); };
     if (!props.open) return null;
-    const actualWidth = Math.min(360, available);
+    const maxWidth = Math.max(0, Math.min(860, drawer ? available - 32 : available - 360));
+    const minWidth = Math.min(320, maxWidth);
+    const actualWidth = Math.max(minWidth, Math.min(panelWidth, maxWidth));
     return <aside ref={panel} className={`ck-ai-panel ${drawer ? 'ck-ai-panel--drawer' : ''} ${compact ? 'ck-ai-panel--compact' : ''} ${availableHeight < 360 ? 'ck-ai-panel--tight' : ''}`} style={{ width: actualWidth }}
         data-ck-role="ai-assistant" aria-label="CK AI 积木助手" onKeyDown={event => {
             if (event.key === 'Escape' && !event.nativeEvent.isComposing) { event.stopPropagation(); if (settings) setSettings(false); else if(historyOpen)setHistoryOpen(false);else close(); }
         }}>
+        <PanelResizeHandle target={panel} axis="width" size={actualWidth} min={minWidth} max={maxWidth} onCommit={savePanelWidth} label="调整 AI 面板宽度" />
         <header className="ck-ai-header">
             <div className="ck-ai-heading"><span className="ck-ai-mark"><Sparkles size={17} /></span><strong>CK AI</strong><span>积木助手</span></div>
             <div className="ck-ai-actions">
