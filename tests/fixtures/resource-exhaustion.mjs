@@ -14,7 +14,7 @@ mock.module('../../src/discovery.mjs',{namedExports:{...discovery,
 }});
 mock.module('../../src/targets.mjs',{namedExports:{...targets,targetAssetRoots:()=>[]}});
 mock.module('../../src/qualification.mjs',{namedExports:{...qualification,requestScope:()=>({qualified:true})}});
-mock.module('../../src/asset-engine.mjs',{namedExports:{validateAssets:()=>({sha256:'test-content-proof',elapsedMs:0,roots:[]})}});
+mock.module('../../src/asset-engine.mjs',{namedExports:{validateAssets:()=>({sha256:'test-content-proof',elapsedMs:0,roots:[]}),validateSummary:()=>{throw Error('Failed build must not certify outputs');},verifyRepeat:()=>{throw Error('Cold build must not use a repeat proof');}}});
 try{
  const {BuildSession}=await import('../../src/engine.mjs');
  fs.mkdirSync(path.join(dir,'sketch'));fs.writeFileSync(path.join(dir,'sketch/sketch.ino'),'void setup() {}\nvoid loop() {}\n');

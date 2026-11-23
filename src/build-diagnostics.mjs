@@ -15,6 +15,8 @@ export function formatBuildDiagnostics(r) {
  lines.push(`[V9] 实际任务：Discovery GCC=${count('DiscoveryGCC')}，Prototype GCC=${count('PrototypeGCC')}，Compile GCC=${count('CompileGCC')}，Link=${count('Linker')}，Image=${count('ImageGenerator')}`);
  if(r.counts?.DiscoveryCompileGCC)lines.push(`[V9] 编译总数包含发现期间编译=${count('DiscoveryCompileGCC')}；其中直接使用对象=${count('ObjectProducedDuringDiscovery')}；调度阶段编译=${count('SchedulerCompileGCC')}。这些是本次新编对象，不是缓存恢复。`);
  lines.push(`[V9] 对象沿用=${count('ObjectRetained')}，对象恢复=${count('ObjectRestored')}；相同源码快速路径=${r.noOpFastPath?.hit===true?'命中':'未命中'}`);
+ if(r.graphReuse?.reason==='no-live-authority')lines.push('[V9] 当前构建没有可复用的会话状态；这次耗时不能当作连续改码的增量耗时。');
+ if(r.noOpFastPath?.hit && Number.isFinite(r.phases?.noOpOutputValidationMs))lines.push(`[Timing] V9 相同源码：构建目录与产物复核=${seconds('noOpOutputValidationMs')}`);
  lines.push(`[Timing] V9 资产校验：前=${seconds('inputValidationMs')}，后=${seconds('postValidationMs')}；发现及并行编译=${seconds('discoveryMs')}；官方前端=${seconds('officialFrontendMs')}`);
  lines.push(`[Timing] V9 原型=${seconds('prototypeMs')}；任务执行（含收据观察）=${seconds('executeMs')}；收据观察=${seconds('ruleObservationMs')}`);
  if(r.coldDiscovery)lines.push('[Timing] V9 库选择完成='+((r.coldDiscovery.selectionReadyMs??0)/1000).toFixed(3)+'s（从发现开始计时，已包含库编译；与 Core 编译重叠）');

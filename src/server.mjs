@@ -1,6 +1,7 @@
 import http from 'node:http';import fs from 'node:fs';import path from 'node:path';
 import {loadConfig} from './config.mjs';import {LazyBuildController} from './lazy-controller.mjs';import {failure} from './protocol.mjs';import {ENGINE_VERSION,PROTOCOL_VERSION} from './version.mjs';
 import {rejectReparse} from './paths.mjs';
+import {formatBuildDiagnostics} from './build-diagnostics.mjs';
 const arg=k=>process.argv[process.argv.indexOf(k)+1];
 const configFile=arg('--config'),profile=JSON.parse(fs.readFileSync(arg('--profile'),'utf8'));
 // Read the session's diagnostic destination without requiring installed Cores.
@@ -34,7 +35,7 @@ const server=http.createServer(async(req,res)=>{
   else if(req.url==='/ack'){await controller.acknowledge(msg.requestId,msg);result={success:true};}
   else if(req.url==='/cancel'){await controller.cancel(msg.requestId);result={success:true};}
   else throw Error('Unknown route');
-  if(stream){frame('result',{receipt:result});res.end();}else{res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify(result));}
+  if(stream){const diagnostics=req.headers['x-ck-diagnostics']==='1'&&result.success?formatBuildDiagnostics(result):undefined;frame('result',{receipt:result,diagnostics});res.end();}else{res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify(result));}
  }catch(e){if(!res.destroyed){if(stream){frame('result',{receipt:failure(msg.request??{},e)});res.end();}else{res.writeHead(400,{'Content-Type':'application/json'});res.end(JSON.stringify(failure(msg.request??{},e)));}}}
 });
 server.requestTimeout=0;

@@ -1,0 +1,444 @@
+{
+  "version": "9.1.0-alpha.54",
+  "date": "2026-11-23",
+  "system": "Windows x64, one development machine",
+  "espCore": "3.3.6",
+  "avrCore": "1.8.6",
+  "boundaries": {
+    "button": "Actual compile button in released desktop, WiFi on S3; separate sessions, no forced filesystem cache flush. Only one full build per version. Machine load not isolated; descriptive samples, not P95 qualification.",
+    "matrix": "One desktop IPC session per project/board, WiFi connect + wait edits, reference/candidate interleaved. Reference uses old Node bridge and ordinary reference validation in alpha.54; it is not the old alpha.53 process. Both routes check full contents; all exported hashes are compared per source and board. Hardware not flashed."
+  },
+  "buttons": {
+    "s3alpha53": [
+      {
+        "scenario": "first",
+        "ms": 68804,
+        "compile": 71,
+        "link": 1,
+        "image": 3
+      },
+      {
+        "scenario": "repeat",
+        "ms": 8944,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      },
+      {
+        "scenario": "repeat",
+        "ms": 8192,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      },
+      {
+        "scenario": "repeat",
+        "ms": 9002,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      }
+    ],
+    "s3alpha54": [
+      {
+        "scenario": "first",
+        "ms": 62794,
+        "compile": 71,
+        "link": 1,
+        "image": 3
+      },
+      {
+        "scenario": "repeat",
+        "ms": 6888,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      },
+      {
+        "scenario": "repeat",
+        "ms": 6404,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      },
+      {
+        "scenario": "repeat",
+        "ms": 7673,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      }
+    ],
+    "unoAlpha54": [
+      {
+        "scenario": "first",
+        "ms": 10274,
+        "compile": 26,
+        "link": 1,
+        "image": 2
+      },
+      {
+        "scenario": "repeat",
+        "ms": 1027,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      },
+      {
+        "scenario": "repeat",
+        "ms": 1032,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      },
+      {
+        "scenario": "repeat",
+        "ms": 1036,
+        "compile": 0,
+        "link": 0,
+        "image": 0
+      }
+    ]
+  },
+  "matrix": [
+    {
+      "board": "esp32s3",
+      "scenario": "repeat",
+      "referenceMedianMs": 7934,
+      "candidateMedianMs": 6736
+    },
+    {
+      "board": "esp32s3",
+      "scenario": "edit",
+      "referenceMedianMs": 21768,
+      "candidateMedianMs": 21944
+    },
+    {
+      "board": "esp32c3",
+      "scenario": "repeat",
+      "referenceMedianMs": 9039,
+      "candidateMedianMs": 8281
+    },
+    {
+      "board": "esp32c3",
+      "scenario": "edit",
+      "referenceMedianMs": 19632,
+      "candidateMedianMs": 18633
+    },
+    {
+      "board": "esp32",
+      "scenario": "repeat",
+      "referenceMedianMs": 6222,
+      "candidateMedianMs": 5681
+    },
+    {
+      "board": "esp32",
+      "scenario": "edit",
+      "referenceMedianMs": 21326,
+      "candidateMedianMs": 20382
+    }
+  ],
+  "runs": [
+    {
+      "board": "esp32s3",
+      "route": "candidate",
+      "scenario": "first",
+      "ms": 50377,
+      "compile": 71,
+      "link": 1,
+      "image": 3
+    },
+    {
+      "board": "esp32s3",
+      "route": "reference",
+      "scenario": "edit",
+      "ms": 20214,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32s3",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 6995,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32s3",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 6736,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32s3",
+      "route": "candidate",
+      "scenario": "edit",
+      "ms": 21283,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32s3",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 6388,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32s3",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 8534,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32s3",
+      "route": "candidate",
+      "scenario": "edit",
+      "ms": 22604,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32s3",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 7934,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32s3",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 8652,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32s3",
+      "route": "reference",
+      "scenario": "edit",
+      "ms": 23322,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32c3",
+      "route": "candidate",
+      "scenario": "first",
+      "ms": 54026,
+      "compile": 71,
+      "link": 1,
+      "image": 3
+    },
+    {
+      "board": "esp32c3",
+      "route": "reference",
+      "scenario": "edit",
+      "ms": 20585,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32c3",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 8965,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32c3",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 8238,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32c3",
+      "route": "candidate",
+      "scenario": "edit",
+      "ms": 18768,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32c3",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 8584,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32c3",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 9039,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32c3",
+      "route": "candidate",
+      "scenario": "edit",
+      "ms": 18498,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32c3",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 9140,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32c3",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 8281,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32c3",
+      "route": "reference",
+      "scenario": "edit",
+      "ms": 18678,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32",
+      "route": "candidate",
+      "scenario": "first",
+      "ms": 46109,
+      "compile": 71,
+      "link": 1,
+      "image": 3
+    },
+    {
+      "board": "esp32",
+      "route": "reference",
+      "scenario": "edit",
+      "ms": 21214,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 6222,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 5572,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32",
+      "route": "candidate",
+      "scenario": "edit",
+      "ms": 20492,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 5681,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 6159,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32",
+      "route": "candidate",
+      "scenario": "edit",
+      "ms": 20271,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    },
+    {
+      "board": "esp32",
+      "route": "reference",
+      "scenario": "repeat",
+      "ms": 6851,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32",
+      "route": "candidate",
+      "scenario": "repeat",
+      "ms": 5785,
+      "compile": 0,
+      "link": 0,
+      "image": 0
+    },
+    {
+      "board": "esp32",
+      "route": "reference",
+      "scenario": "edit",
+      "ms": 21438,
+      "compile": 1,
+      "link": 1,
+      "image": 2
+    }
+  ],
+  "avrGuards": [
+    "Chinese folder: same-mtime header edit rebuilt firmware; different FQBN used a distinct session",
+    "Active desktop build cancelled and the same project compiled with the expected HEX"
+  ]
+}
