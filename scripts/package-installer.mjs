@@ -84,6 +84,7 @@ fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(pat
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/alpha.50-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/alpha.51-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/alpha.52-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
+fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/alpha.53-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
 const files=[];function scan(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const f=path.join(dir,e.name);if(f===path.join(stage,'files.sha256.json'))continue;if(e.isDirectory())scan(f);else files.push({path:path.relative(stage,f),bytes:fs.statSync(f).size,sha256:hash(f)});}}scan(stage);
 fs.writeFileSync(path.join(stage,'files.sha256.json'),JSON.stringify(files,null,2));files.push({path:'files.sha256.json'});
 const escape=s=>s.replaceAll('$','$$').replaceAll('"','$\\"');

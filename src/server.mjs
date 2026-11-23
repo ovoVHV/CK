@@ -21,7 +21,7 @@ const server=http.createServer(async(req,res)=>{
   if(req.headers.authorization!=='Bearer '+profile.token)throw Error('Unauthorized session');
   if(req.method==='GET'&&req.url==='/health'){res.end(JSON.stringify({engineVersion:ENGINE_VERSION,protocolVersion:PROTOCOL_VERSION,desktopPid,initialized:!!controller.controller,readinessError:controller.readinessError}));return;}
   if(req.method!=='POST')throw Error('Invalid method');const chunks=[];let size=0;
-  for await(const b of req){size+=b.length;if(size>5*1024*1024)throw Error('Oversized request');chunks.push(b);}msg=JSON.parse(Buffer.concat(chunks));
+  for await(const b of req){size+=b.length;if(size>16*1024*1024)throw Error('Oversized request');chunks.push(b);}msg=JSON.parse(Buffer.concat(chunks));
   let result;
   if(req.url==='/build'){
    stream=req.headers.accept==='application/x-ndjson';

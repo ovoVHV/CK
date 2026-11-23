@@ -41,8 +41,6 @@ import {
     Trash2,
     FolderOpen, FilePlus, Send, Cpu, Play, Pause, Type, Activity, BookOpen, Binary, Clock3, Copy, Bug, ArchiveRestore, AlertTriangle, HeartPulse, ShieldCheck, ExternalLink, Palette
 } from 'lucide-react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vs, vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo, listen } from '@tauri-apps/api/event';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
@@ -108,11 +106,13 @@ import { CodePreviewDock } from './CodePreviewDock';
 import './WorkspaceSourcePane.css';
 import './WorkspaceLayout.css';
 import { WorkspaceModeSwitch } from './WorkspaceModeSwitch';
+import { ProjectSourceFiles, type ProjectFilesHandle } from './ProjectSourceFiles';
 const prepareSourcePane = () => import('./WorkspaceSourcePane');
 const WorkspaceSourcePane = lazy(() => prepareSourcePane().then(module => ({ default: module.WorkspaceSourcePane })));
 import { getWorkspaceSource, setWorkspaceSource, subscribeWorkspaceSource, selectSourceMode, syncWorkspaceSource, resolveWorkspaceSource, workspaceCompileCode, type WorkspaceSource } from '../services/workspace_source';
 import { BuildIssueCards } from './BuildIssueCards';
 import { AiAssistantPanel } from './AiAssistantPanel';
+import { projectFilePage, type AiSerialSample } from '../services/ai_project_device';
 import { ConsoleDock, ConsoleSizeToggle } from './ConsoleDock';
 import { compileAiCandidate, generateAiCandidate } from '../services/ai_candidate';
 import { createAiLibraryHost } from '../services/ai_library_host';
@@ -340,7 +340,7 @@ import { createBlocklyEditScheduler } from '../services/blockly_edit_scheduler';
 import { installBlocklyViewportCulling } from '../services/blockly_viewport';
 import { countSerializedBlocks, loadBlocklyWorkspaceProgressively, type BlocklyLoadProgress } from '../services/blockly_progressive_load';
 import { createBlocklyCodePreview } from '../services/blockly_code_preview';
-import { LargeCodePreview } from './LargeCodePreview';
+const SketchCodePreview = lazy(() => import('./SketchCodePreview').then(m => ({default:m.SketchCodePreview})));
 import { getBlocklyVisualTheme } from '../theme/blockly_visual_themes';
 
 const createForegroundBuildRunId = (): string => {
@@ -481,6 +481,7 @@ interface ActiveExtensionLocaleEntry {
 }
 
 interface CompileRunOptions {
+    aiUpload?: {source:string;members:string;check:()=>void};
     codeOverride?: string;
     ensureSerialMonitor?: boolean;
     serialBaudRate?: number;
@@ -787,6 +788,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     const { resolvedTheme } = useAppTheme();
     useEffect(() => installBlocklyOverlayLifecycle(Blockly, document), []);
     const [currentPath, setCurrentPath] = useState(projectPath); // Track path internally for Save As
+    const memberFiles = useRef<ProjectFilesHandle>(null);
     const [reloadTrigger, setReloadTriggerState] = useState(0); // Force reload if opening same file
     const reloadTriggerRef = useRef(reloadTrigger);
     // A code fingerprint changes on every edit; it must never select a new
@@ -1896,10 +1898,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         targetBaud: number,
         source: 'manual' | 'reconnect' | 'restore' | 'switch-baud' = 'manual',
         expectedSettingsSeq?: number,
+        onlyIfIdle = false,
     ) => {
         await invoke('open_serial_monitor', {
             port: portName,
             baud: targetBaud,
+            onlyIfIdle,
         });
 
         if (
@@ -2800,6 +2804,11 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         options: CompileRunOptions = {},
     ): Promise<boolean> => {
         if (isCompilingRef.current || projectLoadingRef.current) return false;
+        if(options.aiUpload && (memberFiles.current?.pending() || boardOptionsStatus==='loading'))return false;
+        if (memberFiles.current?.pending() && !await memberFiles.current.saveAll()) {
+            showToast('附带源码尚未保存，请先处理文件编辑器中的提示', 'error'); return false;
+        }
+        if (isCompilingRef.current || projectLoadingRef.current) return false;
         if (workspaceRef.current && getWorkspaceSource(workspaceRef.current)) {
             try { syncWorkspaceSource(workspaceRef.current, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspaceRef.current))); }
             catch (error) { showToast(`源码同步失败：${String(error)}`, 'error'); return false; }
@@ -3049,6 +3058,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         // still reporting diagnostics. Debug/trace overrides are re-frozen here
         // as long as they retain the inline provenance boundaries.
         const frozenCompileSourceMap = freezeCompileSourceMap(compileCode, { file: 'sketch.ino' });
+        if(options.aiUpload){
+            options.aiUpload.check();
+            if(frozenCompileSourceMap.codeSha256!==options.aiUpload.source)throw Error('当前主程序与通过验证的候选不同，未上传');
+        }
         sourceBuildCodeRef.current = sourceBuild ? compileCode : null;
         compileSourceMapSessionRef.current = sourceBuild ? null : {
             sourceMap: frozenCompileSourceMap,
@@ -3109,6 +3122,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
         const compileEnvironment = getCurrentCompileEnvironment(compileCode);
         const nativeBuildProjectId = `${nativeBuildProjectRef.current}:${currentPathRef.current}:${reloadTriggerRef.current}`;
+        const buildProjectPath = currentPathRef.current;
         const buildEvidence: ForegroundBuildEvidence = Object.freeze({
             schemaVersion: 1,
             runId: createForegroundBuildRunId(),
@@ -3437,6 +3451,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     throw new Error('CK_FRONTEND_BUILD_CANCELED');
                 }
 
+                if(options.aiUpload){options.aiUpload.check();if(!runEvidenceIsCurrent()||memberFiles.current?.pending())throw Error('工程已变化，未启动 AI 上传');}
                 const uploadRaw = await invoke('upload_sketch', {
                     code: compileCode,
                     fqbn: buildEvidence.fqbn,
@@ -3445,10 +3460,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     port: buildEvidence.port,
                     workspaceFingerprint: buildEvidence.workspaceFingerprint,
                     projectId: nativeBuildProjectId,
+                    projectPath: buildProjectPath,
                     sourceMapJson: compileSourceMapJson,
                     probeMemory: !isInstrumentedUpload,
                     lastWorkingVersion: lastWorkingVersionCapture,
                     structuredResult: true,
+                    expectedMemberIdentity:options.aiUpload?.members,
                 }) as string;
 
                 if (!isCurrentSession()) return false;
@@ -3507,6 +3524,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     runId: buildEvidence.runId,
                     workspaceFingerprint: buildEvidence.workspaceFingerprint,
                     projectId: nativeBuildProjectId,
+                    projectPath: buildProjectPath,
                     sourceMapJson: compileSourceMapJson,
                 }) as string;
 
@@ -7197,9 +7215,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     }, [currentRecoveryProjectSession, hasUnsavedProjectChanges, recoveryFormalSaveSessionIsGated]);
     finishFormalSaveOwnerRef.current = finishFormalSaveOwner;
 
-    const handleSave = useCallback((): Promise<boolean> => (
-        formalSaveQueueRef.current!.request()
-    ), []);
+    const handleSave = useCallback(async (): Promise<boolean> => {
+        if (memberFiles.current?.pending() && !await memberFiles.current.saveAll()) {
+            showToast('附带源码尚未保存，请先处理文件编辑器中的提示', 'error'); return false;
+        }
+        return formalSaveQueueRef.current!.request();
+    }, []);
 
     const editorSwitchBlocked = Boolean(isCompiling || isBuildPreparing || projectLoadProgress || unknownBlockProtection
         || projectLoadSafetyError || rendererRecoveryFailure || blockDebugSession.active || !dirtyTrackingReadyRef.current);
@@ -7220,6 +7241,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     const switchEditorMode = (mode: 'blocks' | 'source') => {
         const workspace = workspaceRef.current;
         if (!workspace || editorSwitchBlocked) return;
+        memberFiles.current?.showMain();
         try {
             workspace.hideChaff();
             setAiOpen(false); setCodeViewOpen(false); setIsEngineeringHealthOpen(false);
@@ -7351,6 +7373,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     }, []);
 
     const handleSaveAs = async () => {
+        if (memberFiles.current?.pending() && !await memberFiles.current.saveAll()) {
+            showToast('附带源码尚未保存，无法另存为', 'error'); return;
+        }
         if (saveAsBusyRef.current) {
             showToast('另存为正在进行，请等待当前操作完成', 'error');
             return;
@@ -7415,7 +7440,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     capturedRecordedTarget,
                 );
                 showToast('正在另存为...', 'loading');
-                await invoke('save_project_as', {
+                const savedCopy = await invoke<{path: string}>('save_project_as', {
                     targetPath: selectedPath,
                     sourcePath: /\.(?:ck|maker)$/i.test(saveAsSession.projectPath)
                         ? saveAsSession.projectPath
@@ -7447,13 +7472,13 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 cancelRecoveryDraftTimer();
                 recoveryBaselineRef.current = null;
                 setRecoveryCandidate(null);
-                beginProjectLoad(selectedPath); // Switch context synchronously before any further await.
+                beginProjectLoad(savedCopy.path); // Switch context synchronously before any further await.
                 cleanProjectFingerprintRef.current = savedCopyFingerprint;
                 dirtyTrackingReadyRef.current = true;
                 setIsProjectDirty(false);
                 showToast('另存成功', 'success');
                 try {
-                    await discardProjectRecoveryDrafts(selectedPath);
+                    await discardProjectRecoveryDrafts(savedCopy.path);
                 } catch (error) {
                     console.warn('[RecoveryDrafts] Save-as succeeded but draft cleanup failed', error);
                 }
@@ -7852,7 +7877,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             showToast('请先等待当前编译或上传结束，再离开工程', 'error');
             return false;
         }
-        if (!hasUnsavedProjectChanges()) return true;
+        if (!hasUnsavedProjectChanges() && !memberFiles.current?.pending()) return true;
 
         const choice = await requestUnsavedChoice(context);
         if (choice === 'cancel') return false;
@@ -7945,7 +7970,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            if (allowWindowCloseRef.current || !hasUnsavedProjectChanges()) return;
+            if (allowWindowCloseRef.current || (!hasUnsavedProjectChanges() && !memberFiles.current?.pending())) return;
             event.preventDefault();
             event.returnValue = '';
         };
@@ -7963,7 +7988,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         void import('@tauri-apps/api/window').then(async ({ getCurrentWindow }) => {
             const appWindow = getCurrentWindow();
             const stopListening = await appWindow.onCloseRequested(async (event) => {
-                if (allowWindowCloseRef.current || !hasUnsavedProjectChanges()) return;
+                if (allowWindowCloseRef.current || (!hasUnsavedProjectChanges() && !memberFiles.current?.pending())) return;
                 event.preventDefault();
                 if (!await confirmUnsavedNavigation('close')) return;
                 allowWindowCloseRef.current = true;
@@ -8612,6 +8637,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             </div>}
             {/* Main Content */}
             <div className={`ck-workspace-main flex flex-1 min-h-0 overflow-hidden min-w-0 w-full max-w-full relative z-0 ${isConfigOpen ? 'blur-[2px] opacity-90' : ''} `}>
+                <div className="ck-editing-surface">
                 <div className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]" data-editor-mode={sourceMode ? 'source' : 'blocks'}>
                     <div id="ck-blocks-panel" role="tabpanel" aria-labelledby="ck-blocks-tab" className="ck-blocks-panel absolute inset-0" ref={blocklyDiv} style={{ touchAction: 'none', display: sourceMode ? 'none' : undefined }} aria-hidden={sourceMode} inert={sourceMode}></div>
                     {workspaceSource && <div id="ck-source-panel" role="tabpanel" aria-labelledby="ck-source-tab" className="ck-source-panel" hidden={!sourceMode} inert={!sourceMode}><Suspense fallback={<div role="status" className="ck-source-loading">正在准备编辑器…</div>}><WorkspaceSourcePane source={workspaceSource} onResolve={resolveProjectSource} active={sourceMode} dirty={isProjectDirty} followsBlocks={workspaceSource.code === workspaceSource.generatedBase} actionsDisabled={editorSwitchBlocked}
@@ -8748,8 +8774,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         </div>
                     )}
                 </div>
-
+                {currentPath && !projectLoadProgress && !projectLoadSafetyError && !unknownBlockProtection && !rendererRecoveryFailure &&
+                    <ProjectSourceFiles key={currentPath} path={currentPath} disabled={editorSwitchBlocked} dark={resolvedTheme === 'dark'}
+                        handle={memberFiles} onBuild={() => { void handleCompileAndUpload(false); }} />}
+                </div>
                 <AiAssistantPanel open={aiOpen} intent={aiIntent} projectPath={currentPath || undefined}
+                    devicePort={activePort || ''} deviceBaud={baudRate}
                     sessionKey={JSON.stringify([currentPath, nativeBuildProjectRef.current, activeBoardPackageId])}
                     projectKey={currentPath ? `file:${currentPath.replace(/\\/g,'/').toLowerCase()}` : `unsaved:${nativeBuildProjectRef.current}`}
                     host={{
@@ -8776,7 +8806,30 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         identity: () => JSON.stringify([currentPath, nativeBuildProjectRef.current, captureBuildTarget(), window.CK_BLOCK_CATALOG?.generatedAt]),
                         projectIdentity: () => JSON.stringify([currentPath, nativeBuildProjectRef.current, captureBuildTarget()]),
                         libraryInventory: () => enabledBlockPackageInventoryRef.current,
-                        diagnostics: () => ({ scope: '上次编译结果，不代表当前修改已通过', issues: compileIssues.map(issue => ({ title: issue.title, diagnostic: issue.rawDiagnostic, blockId: issue.blockContext?.blockId })) }),
+                        diagnostics: () => ({ scope: '上次编译结果，不代表当前修改已通过', issues: compileIssues.slice(0,12).map(issue => ({ title: issue.title, diagnostic: issue.rawDiagnostic.slice(0,1200), file:issue.sourceFile, line:issue.sourceLine, blockId: issue.blockContext?.blockId })), ...(!compileIssues.length?{logTail:compileLogRef.current.slice(-3000)}:{}) }),
+                        device:{
+                            files:async(name,offset)=>{
+                                const path=currentPathRef.current;
+                                const names=path?await invoke<string[]|null>('list_project_sources',{path}):[];
+                                return projectFilePage(names??[],async key=>memberFiles.current?.draft(key)??await invoke<{code:string}>('read_project_source',{path,name:key}),name,offset);
+                            },
+                            create:async(files,check)=>{
+                                check();
+                                const tree=memberFiles.current;
+                                if(!currentPath||currentPath!==currentPathRef.current||!tree||tree.pending()||editorSwitchBlocked||isCompilingRef.current||projectLoadingRef.current)throw Error('工程忙碌、受保护或有未保存的源码，请处理后重试');
+                                await invoke('create_ai_project_sources',{path:currentPath,files});
+                                if(tree===memberFiles.current)await tree.refresh();
+                            },
+                            sample:async(text,waitMs,check)=>{
+                                const guard=()=>{check();if(!activePort||activePort!==activePortRef.current||baudRate!==baudRateRef.current||isSerialMonitorSwitching||blockDebugSessionRef.current.active||isCompilingRef.current||deviceHealthRunningRef.current||projectLoadingRef.current)throw Error('设备已切换或正在使用，未执行串口操作');};
+                                guard();
+                                if(!monitorPortRef.current)await openSerialMonitorWithSettings(activePort!,baudRate,'manual',serialSettingsSeqRef.current,true);
+                                guard();
+                                if(monitorPortRef.current!==activePort||monitorBaudRateRef.current!==baudRate)throw Error('当前串口会话不匹配');
+                                const value=await invoke<AiSerialSample>('ai_serial_sample',{port:activePort,baud:baudRate,text,waitMs});
+                                guard(); return value;
+                            },
+                        },
                         validateBehavior: validateAiBehavior,
                         library: createAiLibraryHost({ target: captureBuildTarget, reload: async (preview, verify) => {
                             await loadExtensionsForBoard(activeBoard, activeBoardPackageId, activeBoardPackageBuildGate.canBuild, activeBoardPackage?.is_custom === true);
@@ -8799,11 +8852,13 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             try { return arduinoGenerator.workspaceToCode(candidate); }
                             finally { if (workspaceRef.current) arduinoGenerator.workspaceToCode(workspaceRef.current); }
                         }).code,
-                        validateCandidate: (preview, context) => compileAiCandidate({ preview, ...context, target: captureBuildTarget(),
+                        validateCandidate: async (preview, context) => {
+                            if(memberFiles.current?.pending())throw Error('工程附带文件有未保存的修改，请先保存后再验证');
+                            return compileAiCandidate({ preview, ...context, projectPath:currentPath || undefined,target: captureBuildTarget(),
                             generate: candidate => {
                                 try { return arduinoGenerator.workspaceToCode(candidate); }
                                 finally { if (workspaceRef.current) arduinoGenerator.workspaceToCode(workspaceRef.current); }
-                            } }),
+                            } });},
                     }}
                     boardLabel={`${activeBoard}${activeCoreVersion ? ` · ${activeCoreVersion}` : ''}`}
                     disabledReason={sourceMode ? '当前为源码模式；切回积木后可使用 AI 积木助手。' : projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure ? '工程正在载入或处于保护状态，请先处理。' : !buildEnvironment.resolved ? '板卡参数尚未就绪，请先完成板卡设置。' : isCompiling || isBuildPreparing ? '正在编译或上传，完成后可继续发送或应用修改。' : blockDebugSession.active ? '调试中，请先结束调试。' : undefined}
@@ -8811,6 +8866,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     onLayout={() => { if (workspaceRef.current) Blockly.svgResize(workspaceRef.current); }}
                     beforeApply={() => captureWorkspaceCheckpoint('AI 修改前')}
                     onCompile={async () => ({ ok: await handleCompileAndUpload(false), log: compileLogRef.current })}
+                    verifyMembers={async members=>{if(memberFiles.current?.pending() || members!==await invoke<string>('project_source_identity',{path:currentPath}))throw Error('工程附带源码已变化，请保存后重新验证');}}
+                    onVerifiedUpload={(proof,check)=>handleCompileAndUpload(true,{uploadMode:'normal',aiUpload:{...proof,check}})}
                 />
                 {/* Right: Code Preview */}
                 {codeViewOpen && !sourceMode && (
@@ -8832,25 +8889,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         </div>
                         <div className="min-h-0 min-w-0 flex-1 font-mono text-xs overflow-hidden bg-[#f8fafc] relative dark:bg-[#0b1220]">
                             {codePreviewPending && <div role="status" className="absolute top-0 right-0 z-10 rounded bg-slate-100 px-3 py-1 dark:bg-slate-800">{t(codePreviewError ? 'workspacePerformance.previewFailed' : 'workspacePerformance.previewUpdating')}</div>}
-                            {userReadableCode.length > 100000 ? <LargeCodePreview code={userReadableCode} /> : <SyntaxHighlighter
-                                language="cpp"
-                                style={resolvedTheme === 'dark' ? vscDarkPlus : vs}
-                                customStyle={{
-                                    margin: 0,
-                                    padding: '1rem',
-                                    height: '100%',
-                                    fontSize: '12px',
-                                    backgroundColor: resolvedTheme === 'dark' ? '#0b1220' : '#f8fafc'
-                                }}
-                                showLineNumbers={true}
-                                lineNumberStyle={{
-                                    minWidth: '2em',
-                                    paddingRight: '1em',
-                                    color: resolvedTheme === 'dark' ? '#475569' : '#cbd5e1',
-                                }}
-                            >
-                                {userReadableCode}
-                            </SyntaxHighlighter>}
+                            <Suspense fallback={null}><SketchCodePreview code={userReadableCode} dark={resolvedTheme === 'dark'} /></Suspense>
                         </div>
                     </CodePreviewDock>
                 )}

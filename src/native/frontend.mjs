@@ -10,6 +10,7 @@ import { nonInteractiveStdio } from '../process-stdio.mjs';
 import { executable, sha, writeChanged } from './plan.mjs';
 import {reusablePreprocess} from './preprocess-proof.mjs';
 import {observeCommandDiagnostics} from '../build-resource-evidence.mjs';
+import {sketchSnapshot} from '../sketch-files.mjs';
 
 export class NeedsOfficialFrontend extends Error {}
 export function contractText(code) {
@@ -64,8 +65,7 @@ export function generateSketch(config, plan, preprocessing=null) {
   const sketch = path.resolve(config.sketchDir, path.basename(config.sketchDir) + '.ino');
   const code = fs.readFileSync(sketch, 'utf8').replace(/^\uFEFF/, '').replaceAll('\r\n', '\n');
   sourceContract(code);
-  const sourceFiles = fs.readdirSync(config.sketchDir).filter(name => /\.(ino|pde|cpp|c|h|hpp|s)$/i.test(name));
-  if (sourceFiles.length !== 1 || sourceFiles[0] !== path.basename(sketch)) throw new NeedsOfficialFrontend('Multiple sketch source files');
+  if (sketchSnapshot(config.sketchDir).other.length) throw new NeedsOfficialFrontend('Unsupported sketch inputs');
   const entry = plan.db.find(row => path.basename(row.file) === path.basename(sketch) + '.cpp');
   if (!entry) throw new NeedsOfficialFrontend('Missing sketch compilation unit');
   const generated = entry.file, scratch = path.join(plan.graph, 'frontend');

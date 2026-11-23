@@ -1,4 +1,5 @@
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { GitMerge, X } from 'lucide-react';
 import { mergeSource } from '../services/source_merge';
 import type { WorkspaceSource } from '../services/workspace_source';
 
@@ -6,18 +7,29 @@ export function SourceSyncReview({ source, disabled, onResolve }: { source: Work
     const merge = useMemo(() => mergeSource(source.generatedBase, source.code, source.pendingGenerated!), [source.generatedBase, source.code, source.pendingGenerated]);
     const [open, setOpen] = useState(false);
     const [choices, setChoices] = useState<Record<number, 'manual' | 'generated'>>({});
+    const id = useId(), root = useRef<HTMLElement>(null), trigger = useRef<HTMLButtonElement>(null), close = useRef<HTMLButtonElement>(null);
     useLayoutEffect(() => { setChoices({}); }, [merge]);
-    return <section className="ck-source-sync-review" aria-label="源码同步冲突">
-        <div className="ck-source-sync-summary"><span role="status">积木已更新 · {merge.conflicts.length ? `${merge.conflicts.length} 处修改需要选择` : '等待确认合并'}</span>
-            <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? '收起对比' : '处理冲突'}</button></div>
-        {open && <div className="ck-source-sync-details">
-            <p>{merge.wholeFile ? '合并后可能超出 1 MiB。请选择要保留的完整源码版本。' : '其他修改自动合并。请逐项选择冲突内容；处理后才能编译当前源码。'}</p>
+    useEffect(() => {
+        if (!open) return;
+        close.current?.focus({preventScroll:true});
+        const outside = (e:PointerEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
+        const escape = (e:KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); setOpen(false); trigger.current?.focus(); } };
+        document.addEventListener('pointerdown',outside); document.addEventListener('keydown',escape);
+        return () => { document.removeEventListener('pointerdown',outside); document.removeEventListener('keydown',escape); };
+    }, [open]);
+    return <section ref={root} className="ck-source-sync-review" aria-label="源码同步冲突">
+        <div className="ck-source-sync-summary"><button ref={trigger} type="button" onClick={() => setOpen(!open)} aria-haspopup="dialog" aria-controls={open?id:undefined} aria-expanded={open}>
+            <GitMerge size={14}/>同步冲突{merge.conflicts.length > 0 && <b>{merge.conflicts.length}</b>}</button></div>
+        {open && <div id={id} role="dialog" aria-label="处理源码同步冲突" className="ck-source-sync-details">
+            <header><GitMerge size={16}/><strong>处理同步冲突</strong><button ref={close} title="收起对比" aria-label="收起对比" type="button" onClick={() => { setOpen(false); trigger.current?.focus(); }}><X size={16}/></button></header>
+            <div className="ck-conflict-scroll">
+            {merge.wholeFile && <p>合并可能超出 1 MiB，请选择完整版本。</p>}
             {merge.conflicts.map(c => <fieldset key={c.id}><legend>原源码第 {c.line} 行附近</legend>
                 <div className="ck-source-sync-options">{(['manual', 'generated'] as const).map(side => <label key={side} data-selected={choices[c.id] === side}>
                     <span><input type="radio" name={`ck-source-conflict-${c.id}`} checked={choices[c.id] === side} disabled={disabled} onChange={() => setChoices(previous => ({ ...previous, [c.id]: side }))} />{side === 'manual' ? '保留手写修改' : '采用积木修改'}</span>
                     <pre>{c.before}<mark>{c[side].length > 6000 ? c[side].slice(0, 6000) + '\n…（长片段仅预览前 6000 字符）' : c[side] || '（删除此处）'}</mark>{c.after}</pre></label>)}</div>
             </fieldset>)}
-            <button type="button" className="ck-source-sync-apply" disabled={disabled || merge.conflicts.some(c => !choices[c.id])} onClick={() => onResolve(choices)}>应用合并</button>
+            </div><footer><span>{Object.keys(choices).length} / {merge.conflicts.length} 已选择</span><button type="button" className="ck-source-sync-apply" disabled={disabled || merge.conflicts.some(c => !choices[c.id])} onClick={() => onResolve(choices)}>应用合并</button></footer>
         </div>}
     </section>;
 }

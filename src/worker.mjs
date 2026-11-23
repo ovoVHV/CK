@@ -1,6 +1,7 @@
 import fs from 'node:fs';import path from 'node:path';import readline from 'node:readline';
 import {BuildSession} from './engine.mjs';import {envelope,normalize,failure,validateArtifacts} from './protocol.mjs';
 import {targetAssetRoots} from './targets.mjs';
+import {installMembers} from './sketch-files.mjs';
 import {createActivityReporter} from './build-activity.mjs';
 let session;let busy=false;
 const send=x=>process.stdout.write(JSON.stringify(x)+'\n');
@@ -14,7 +15,8 @@ readline.createInterface({input:process.stdin}).on('line',async line=>{
   try{targetAssetRoots(c.sysroot,c.fqbn);}catch(e){e.code='NOT_QUALIFIED';e.fallbackSafe=true;throw e;}
   if(c.sourceDateEpoch!==undefined)process.env.SOURCE_DATE_EPOCH=String(c.sourceDateEpoch);else delete process.env.SOURCE_DATE_EPOCH;
   process.env.TZ='UTC';session??=new BuildSession({historyBytes:c.historyBytes});if(c.forceClean)session.reset();
-  fs.mkdirSync(c.sketchDir,{recursive:true});fs.writeFileSync(path.join(c.sketchDir,'sketch.ino'),normalize(code));
+  fs.mkdirSync(c.sketchDir,{recursive:true});if(c.projectFiles)installMembers(c.sketchDir,c.projectFiles);
+  fs.writeFileSync(path.join(c.sketchDir,'sketch.ino'),normalize(code));
   const receipt=await session.build(c,{label:msg.id,...options});validateArtifacts(receipt.artifacts,c.fqbn);
   activity.close();send({type:'result',id:msg.id,receipt:envelope(c,{...receipt,requestId:msg.id})});
  }catch(e){activity.close();session?.reset();send({type:'result',id:msg.id,receipt:failure(msg.c,e)});}finally{busy=false;}

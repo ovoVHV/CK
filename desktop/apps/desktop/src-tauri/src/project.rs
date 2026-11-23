@@ -768,8 +768,14 @@ fn create_project_in_dir(
     // Auto-resolve duplicate names to keep create flow smooth.
     // Example: uno -> uno_1 -> uno_2 ...
     let final_name = resolve_unique_project_name(target_dir, &safe_name);
+    // New projects are packages: `Name/Name.ck` is the editable entry point,
+    // while sibling `.cpp`/`.h` files stay beside it and travel with the
+    // project. Legacy standalone `.ck` files remain supported.
+    let package_dir = target_dir.join(&final_name);
+    validate_project_leaf_name(&final_name)?;
+    fs::create_dir(&package_dir).map_err(|e| format!("Failed to create project folder: {e}"))?;
     let project_filename = format!("{}.ck", final_name);
-    let project_path = target_dir.join(&project_filename);
+    let project_path = package_dir.join(&project_filename);
 
     // Template content
     let code = match template_id.as_deref() {
@@ -820,7 +826,10 @@ fn list_projects_in_dirs(dirs: &[PathBuf]) -> Vec<ProjectInfo> {
     for dir in dirs {
         if let Ok(entries) = fs::read_dir(&dir) {
             for entry in entries.flatten() {
-                let path = entry.path();
+                let mut path = entry.path();
+                if entry.file_type().is_ok_and(|kind|kind.is_dir()) {
+                    path=path.join(format!("{}.ck",entry.file_name().to_string_lossy()));
+                }
 
                 // Strict Mode: Only show Native Compatible Formats (.ck / .maker)
                 // Legacy folder projects (workspace.xml) are excluded as per user request.
@@ -1028,6 +1037,24 @@ pub async fn rename_project(path: String, new_name: String) -> Result<String, St
 
     let parent = old_path.parent().ok_or("Invalid path".to_string())?;
     let new_name = validate_project_leaf_name(&new_name)?.to_string();
+
+    // A package entry is identified by `<folder>/<folder>.ck`; rename the
+    // folder as a unit so sibling C++/header files keep travelling with it.
+    if let Some(root) = crate::project_files::folder(&old_path)? {
+        let new_root = root.parent().ok_or("Invalid package path".to_string())?.join(&new_name);
+        if new_root.exists() { return Err("Project name already taken".into()); }
+        let mut document=read_editable_project_document(&old_path,"Source")?;
+        document["name"]=new_name.clone().into();
+        let encoded=serialize_project_document(document)?;
+        let temp_entry=root.join(format!("{}.ck",new_name));
+        if temp_entry.exists(){return Err("目标文件名已存在".into());}
+        atomic_write_project_file(&temp_entry,&encoded)?;
+        if let Err(e)=fs::rename(root,&new_root){let _=fs::remove_file(temp_entry);return Err(e.to_string());}
+        let old_entry = new_root.join(old_path.file_name().unwrap());
+        let new_entry = new_root.join(format!("{}.ck", new_name));
+        fs::remove_file(old_entry).map_err(|e| e.to_string())?;
+        return Ok(new_entry.to_string_lossy().to_string());
+    }
 
     // --- Directory Mode ---
     if old_path.is_dir() {
@@ -1416,7 +1443,7 @@ pub async fn save_project_as(
     source_path: Option<String>,
     build_target: Option<String>,
 ) -> Result<ProjectInfo, String> {
-    let path = PathBuf::from(&target_path);
+    let mut path = PathBuf::from(&target_path);
 
     // Validate extension
     let ext = path
@@ -1482,7 +1509,20 @@ pub async fn save_project_as(
     apply_enabled_block_package_inventory(&mut content, block_package_inventory)?;
 
     let json = serialize_project_document(content)?;
-    atomic_write_project_file(&path, &json)?;
+    let package=if !source_is_target {crate::project_files::snapshot(source.as_deref().and_then(Path::to_str))?} else {None};
+    if let Some(files)=package {
+        if ext!="ck"||path.exists(){return Err("文件夹工程请另存为新的 .ck 工程".into());}
+        let parent=path.parent().ok_or("目标路径无效")?;
+        let root=parent.join(&project_name);
+        if root.exists(){return Err(format!("目标文件夹已存在：{}",root.display()));}
+        let stage=parent.join(format!(".ck-copy-{}",uuid::Uuid::new_v4()));
+        fs::create_dir(&stage).map_err(|e|e.to_string())?;
+        for (name,b) in files {let dst=stage.join(name);fs::create_dir_all(dst.parent().unwrap()).and_then(|_|fs::write(dst,b)).map_err(|e|e.to_string())?;}
+        let filename=path.file_name().unwrap();
+        atomic_write_project_file(&stage.join(filename),&json)?;
+        fs::rename(&stage,&root).map_err(|e|e.to_string())?;
+        path=root.join(filename);
+    } else {atomic_write_project_file(&path, &json)?;}
     if let Some(ref opts) = options {
         verify_saved_project_options(&path, opts)?;
     }
@@ -2031,11 +2071,11 @@ mod project_roots_tests {
         )
         .expect("create project in first root");
 
-        assert_eq!(PathBuf::from(created.path), first.join("root-contract.ck"));
-        assert!(first.join("root-contract.ck").is_file());
+        assert_eq!(PathBuf::from(created.path), first.join("root-contract/root-contract.ck"));
+        assert!(first.join("root-contract/root-contract.ck").is_file());
         assert!(!second.join("root-contract.ck").exists());
         let saved: serde_json::Value =
-            serde_json::from_str(&fs::read_to_string(first.join("root-contract.ck")).unwrap())
+            serde_json::from_str(&fs::read_to_string(first.join("root-contract/root-contract.ck")).unwrap())
                 .unwrap();
         assert_eq!(saved["format"], CK_PROJECT_FORMAT);
         assert_eq!(saved["schema_version"], CK_PROJECT_SCHEMA_VERSION);

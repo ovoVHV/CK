@@ -15,6 +15,7 @@ export interface AiCandidateResult {
     log: string;
     diagnostics: Array<{ message: string; line: number | null; blockId?: string; blockType?: string; label?: string }>;
     artifactCount: number;
+    memberIdentity?: string;
     firmware?: AiFirmware;
 }
 export interface AiValidationRecord extends AiCandidateResult { attempt: number; scope?: 'library' | 'project'; label?: string }
@@ -38,6 +39,7 @@ export function generateAiCandidate(preview: AiPreview, generate: (ws: Blockly.W
 }
 
 export async function compileAiCandidate(input: {
+    projectPath?: string;
     preview: AiPreview; target: ProjectBuildTarget; candidateId: string; signal: AbortSignal;
     generate: (ws: Blockly.Workspace) => string; onStep: (text: string) => void; captureFirmware?: boolean;
 }): Promise<AiCandidateResult> {
@@ -46,6 +48,7 @@ export async function compileAiCandidate(input: {
 }
 
 export async function compileAiSource(input: {
+    projectPath?: string;
     code: string; target: ProjectBuildTarget; candidateId: string; signal: AbortSignal;
     onStep: (text: string) => void; libraryToken?: string;
     labels?: Map<string, string>; sourceMap?: ReturnType<typeof freezeCompileSourceMap>; captureFirmware?: boolean;
@@ -82,6 +85,7 @@ export async function compileAiSource(input: {
         signal.throwIfAborted();
         const raw = await invoke<string>('compile_ai_candidate', {
             candidateId: input.candidateId, runId, code, fqbn: target.fqbn,
+            projectPath: input.projectPath,
             boardPackageId: target.boardPackageId, coreVersion: target.coreVersion,
             sourceMapJson: JSON.stringify(sourceMap),
             libraryToken: input.libraryToken,
@@ -102,7 +106,7 @@ export async function compileAiSource(input: {
                 ...(mapping ? { blockId: mapping.blockId, blockType: mapping.blockType, label: labels.get(mapping.blockId) } : {}) };
         });
         return { ok: result.ok, runId, sourceSha256: sourceMap.codeSha256, elapsedMs: Math.round(performance.now() - start),
-            log: result.log, artifactCount: result.artifactCount || 0, diagnostics, ...(result.firmware ? { firmware: result.firmware } : {}) };
+            log: result.log, artifactCount: result.artifactCount || 0, diagnostics, memberIdentity: result.memberIdentity, ...(result.firmware ? { firmware: result.firmware } : {}) };
     } finally {
         settled = true;
         signal.removeEventListener('abort', cancel);

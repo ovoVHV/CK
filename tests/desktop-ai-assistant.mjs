@@ -150,12 +150,12 @@ async function wait(expression, label, timeout = 240000) {
 }
 const click = async selector => {
     const result=await client.evaluate(`(()=>{const b=document.querySelector(${JSON.stringify(selector)});if(!b||b.disabled)throw Error('Button unavailable: '+${JSON.stringify(selector)});b.click();return true})()`);
-    if(productChecks&&selector==='button[aria-label="新对话"]')await wait(`document.querySelector('.ck-ai-currentchat>span')?.textContent==='新聊天'&&document.querySelectorAll('.ck-ai-message').length===0`,'new chat ready');
+    if(productChecks&&selector==='button[aria-label="新对话"]')await wait(`document.querySelector('.ck-ai-context-details [role=status]')?.textContent==='新聊天'&&document.querySelectorAll('.ck-ai-message').length===0`,'new chat ready');
     return result;
 };
 const button = async text => {
     await client.evaluate(`(()=>{const b=[...document.querySelectorAll('[data-ck-role="ai-assistant"] button')].find(b=>b.textContent.trim()===${JSON.stringify(text)});if(!b||b.disabled)throw Error('Button unavailable: '+${JSON.stringify(text)});b.click();return true})()`);
-    if(productChecks&&text==='新聊天')await wait(`document.querySelector('.ck-ai-currentchat>span')?.textContent==='新聊天'&&Boolean(document.querySelector('.ck-ai-input-shell textarea'))&&document.querySelectorAll('.ck-ai-message').length===0`,'new chat composer ready');
+    if(productChecks&&text==='新聊天')await wait(`document.querySelector('.ck-ai-context-details [role=status]')?.textContent==='新聊天'&&Boolean(document.querySelector('.ck-ai-input-shell textarea'))&&document.querySelectorAll('.ck-ai-message').length===0`,'new chat composer ready');
 };
 const fill = (selector, value) => client.evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Input missing');const prototype=e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
 async function submit(prompt) {
@@ -256,13 +256,13 @@ try {
         await client.evaluate('window.__autoHold=false');report.checks.push('Cancellation after candidate compile but before checkpoint reply leaves the original workspace unchanged');
 
         await click('button[aria-label="新对话"]');await delay(500);
-        await click('button[aria-label="模型连接设置"]');await button('获取服务商模型列表');await wait(`document.querySelectorAll('#ck-ai-model-options option').length===2`,'native model discovery');await button('保存连接设置');await wait(`!document.querySelector('.ck-ai-settings')`,'settings saved');
+        await click('button[aria-label="模型连接设置"]');await button('获取服务商模型列表');await wait(`document.querySelectorAll('[aria-label="服务商模型列表"] optgroup option').length===2`,'native model discovery');await button('保存连接设置');await wait(`!document.querySelector('.ck-ai-settings')`,'settings saved');
         await select('[aria-label="当前 AI 模型"]','ck-vision-fixture');await select('[aria-label="思考强度"]','high');
         assert.equal(await client.evaluate(`window.__TAURI_INTERNALS__.invoke('ai_load_preferences').then(v=>v.reasoningEffort)`),'high');
         await client.evaluate(`(async()=>{const canvas=document.createElement('canvas');canvas.width=160;canvas.height=80;const c=canvas.getContext('2d');c.fillStyle='#b84913';c.fillRect(0,0,160,80);c.fillStyle='white';c.font='20px sans-serif';c.fillText('GPIO 13',20,45);const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));const dt=new DataTransfer();dt.items.add(new File(['ATTACHMENT_TEXT_MARKER: pin=13; interval=500'], '参数.txt',{type:'text/plain'}));dt.items.add(new File([blob],'接线.png',{type:'image/png'}));const e=document.querySelector('input[type=file][aria-label="选择 AI 附件"]');e.files=dt.files;e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
         await wait(`document.querySelectorAll('.ck-ai-attachments>div').length===2`,'attachments imported');
         await picture('00-attachments-controls',1280,800);mode='attachments';await submit('根据上传的接线图和参数解释连接');await wait(`document.querySelector('.ck-ai-feed').textContent.includes('已收到图片和 UTF-8 参数附件')&&!document.querySelector('[aria-label="停止 AI 请求"]')`,'multimodal native request');
-        assert.equal(await snapshot(),original);await wait(`document.querySelector('.ck-ai-currentchat small').textContent==='已保存到本机'`,'attachments saved');
+        assert.equal(await snapshot(),original);await wait(`document.querySelector('.ck-ai-context-details [role=status]').textContent==='已保存到本机'`,'attachments saved');
         const saved=await client.evaluate(`(async()=>{const projectKey=${JSON.stringify('file:'+file.replace(/\\/g,'/').toLowerCase())};const rows=await window.__TAURI_INTERNALS__.invoke('ai_list_chats',{projectKey});const chat=await window.__TAURI_INTERNALS__.invoke('ai_load_chat',{id:rows.chats[0].id,projectKey});return {id:chat.id,attachments:chat.messages.find(m=>m.attachments?.length)?.attachments.length}})()`);
         assert.equal(saved.attachments,2);const raw=fs.readFileSync(path.join(config.paths.sysroot,'state/ai-assistant-v1/chats',saved.id+'.json'),'utf8');assert(!raw.includes('ATTACHMENT_TEXT_MARKER'));assert(!raw.includes('data:image/'));
         report.checks.push('Provider model list, selectable high reasoning and image_url actually reach Rust HTTP; text is paginated by read_attachment; attachments survive encrypted chat roundtrip');
@@ -321,17 +321,17 @@ try {
 
     await wait(`!document.querySelector('.ck-ai-current')`,'cancel cleanup finished');
     mode = 'explain'; await click('button[aria-label="新对话"]');
-    await button('请先读取当前程序，解释它的执行过程看懂已有积木的逻辑');
+    await button('解释当前程序');
     await click('button[aria-label="发送需求"]');
     await wait(`document.querySelector('.ck-ai-message--assistant')?.textContent.includes('🔧')`, 'split UTF-8 explanation');
     assert(!await client.evaluate(`document.body.textContent.includes('�')`));
-    assert.equal(await client.evaluate(`document.querySelector('.ck-ai-mode').textContent`), '解释积木');
+    assert.equal(await client.evaluate(`document.querySelector('.ck-ai-intent').textContent`), '解释积木');
     await button('分析最新错误');
-    assert.equal(await client.evaluate(`document.querySelector('.ck-ai-mode').textContent`), '修复报错');
+    assert.equal(await client.evaluate(`document.querySelector('.ck-ai-intent').textContent`), '修复报错');
     report.checks.push('Chinese/emoji survive split HTTP chunks; explanation switches cleanly to error analysis');
 
     await client.evaluate(`(()=>{const ctx=window.CK_NATIVE_REGRESSION.getCurrent();const entry=ctx.Blockly.ContextMenuRegistry.registry.getItem('ckAiExplainBlock');const scope={block:ctx.workspace.getBlockById('ai-loop')};if(entry.preconditionFn(scope)!=='enabled')throw Error('AI context entry disabled');entry.callback(scope);return true})()`);
-    await wait(`document.querySelector('.ck-ai-mode')?.textContent==='解释积木 · 已选中'`, 'selected-block entry');
+    await wait(`document.querySelector('.ck-ai-intent')?.textContent==='解释积木 · 已选中积木'`, 'selected-block entry');
     report.checks.push('Registered Blockly context action opens explanation for the actual selected loop');
 
     const beforeFailureCount = await client.evaluate(`window.__aiTestIpc.filter(r=>r.command==='compile_sketch').length`);
@@ -341,7 +341,7 @@ try {
     assert.equal(failed.kind, 'error'); assert.match(failed.response, /lvalue|left operand/i);
     await wait(`Boolean(document.querySelector('button[aria-label="让 AI 分析这条错误"]'))`, 'actual issue AI entry');
     mode = 'repair'; await click('button[aria-label="让 AI 分析这条错误"]'); await delay(150);
-    assert.match(await client.evaluate(`document.querySelector('.ck-ai-mode').textContent`), /修复报错/);
+    assert.match(await client.evaluate(`document.querySelector('.ck-ai-intent').textContent`), /修复报错/);
     await click('button[aria-label="发送需求"]'); await wait(`Boolean(document.querySelector('.ck-ai-proposal'))`, 'repair proposal');
     assert(await client.evaluate(`Boolean(${W}.getBlockById('ai-bad-lvalue'))`));
     await button('应用并编译');
@@ -421,7 +421,7 @@ try {
     report.libraryMetadata={type:metadataProbe.type,libraryId:metadataProbe.library_id,metadataSource:metadataProbe.metadata_source,declaredSections:metadataProbe.metadata_completeness};
     report.checks.push('Actual desktop active catalog exposes library capability/schema/docs to native model tools, preserves units and provenance, and does not edit the project');
     if(productChecks) {
-        await wait(`document.querySelector('.ck-ai-currentchat small')?.textContent==='已保存到本机'`,'chat saved');
+        await wait(`document.querySelector('.ck-ai-context-details [role=status]')?.textContent==='已保存到本机'`,'chat saved');
         const projectKey='file:'+otherFile.replaceAll('\\','/').toLowerCase();
         const initial=await client.evaluate(`window.__TAURI_INTERNALS__.invoke('ai_list_chats',{projectKey:${JSON.stringify(projectKey)}})`);
         assert(initial.chats.length>=1);
@@ -431,12 +431,12 @@ try {
         await click('button[aria-label^="重命名 "]');await fill('input[aria-label="聊天名称"]','持久聊天回归');await button('保存');
         await wait(`document.querySelector('.ck-ai-chat-select strong')?.textContent==='持久聊天回归'`,'chat renamed');
         await button('新聊天');await fill('.ck-ai-input-shell textarea','尚未发送的草稿，重开后继续。');
-        await wait(`document.querySelector('.ck-ai-currentchat small')?.textContent==='已保存到本机'`,'draft saved');
+        await wait(`document.querySelector('.ck-ai-context-details [role=status]')?.textContent==='已保存到本机'`,'draft saved');
         await click('button[aria-label="聊天记录"]');
         await wait(`document.querySelectorAll('.ck-ai-chat-select').length>=2`,'two saved chats');
         await client.evaluate(`(()=>{const b=[...document.querySelectorAll('.ck-ai-chat-select')].find(b=>b.textContent.includes('持久聊天回归'));b.click();return true})()`);
-        await wait(`document.querySelector('.ck-ai-currentchat>span')?.textContent==='持久聊天回归'`,'restored chat');
-        await wait(`document.querySelector('.ck-ai-currentchat small')?.textContent==='已保存到本机'`,'restored chat saved');
+        await wait(`document.querySelector('.ck-ai-chat-caption')?.textContent==='持久聊天回归'`,'restored chat');
+        await wait(`document.querySelector('.ck-ai-context-details [role=status]')?.textContent==='已保存到本机'`,'restored chat saved');
         assert.equal(await client.evaluate(`document.querySelectorAll('.ck-ai-proposal').length`),0);
         report.checks.push('Desktop chat list creates, renames and switches saved conversations; old executable proposals are not restored');
         // Seed ordinary historical transcript data through the actual storage API,
@@ -449,7 +449,7 @@ try {
         await client.evaluate(`(()=>{setTimeout(()=>location.reload(),0);return true})()`);await delay(1500);await open(otherFile,'ai-other-loop');
         await wait(`Boolean(document.querySelector('[data-ck-role="ai-assistant-trigger"]'))`,'workspace after reload');
         if(!await client.evaluate(`Boolean(document.querySelector('.ck-ai-panel'))`))await click('[data-ck-role="ai-assistant-trigger"]');
-        await wait(`document.querySelector('.ck-ai-currentchat small')?.textContent==='已保存到本机'`,'chat after reload');
+        await wait(`document.querySelector('.ck-ai-context-details [role=status]')?.textContent==='已保存到本机'`,'chat after reload');
         await click('button[aria-label="模型连接设置"]');
         await wait(`document.querySelector('.ck-ai-settings input[type="password"]')?.value==='local-fixture-not-a-real-key'`,'key restored after reload');
         await fill('input[aria-label="上下文预算"]','16384');await fill('input[aria-label="单次回复预留"]','2048');
@@ -463,7 +463,7 @@ try {
         mode='context-compression';const compactBefore=await snapshot();await submit('继续检查我们的长期目标，只解释，不修改。');
         await wait(`document.querySelector('.ck-ai-message--assistant:last-of-type')?.textContent.includes('已读取压缩后的目标')`,'automatic compaction',90000);
         assert.equal(await snapshot(),compactBefore);assert(await client.evaluate(`Boolean(document.querySelector('.ck-ai-memory'))`));
-        await wait(`document.querySelector('.ck-ai-currentchat small')?.textContent==='已保存到本机'`,'compaction saved');
+        await wait(`document.querySelector('.ck-ai-context-details [role=status]')?.textContent==='已保存到本机'`,'compaction saved');
         const saved=await client.evaluate(`window.__TAURI_INTERNALS__.invoke('ai_load_chat',{id:${JSON.stringify(existingId)},projectKey:${JSON.stringify(projectKey)}})`);
         assert.equal(saved.messages.length,32);assert(saved.memory.summary.includes('摄氏度'));
         assert(requests.some(r=>r.mode==='context-compression'&&(!r.tools||!r.tools.length)));

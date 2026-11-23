@@ -60,7 +60,7 @@ where F: Fn(f32, String), L: Fn(String) {
         log(format!("[V9] 当前使用兼容编译：{}。\n", config.disabled_reason.as_deref().unwrap_or("启动时 V9 未启用；若刚安装 Core，请完全退出 CK 后重新打开，无需卸载")));
         return Ok(None);
     }
-    anyhow::ensure!(config.protocol_version == 1 && config.engine_version == "9.1.0-alpha.52", "V9 host configuration version mismatch");
+    anyhow::ensure!(config.protocol_version == 1 && config.engine_version == "9.1.0-alpha.53", "V9 host configuration version mismatch");
     if !allows_fqbn(&config.allowed_fqbns, fqbn) {
         log(format!("[V9] 当前使用兼容编译：目标 {fqbn} 不在启用的平台范围内。\n"));
         return Ok(None);
@@ -80,8 +80,9 @@ where F: Fn(f32, String), L: Fn(String) {
     // every edit. Only the separate project ID chooses the incremental folder;
     // source/asset/config content is still fully validated by the controller.
     let project = current_project();
+    let sources=project_sources();
     let session_key = digest(&serde_json::to_vec(&json!(["ck-build-engine-v9-protocol-1", sysroot.root_dir,
-        identity_lease.toolchain_key(), fqbn, project.as_deref().unwrap_or(workspace_fingerprint.unwrap_or("default"))]))?);
+        identity_lease.toolchain_key(), fqbn, project.as_deref().unwrap_or(workspace_fingerprint.unwrap_or("default")),sources.is_some()]))?);
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_nanos();
     let request_id = digest(format!("{}:{stamp}:{source_hash}", std::process::id()).as_bytes());
     let mut root = std::env::temp_dir().join("CK_Builds/v9");
@@ -105,6 +106,7 @@ where F: Fn(f32, String), L: Fn(String) {
     let request = json!({"sysroot":process_path(&sysroot.root_dir),"workspace":workspace_process,
         "sketchDir":workspace_process.join("source/sketch"),"sourceFile":source_file,
         "requestId":request_id,"sourceSha256":source_hash,"receiptPath":receipt_file,"fqbn":fqbn,
+        "projectFiles":sources.as_ref().map(|files|files.iter().map(|(name,b)|json!({"name":name,"hex":hex::encode(b)})).collect::<Vec<_>>()),
         "cli":process_path(&bundled_arduino_cli_lexical_path(&sysroot.root_dir)),
         "cliConfig":process_path(&sysroot.root_dir.join("arduino-cli.yaml")),"ninja":process_path(&config.ninja_path),
         "libraries":extra_libs.iter().map(|path| process_path(path)).collect::<Vec<_>>(),
@@ -153,13 +155,17 @@ where F: Fn(f32, String), L: Fn(String) {
     let receipt: Value = serde_json::from_slice(&output.stdout).context("Invalid V9 structured result")?;
     anyhow::ensure!(receipt["requestId"] == request_id && receipt["sourceSha256"] == source_hash && receipt["fqbn"] == fqbn,
         "V9 response identity mismatch");
-    anyhow::ensure!(receipt["protocolVersion"] == 1 && receipt["engineVersion"] == "9.1.0-alpha.52", "V9 response version mismatch");
+    anyhow::ensure!(receipt["protocolVersion"] == 1 && receipt["engineVersion"] == "9.1.0-alpha.53", "V9 response version mismatch");
     if receipt["success"] != true && receipt["error"]["fallbackSafe"] == true
         && matches!(receipt["error"]["code"].as_str(), Some("ENGINE_UNAVAILABLE" | "NOT_QUALIFIED")) {
         log(format!("[V9] Safe fallback to v6: {}\n", receipt["error"]["message"]));
         return Ok(None);
     }
     validate_receipt(&receipt, &request_id, &source_hash, fqbn)?;
+    if let Some(files)=&sources {
+        let actual=receipt["projectFiles"].as_array().context("Missing project snapshot proof")?;
+        anyhow::ensure!(actual.len()==files.len()&&files.iter().all(|(name,b)|actual.iter().any(|f|f["name"]==*name&&f["sha256"]==digest(b))),"Project source identity mismatch");
+    }
     anyhow::ensure!(output.status.success(), "V9 bridge failed; output rejected");
     std::fs::write(&receipt_file, serde_json::to_vec_pretty(&receipt)?)?;
     log("[V9 进度] 宿主交付：独立核验固件并导出上传目录\n".into());
@@ -222,7 +228,7 @@ mod tests {
     use super::*;
     #[test]
     fn receipt_binds_actual_request_and_rejects_failed_or_stale_outputs() {
-        let receipt = json!({"requestId":"r","sourceSha256":"s","fqbn":"b","success":true,"protocolVersion":1,"engineVersion":"9.1.0-alpha.52"});
+        let receipt = json!({"requestId":"r","sourceSha256":"s","fqbn":"b","success":true,"protocolVersion":1,"engineVersion":"9.1.0-alpha.53"});
         assert!(validate_receipt(&receipt,"r","s","b").is_ok());
         for key in ["requestId","sourceSha256","fqbn"] {
             let mut changed = receipt.clone(); changed[key] = json!("stale");

@@ -123,7 +123,7 @@ export function createPlan(config, frontend) {
   // debug-prefix mapping are identical to the baseline command.
   if (config.fqbn === 'esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB') {
     const sketchRule = rules.find(rule => rule.kind === 'compile'
-      && rule.inputs[0].startsWith(path.join(build, 'sketch') + path.sep));
+      && rule.inputs[0] === path.join(build, 'sketch','sketch.ino.cpp'));
     if (!sketchRule) throw new Error('Qualified sketch compile command missing for PCH');
     const coreInclude = sketchRule.argv.find(arg => arg.startsWith('-I') && /cores[/\\]esp32$/i.test(arg.slice(2)));
     if (!coreInclude) throw new Error('Qualified ESP32 core include path missing for PCH');

@@ -60,10 +60,11 @@ fn preference_options(value:&Value)->Result<Value,String>{
     let apply=value.get("autoApply").cloned().unwrap_or(json!(true));
     let effort=value.get("reasoningEffort").and_then(Value::as_str).unwrap_or("auto");
     let protocol=value.get("reasoningProtocol").and_then(Value::as_str).unwrap_or("auto");
+    let api=match value.get("apiProtocol") {None=> "chat", Some(v)=>v.as_str().filter(|s|matches!(*s,"chat"|"responses")).ok_or("API 协议无效")?};
     let models=value.get("modelChoices").cloned().unwrap_or(json!([]));
     if !apply.is_boolean() || !matches!(effort,"auto"|"none"|"low"|"medium"|"high"|"max") || !matches!(protocol,"auto"|"standard"|"deepseek")
         || models.as_array().is_none_or(|rows|rows.len()>500 || rows.iter().any(|v|v.as_str().is_none_or(|s|s.is_empty()||s.len()>256))) {return Err("AI 应用模式或模型设置无效".into());}
-    Ok(json!({"autoApply":apply,"reasoningEffort":effort,"reasoningProtocol":protocol,"modelChoices":models}))
+    Ok(json!({"autoApply":apply,"apiProtocol":api,"reasoningEffort":effort,"reasoningProtocol":protocol,"modelChoices":models}))
 }
 fn attachment_records(messages:&Value)->Result<Vec<Value>,String>{
     let mut records=Vec::new();let mut total=0usize;

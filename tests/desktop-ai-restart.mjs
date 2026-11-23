@@ -16,7 +16,7 @@ try {
  }
  await wait(`Boolean(document.querySelector('[data-ck-role="ai-assistant-trigger"]'))`,'project open');
  await client.evaluate(`document.querySelector('[data-ck-role="ai-assistant-trigger"]').click()`);
- await wait(`document.querySelector('.ck-ai-currentchat>span')?.textContent==='持久聊天回归'`,'persisted chat');
+ await wait(`document.querySelector('.ck-ai-chat-caption')?.textContent==='持久聊天回归'`,'persisted chat');
  assert.equal(await client.evaluate(`document.querySelectorAll('.ck-ai-message').length`),32);
  assert(await client.evaluate(`Boolean(document.querySelector('.ck-ai-memory'))`));
  assert.equal(await client.evaluate(`document.querySelectorAll('.ck-ai-proposal,.ck-ai-undo').length`),0);

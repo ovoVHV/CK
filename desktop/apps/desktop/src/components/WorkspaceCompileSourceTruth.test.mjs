@@ -12,7 +12,7 @@ test('ordinary compile and upload regenerate source from the visible Blockly wor
     assert.ok(compileStart >= 0 && compileEnd > compileStart, 'compile source selection should exist');
 
     const selection = source.slice(compileStart, compileEnd);
-    assert.match(selection, /resolveCompileSource\(\s*options\.codeOverride,\s*workspaceRef\.current,/s);
+    assert.match(selection, /resolveCompileSource\(\s*sourceBuild \? workspaceSourceRef\.current!\.code : options\.codeOverride,\s*workspaceRef\.current,/s);
     assert.match(selection, /workspace => arduinoGenerator\.workspaceToCode\(workspace\)/);
     assert.match(selection, /generatedCodeRef\.current = compileCode/);
     assert.doesNotMatch(selection, /options\.codeOverride \|\| generatedCode/);

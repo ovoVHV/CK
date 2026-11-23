@@ -3,8 +3,7 @@ import { basicSetup } from 'codemirror';
 import { EditorState, Compartment } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { indentWithTab } from '@codemirror/commands';
-import { cpp } from '@codemirror/lang-cpp';
-import { oneDark } from '@codemirror/theme-one-dark';
+import { arduinoCpp, codeTheme, cppConstants } from './arduinoHighlight';
 import { setDiagnostics } from '@codemirror/lint';
 import { openSearchPanel } from '@codemirror/search';
 import type { SourceDiagnostic } from '../services/source_project';
@@ -25,7 +24,7 @@ export function SourceCodeEditor({ code, documentKey, dark, readOnly, active = t
             keymap.of([{ key: 'Mod-s', run: () => { config.current.onSave(); return true; } },
                 { key: 'Mod-h', scope: 'editor search-panel', run: view => { openSearchPanel(view); view.dom.querySelector<HTMLInputElement>('input[name="replace"]')?.focus(); return true; } },
                 { key: 'F7', run: () => { config.current.onBuild(); return true; } }, indentWithTab]),
-            basicSetup, cpp(), theme.current.of(dark ? oneDark : []),
+            basicSetup, arduinoCpp, cppConstants, theme.current.of(codeTheme(dark)),
             EditorState.changeFilter.of(transaction => {
                 if (!transaction.docChanged) return true;
                 const text = transaction.newDoc.toString();
@@ -50,7 +49,7 @@ export function SourceCodeEditor({ code, documentKey, dark, readOnly, active = t
     }, [documentKey]);
     useLayoutEffect(() => { if (active) view.current?.requestMeasure(); }, [active, documentKey]);
     useEffect(() => { const editor = view.current; if (editor && code !== editor.state.doc.toString()) editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: code } }); }, [code]);
-    useEffect(() => { view.current?.dispatch({ effects: theme.current.reconfigure(dark ? oneDark : []) }); }, [dark]);
+    useEffect(() => { view.current?.dispatch({ effects: theme.current.reconfigure(codeTheme(dark)) }); }, [dark]);
     useEffect(() => { view.current?.dispatch({ effects: editable.current.reconfigure(EditorState.readOnly.of(readOnly)) }); }, [readOnly]);
     useEffect(() => {
         const editor = view.current; if (!editor) return;

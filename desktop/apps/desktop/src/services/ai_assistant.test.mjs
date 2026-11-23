@@ -199,6 +199,59 @@ const setupTask = (workspace, transport) => ({ prompt: '把第一个等待改为
     host: { workspace: () => workspace, catalog: () => catalog, target: () => ({ board: 'arduino:avr:uno' }), diagnostics: () => [], identity: () => 'project1', validateCandidate: async () => ({ ok: true, runId: crypto.randomUUID(), sourceSha256: 'test', elapsedMs: 10, log: 'compiled', diagnostics: [], artifactCount: 1 }) },
     signal: new AbortController().signal, onStep() {}, onText() {}, transport });
 
+test('serial reads do not authorize writes, revocation withholds fresh device data, files require a separate grant',async()=>{
+    const ws=open();let round=0,reads=0,samples=0;
+    const grants={files:false,serial:true,send:false,upload:false};
+    try{
+        const task=setupTask(ws,async req=>{
+            const tools=req.historyMessages.filter(row=>row.role==='tool').map(row=>JSON.parse(row.content));
+            if(round++===0)return response([call('project_files',{}),call('project_files',{path:'src/main.h'}),call('serial_sample',{text:'s'}),call('serial_sample',{waitMs:100})]);
+            assert.deepEqual(tools[0].files,['src/main.h']);assert.match(tools[1].error,/授权/);
+            assert.match(tools[2].error,/授权/);assert.match(tools[3].error,/授权/);
+            assert.doesNotMatch(JSON.stringify(req),/PRIVATE_DEVICE_REPLY/);
+            return {content:'未获得硬件验证结果',model:'mock',finishReason:'stop',toolCalls:[]};
+        });
+        task.host.grants=()=>grants;
+        task.host.device={files:async()=>{reads++;return {files:['src/main.h']};},sample:async(text,ms,check)=>{
+            check();samples++;assert.equal(text,undefined);assert.equal(ms,100);grants.serial=false;return {text:'PRIVATE_DEVICE_REPLY'};
+        }};
+        await runAiTask(task);assert.equal(reads,1);assert.equal(samples,1);
+    }finally{ws.dispose();}
+});
+
+test('project creation requires directory discovery and a live, independent grant at commit',async()=>{
+ for(const scenario of ['auto','review','denied','revoked','explain','cancelled']){
+    const workspace=open();let writes=0,reviewed=0,recorded=0,round=0;
+    const grants={files:false,create:scenario!=='denied',serial:false,send:false,upload:false};
+    const files=[{path:'src/sampling/sample.cpp',code:'// 采样\nint sample(){return 1;}\n'}];
+    const create=(batch=files)=>call('create_project_sources',{files:batch});
+    try{
+        const task=setupTask(workspace,async req=>{
+            if(!round++){
+                assert.equal(req.tools.some(t=>t.function.name==='create_project_sources'),!['denied','explain'].includes(scenario));
+                return response([create(),call('project_files',{}),create([{path:'src/../outside.h',code:'// no'}]),create([{path:'src/采样/sample.h',code:'// no'}]),create()]);
+            }
+            const results=req.historyMessages.filter(t=>t.role==='tool').map(t=>JSON.parse(t.content));
+            if(['denied','explain'].includes(scenario))assert.match(results[4].error,/不提供/);
+            else{
+                assert.match(results[0].error,/先用/);assert.match(results[2].error,/相对路径/);
+                assert.match(results[3].error,/AVR/);
+                if(scenario==='revoked')assert.match(results[4].error,/无权/);
+                else assert.deepEqual(results[4].created,files.map(f=>f.path));
+            }
+            return {content:'结束',finishReason:'stop',toolCalls:[]};
+        });
+        task.autoApply=scenario==='auto';if(scenario==='explain')task.intent.kind='explain';
+        task.host.grants=()=>grants;task.host.device={files:async()=>({files:[]}),create:async(batch,check)=>{check();assert.deepEqual(batch,files);writes++;}};
+        task.confirmSources=async()=>{reviewed++;if(scenario==='revoked')grants.create=false;return scenario!=='cancelled';};
+        task.onSourcesCreated=()=>recorded++;
+        if(scenario==='cancelled')await assert.rejects(runAiTask(task),/取消创建/);else await runAiTask(task);
+        assert.equal(writes,['auto','review'].includes(scenario)?1:0);assert.equal(recorded,writes);
+        assert.equal(reviewed,['review','revoked','cancelled'].includes(scenario)?1:0);
+    } finally{workspace.dispose();}
+ }
+});
+
 test('three consecutive truncated responses stop without executing partial tools or compiling',async()=>{
  const workspace=open();let requests=0,compiles=0;
  try{

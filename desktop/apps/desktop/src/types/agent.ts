@@ -111,6 +111,7 @@ export interface AgentCompileResult {
 
 export interface AgentGlmChatRequest {
     images?: string[];
+    apiProtocol?: 'chat' | 'responses';
     reasoningEffort?: string;
     reasoningProtocol?: string;
     historyMessages?: Array<{
@@ -120,6 +121,7 @@ export interface AgentGlmChatRequest {
         tool_calls?: any[];
         tool_call_id?: string;
         reasoning_content?: string;
+        responseReasoning?: ResponseReasoning[];
         name?: string;
     }> | null;
     apiKey?: string | null;
@@ -146,7 +148,10 @@ export interface AgentGlmChatResult {
     rawJson: string;
     toolCalls?: any[];
     reasoningContent?: string | null;
+    responseReasoning?: ResponseReasoning[];
 }
+
+export interface ResponseReasoning { type: 'reasoning'; id: string; encrypted_content: string; summary: Array<{type:'summary_text';text:string}> }
 
 export interface AgentLlmDeltaPayload {
     runId: string;

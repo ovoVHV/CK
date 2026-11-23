@@ -49,6 +49,19 @@ test('real editor keeps edits and undo across theme/readonly changes, and isolat
         await act(async () => current().dispatch({ changes: { from: 0, insert: '中'.repeat(400000) } }));
         assert.equal(current().state.doc.toString(), props.code); assert.match(rejected.at(-1), /1 MiB/);
         await render({ diagnostics: [] }); assert.equal(diagnosticCount(current().state), 0);
+        const sample = '#define MOTOR_PIN 5\nvoid setup() {\n  VendorMotor motor;\n  motor.rotate(MOTOR_PIN);\n  vendorTick();\n  Serial.println("MOTOR_PIN");\n  // MOTOR_PIN\n}';
+        for(const dark of [false,true]){
+            await render({documentKey:'color',code:sample,dark,reveal:null});
+            const leaves=[...current().contentDOM.querySelectorAll('span')].filter(e=>!e.querySelector('span'));
+            const token=s=>{const e=leaves.find(el=>el.textContent===s);assert.ok(e,s);return getComputedStyle(e).color;};
+            const fn=token('vendorTick');
+            assert.equal(token('setup'),fn);assert.equal(token('rotate'),fn);assert.equal(token('println'),fn);
+            const categories=[fn,token('VendorMotor'),token('MOTOR_PIN'),token('"MOTOR_PIN"'),token('// MOTOR_PIN')];
+            assert.equal(new Set(categories).size,categories.length,JSON.stringify(categories));
+            assert.equal([...current().contentDOM.querySelectorAll('.ck-cpp-constant')].length,2);
+            assert.equal(getComputedStyle(leaves.filter(el=>el.textContent==='MOTOR_PIN').at(-1)).color,
+                dark?'rgb(255, 158, 201)':'rgb(150, 43, 99)',current().contentDOM.querySelectorAll('.cm-line')[3]?.innerHTML);
+        }
         assert.deepEqual(runtimeErrors, []);
     } finally { await act(async () => root.unmount()); dom.window.close(); }
 });

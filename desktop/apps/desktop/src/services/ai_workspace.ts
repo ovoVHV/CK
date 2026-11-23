@@ -16,6 +16,7 @@ export interface AiProposal {
     variables?: Array<{ name: string; type?: string }>;
 }
 export interface AiPreview {
+    verifiedInputs?: {source:string; members:string};
     proposal: AiProposal;
     before: string;
     after: string;

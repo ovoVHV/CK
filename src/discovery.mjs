@@ -18,6 +18,7 @@ import {DiscoveryPool} from './native/discovery-pool.mjs';
 import {RequestLibraryPch} from './native/library-pch.mjs';
 import {nonInteractiveStdio} from './process-stdio.mjs';
 import {platformRecipeHash} from './targets.mjs';
+import {sketchSnapshot,mirrorMembers} from './sketch-files.mjs';
 export class NeedsOfficial extends Error{}
 export const artifactNames=['sketch.ino.elf','sketch.ino.bin','sketch.ino.partitions.bin','sketch.ino.merged.bin','flash_args','boot_app0.bin','sketch.ino.bootloader.bin','sdkconfig','build.options.json','partitions.csv'];
 const norm=p=>path.resolve(p),source=c=>path.join(c.sketchDir,'sketch.ino');
@@ -28,7 +29,7 @@ export function properties(front){return Object.fromEntries(front.builder_result
 // Arduino CLI omits this optional field when only the platform core is used.
 // A missing list is an empty selection; malformed present lists remain errors.
 export function officialLibraries(front){const selected=front.builder_result.used_libraries??[];if(!Array.isArray(selected))throw Error('Invalid official used_libraries list');return selected;}
-export function initialSketch(c){const code=fs.readFileSync(source(c),'utf8').replace(/^\uFEFF/,'').replaceAll('\r\n','\n');const names=fs.readdirSync(c.sketchDir);if(names.length!==1||names[0]!=='sketch.ino')throw new NeedsOfficial('single .ino scope');const raw=(/^\s*#\s*include\s*[<"]Arduino\.h[>"]/m.test(code)?'':'#include <Arduino.h>\n')+'#line 1 '+JSON.stringify(source(c))+'\n'+code+'\n';const file=path.join(c.workspace,'build/sketch/sketch.ino.cpp');writeChanged(file,raw);return file;}
+export function initialSketch(c,snapshot=sketchSnapshot(c.sketchDir)){const code=fs.readFileSync(source(c),'utf8').replace(/^\uFEFF/,'').replaceAll('\r\n','\n');if(snapshot.other.length)throw new NeedsOfficial('Additional sketch inputs require official discovery');mirrorMembers(c,snapshot);const raw=(/^\s*#\s*include\s*[<"]Arduino\.h[>"]/m.test(code)?'':'#include <Arduino.h>\n')+'#line 1 '+JSON.stringify(source(c))+'\n'+code+'\n';const file=path.join(c.workspace,'build/sketch/sketch.ino.cpp');writeChanged(file,raw);return file;}
 export function prepare(c,p){
  const unsupported=reason=>{throw Object.assign(Error(reason),{code:'NOT_QUALIFIED',fallbackSafe:true});};
  const q=propertyScope(p);if(!q.qualified)unsupported(q.reason);const build=path.join(c.workspace,'build'),platform=p['runtime.platform.path'],variant=p['build.variant.path'],sdk=p['compiler.sdk.path'];
@@ -52,7 +53,7 @@ function compileEntry(c,p,file,base,out,dirs){
 }
 function preprocArgs(p,file,dirs){const row={...p,'recipe.preproc':p['recipe.cpp.o.pattern'].replace(p['compiler.cpp.flags'],p['compiler.cpp.flags']+' -w -x c++ -E -CC')};return recipe(row,'recipe.preproc',{includes:includeArgs(dirs),source_file:file,object_file:'nul'}).filter(a=>a!=='-MMD');}
 function searchDirectories(args,cwd){const expanded=responses(args.slice(1),cwd).expanded;const dirs=[];let prefix='';for(let i=0;i<expanded.length;i++){const a=expanded[i];if(a==='-iprefix')prefix=expanded[++i];else if(['-I','-isystem','-iquote','-idirafter'].includes(a))dirs.push(expanded[++i]);else if(['-iwithprefix','-iwithprefixbefore'].includes(a))dirs.push(path.join(prefix,expanded[++i]));else if(a.startsWith('-I'))dirs.push(a.slice(2));}return dirs;}
-export async function discover(c,p,index,{onSketchReady}={}){const started=performance.now(),selected=[],includes=[p['build.core.path'],p['build.variant.path']],queue=[{file:initialSketch(c),extra:null}],seen=new Set(queue.map(x=>x.file)),probes=[],decisions=[],compiledObjects=new Map(),pool=new DiscoveryPool(c.jobs??8);let pos=0,sketchPreprocess=null;const captureFile=path.join(c.workspace,'graph','frontend','discovery-sketch.cpp');fs.mkdirSync(path.dirname(captureFile),{recursive:true});
+export async function discover(c,p,index,{onSketchReady}={}){const started=performance.now(),snapshot=sketchSnapshot(c.sketchDir),selected=[],includes=[p['build.core.path'],p['build.variant.path']],queue=[{file:initialSketch(c,snapshot),extra:null},...snapshot.units.map(name=>({file:path.join(c.workspace,'build/sketch',name),extra:null,projectUnit:true}))],seen=new Set(queue.map(x=>x.file)),probes=[],decisions=[],compiledObjects=new Map(),pool=new DiscoveryPool(c.jobs??8);let pos=0,sketchPreprocess=null;const captureFile=path.join(c.workspace,'graph','frontend','discovery-sketch.cpp');fs.mkdirSync(path.dirname(captureFile),{recursive:true});
  const result={selected,includes,probes,decisions,indexSha256:index.sha256,timings:{}};
  Object.defineProperty(result,'sketchPreprocess',{enumerable:false,writable:true,value:null});
  Object.defineProperty(result,'compiledObjects',{enumerable:false,writable:true,value:compiledObjects});
@@ -116,6 +117,10 @@ export async function discover(c,p,index,{onSketchReady}={}){const started=perfo
   const eager=unit.library&&['.cpp','.cc','.cxx'].includes(path.extname(unit.file))&&c.discoveryCompileReference!==true;
   const entry=eager?compileEntry(c,p,unit.file,unit.base,unit.out,dirs):null;
   let args=entry?entry.arguments:preprocArgs(p,unit.file,dirs);
+  if(unit.projectUnit&&['.c','.S'].includes(path.extname(unit.file))){
+   const row=compileEntry(c,p,unit.file,path.dirname(unit.file),path.dirname(unit.file),dirs);
+   args=[row.arguments[0],'-E','-CC',...row.arguments.slice(1).filter(a=>a!=='-MMD')];args[args.indexOf('-o')+1]='nul';
+  }
   if(eager){const rsp=path.join(c.workspace,'graph','normal-file-options.rsp');writeChanged(rsp,'');args=args.map(arg=>arg.startsWith('@')&&path.basename(arg.slice(1))==='file_opts'?'@'+rsp:arg);}
   const output=args.indexOf('-o'),identity=eager?compileIdentity(args,c.sysroot):null;
   const capture=unit.file===queue[0].file&&c.discoveryPreprocessReference!==true&&output>=0&&output<args.length-1;
@@ -157,7 +162,7 @@ export async function discover(c,p,index,{onSketchReady}={}){const started=perfo
 }
 export function compilationDatabase(c,p,d){const build=path.join(c.workspace,'build'),entries=[];
  function add(file,base,out,dirs){entries.push(compileEntry(c,p,file,base,out,dirs));}
- const sketchDir=path.join(build,'sketch');for(const f of sourceFiles(sketchDir,false))add(f,sketchDir,sketchDir,d.includes);
+ const sketchDir=path.join(build,'sketch');for(const name of [...sketchSnapshot(c.sketchDir).units,'sketch.ino.cpp'].sort())add(path.join(sketchDir,name),sketchDir,sketchDir,d.includes);
  for(const lib of d.selected){const dirs=[...d.includes,...(lib.utility?[lib.utility]:[])],out=path.join(build,'libraries',lib.dirName);for(const f of sourceFiles(lib.source_dir,lib.layout==='recursive'))add(f,lib.source_dir,out,dirs);if(lib.utility)for(const f of sourceFiles(lib.utility,false))add(f,lib.utility,path.join(out,'utility'),dirs);}
  const coreDirs=[p['build.core.path'],p['build.variant.path']];for(const dir of [...coreDirs].reverse())for(const f of sourceFiles(dir,true))add(f,dir,path.join(build,'core'),coreDirs);
  write(path.join(build,'compile_commands.json'),entries);return entries;

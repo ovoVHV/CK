@@ -8,7 +8,8 @@ import {NativeScheduler} from './scheduler.mjs';
 import {avrProperties} from './avr-properties.mjs';
 import {esp32Properties} from './esp32-properties.mjs';
 import {isResourceExhaustion,attachFallbackAttempt} from './build-failures.mjs';
-import {observeNoOpTree,proveNoOp,sameSketchNamespace} from './noop.mjs';
+import {observeNoOpTree,proveNoOp} from './noop.mjs';
+import {sketchSnapshot,mirrorMembers} from './sketch-files.mjs';
 import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import {randomUUID} from 'node:crypto';
 import {read,write,sha,buildIndex} from './resolver.mjs';
 import {run,asyncRun,baseArgs,properties,officialLibraries,prepare,discover,compilationDatabase,frontendObject,artifactNames,NeedsOfficial,clearBuild} from './discovery.mjs';
@@ -51,16 +52,21 @@ export class BuildSession {
  const sameContext=state?.context===context(c),sameAssets=state?.assetSha256===before.sha256;
  let directives,sourceContractError;try{directives=sourceContract(source);}catch(e){sourceContractError=String(e.message);}
  receipt.sourceEligibility={eligible:!!directives,reason:sourceContractError??'literal-includes-and-supported-syntax'};
- const sketchMembers=fs.readdirSync(c.sketchDir);const graphAllowed=mode!=='official'&&sameContext&&sameAssets&&directives&&directives===state.directives&&sketchMembers.length===1&&sketchMembers[0]==='sketch.ino';
+ const members=sketchSnapshot(c.sketchDir),names=JSON.stringify(members.names);
+ const sameMembers=state?.memberIdentity===members.identity&&!members.other.length;
+ const unchanged=()=>{const now=sketchSnapshot(c.sketchDir);return now.identity===members.identity&&JSON.stringify(now.other)===JSON.stringify(members.other)&&norm(fs.readFileSync(sourceFile,'utf8'))===source;};
+ receipt.projectFiles=members.files.map(({name,digest})=>({name,sha256:digest}));
+ const graphAllowed=mode!=='official'&&sameContext&&sameAssets&&directives&&directives===state.directives&&sameMembers&&!state.official;
  receipt.graphReuse={hit:!!graphAllowed,reason:graphAllowed?'live-session-input-proof':!state?'no-live-authority':!sameContext?'build-context-changed':!sameAssets?'asset-or-namespace-changed':!directives?'source-contract-not-supported':'source-discovery-contract-changed'};
  try{
-  if(c.features.noOpFastPath&&noOpFastPath&&graphAllowed&&state.source===source){
+  if(c.features.noOpFastPath&&noOpFastPath&&mode!=='official'&&sameContext&&sameAssets&&sameMembers&&state.source===source){
    activity('相同源码：正在验证已有构建输出');
    const candidate=proveNoOp(state,state.plan,c.validation);receipt.noOpFastPath=candidate;
    receipt.phases.noOpOutputValidationMs=candidate.elapsedMs??0;
    if(candidate.hit){
+    receipt.graphReuse={hit:true,reason:'live-session-input-proof'};
     activity('资产复核：再次完整验证输入内容');const after=validateAssets(roots(c),c.validation);receipt.phases.postValidationMs=after.elapsedMs;
-    if(before.sha256!==after.sha256||!sameSketchNamespace(c.sketchDir)||sha(norm(fs.readFileSync(sourceFile,'utf8')))!==sha(source))throw Error('Input changed during No-Op build');
+    if(before.sha256!==after.sha256||!unchanged())throw Error('Input changed during No-Op build');
     const previous=state.lastReceipt;
     receipt.resources=previous.resources;
     Object.assign(receipt,{success:true,artifacts:candidate.artifacts,postAssetProof:{...after,rows:undefined},objects:previous.objects,pch:previous.pch,generatedSha256:previous.generatedSha256,compileDatabase:previous.compileDatabase,selectedLibraries:previous.selectedLibraries,sketchCommand:previous.sketchCommand,sourceSha256:sha(source),fqbn:c.fqbn,officialFrontendInvoked:false,compilerInvoked:false,ninjaInvocations:0,frontendMode:'session-identical-transform',frontend:{replayed:true,reason:'identical-validated-source'},generatedWritten:false,derivedRepairs:[],restoredObjects:[],linkHistory:{hit:false},stageTimings:[],batchTimings:[],observation:{optimize:false,noop:true,reads:candidate.proof.files,bytes:candidate.proof.bytes},counts:Object.fromEntries(Object.keys(previous.counts).map(k=>[k,k==='ObjectRetained'?previous.objects.length:0])),taskDecisions:previous.taskDecisions.map(d=>({...d,decision:d.task==='frontend'?'Replay':'Reuse',reason:'full-content-noop-proof',actualWrites:0}))});
@@ -68,18 +74,19 @@ export class BuildSession {
     receipt.wallMs=performance.now()-at;write(path.join(c.evidence,label+'.receipt.json'),receipt);return receipt;
    }
   }
-  if(graphAllowed){activity('依赖发现：复用已验证的会话发现图');p=state.p;d=state.d;front=state.front;plan=state.plan;}
+  if(graphAllowed){activity('依赖发现：复用已验证的会话发现图');mirrorMembers(c,members);p=state.p;d=state.d;front=state.front;plan=state.plan;}
   else {
    const q=requestScope(c);let useOfficial=mode==='official'||!c.features.independentDiscovery||!q.qualified||!directives;
    if(useOfficial)receipt.officialReason=mode==='official'?'explicit-official-request':!c.features.independentDiscovery?'independent-discovery-disabled':!q.qualified?q.reason:sourceContractError;
    if(useOfficial){activity('官方前端：正在解析板卡、库及 Sketch');clearBuild(c);const t=performance.now(),r=await asyncRun([...baseArgs(c),'--only-compilation-database','--verbose','--json','--clean',c.sketchDir],c.sysroot);receipt.phases.officialFrontendMs=performance.now()-t;write(path.join(c.evidence,label+'.official.json'),r);if(r.code)throw Error(r.stderr+r.stdout.slice(-2000));front=JSON.parse(r.stdout);p=properties(front);d={selected:officialLibraries(front),probes:[],decisions:[]};fullFrontend=true;receipt.discoveryMode='official';state=null;}
-   else {activity('板卡配置：正在解析实际参数和库候选');if(!state||!sameContext)clearBuild(c);const t=performance.now();const esp32=c.fqbn.startsWith('esp32:esp32:');
+   else {activity('板卡配置：正在解析实际参数和库候选');if(!state||!sameContext||state.memberNames!==names||state.official)clearBuild(c);const t=performance.now();const esp32=c.fqbn.startsWith('esp32:esp32:');
     const expanded=(esp32?c.features.esp32Properties!==false&&!c.esp32PropertiesReference:c.features.avrProperties!==false&&!c.avrPropertiesReference)?(esp32?esp32Properties(c):avrProperties(c)):{hit:false,reason:'reference-or-feature-disabled'};
     if(expanded.hit)p=expanded.properties;else{const r=run([...baseArgs(c),'--show-properties=expanded','--json',c.sketchDir],{cwd:c.sysroot});const info=JSON.parse(r.stdout);if(info.compiler_out||info.builder_result.used_libraries?.length)throw Error('Property bootstrap performed discovery');p=properties(info);}
     receipt.propertyExpansion={native:expanded.hit,reason:expanded.reason,coreVersion:path.basename(p['runtime.platform.path'])};receipt.phases.propertiesMs=performance.now()-t;
     const prepAt=performance.now(),retained=state?saveTree(path.join(c.workspace,'build')).filter(x=>!/[.]o$|[.]gch$|[.]a$|[.]bin$|[.]elf$/.test(x.file)):[];prepare(c,p);for(const x of retained)if(fs.existsSync(x.file)&&fs.readFileSync(x.file).equals(x.bytes))fs.utimesSync(x.file,x.atime,x.mtime);receipt.phases.prepareMs=performance.now()-prepAt;
     const indexAt=performance.now(),index=buildIndex([{dir:path.join(p['runtime.platform.path'],'libraries'),location:'platform'},{dir:c.userLibraries,location:'user'},...(c.collections??[]).map(dir=>({dir,location:'user'})),...(c.explicitLibraries??[]).map(dir=>({dir,location:'unmanaged',single:true}))]);if(index.diagnostics.length)throw new NeedsOfficial('Index diagnostics');receipt.phases.indexMs=performance.now()-indexAt;
-    activity('依赖发现：开始 GCC 探测和并行编译');const dt=performance.now();d=await discover(c,p,index,{onSketchReady:c.discoveryCompileReference||c.coldPipelineReference||c.pchDiagnostics?undefined:async(discovered,pool)=>{
+    const rediscover=state&&sameAssets&&sameContext&&state.memberNames===names&&!sameMembers;
+    activity('依赖发现：开始 GCC 探测和并行编译');const dt=performance.now();d=await discover(rediscover?{...c,discoveryCompileReference:true}:c,p,index,{onSketchReady:rediscover||members.units.length||c.discoveryCompileReference||c.coldPipelineReference||c.pchDiagnostics?undefined:async(discovered,pool)=>{
      provisionalIncludes=discovered.includes.join('\0');compilationDatabase(c,p,discovered);front=frontendObject(p,discovered.selected);buildPlan();coldFrontend(discovered);
      const sketch=plan.rules.find(r=>r.kind==='compile'&&r.inputs[0]===path.join(plan.build,'sketch/sketch.ino.cpp'));
      // PCH-dependent recipes keep the ordinary PCH-before-Sketch scheduler.
@@ -110,7 +117,7 @@ export class BuildSession {
   if(graphAllowed&&state.auxiliary)for(const x of state.auxiliary)writeChanged(x.file,x.bytes);
   const fixedAssets=sha(JSON.stringify(before.rows.filter(r=>!r[0].toLowerCase().startsWith(path.resolve(c.userLibraries).toLowerCase()+path.sep))));
   activity('任务调度：验证依赖、对象和历史产物');
-  const execAt=performance.now(),scheduled=await this.#scheduler.execute(c,plan,{context:context(c),assets:before.sha256,fixedAssets,namespace:before.namespaceSha256},{restore:objectRestore&&linkHistory,optimize:c.receiptOptimize===true,produced:!graphAllowed&&d.compiledObjects?d.compiledObjects:new Map()});
+  const execAt=performance.now(),scheduled=await this.#scheduler.execute(c,plan,{context:context(c),assets:before.sha256,fixedAssets,namespace:sha(JSON.stringify([before.namespaceSha256,names]))},{restore:objectRestore&&linkHistory,optimize:c.receiptOptimize===true,produced:!graphAllowed&&d.compiledObjects?d.compiledObjects:new Map()});
   if(d.compiledObjects)d.compiledObjects=null;
   receipt.phases.executeMs=performance.now()-execAt;receipt.phases.ruleObservationMs=scheduled.observationMs;receipt.observation=scheduled.observation;
   receipt.steps=scheduled.steps;receipt.stageTimings=scheduled.timings;receipt.batchTimings=scheduled.batchTimings;receipt.taskDecisions=[{task:'discovery',decision:graphAllowed?'Reuse':'Rebuild',reason:receipt.graphReuse.reason},{task:'frontend',decision:receipt.frontend.replayed?'Replay':'Rebuild',reason:receipt.frontend.reason},...scheduled.decisions];
@@ -125,7 +132,7 @@ export class BuildSession {
   const objects=path.join(c.evidence,label,'objects');if(c.captureEvidence)fs.mkdirSync(objects,{recursive:true});receipt.objects=plan.rules.filter(r=>r.kind==='compile').map(r=>{const proof=c.receiptOptimize?scheduled.records.find(x=>x.output===r.output).proof:statProof(r.output);const dest=sha(r.output)+'.o';if(c.captureEvidence){if(c.receiptOptimize)fs.writeFileSync(path.join(objects,dest),scheduled.bytesFor(r.output));else fs.copyFileSync(r.output,path.join(objects,dest));}return {...proof,stored:dest};});
   receipt.pch=plan.rules.filter(r=>r.kind==='pch').map(r=>({output:c.receiptOptimize?scheduled.records.find(x=>x.output===r.output).proof:statProof(r.output),command:ruleKey(r),argv:r.argv,expanded:responses(r.argv.slice(1),r.directory).expanded,dependencies:c.receiptOptimize?scheduled.records.find(x=>x.output===r.output).inputs:ruleInputs(r),assetIdentity:before.sha256,context:context(c)}));
   receipt.generatedSha256=sha(fs.readFileSync(generated));fs.copyFileSync(generated,path.join(c.evidence,label+'.ino.cpp'));receipt.compileDatabase=plan.db;receipt.selectedLibraries=d.selected.map(l=>({name:l.name,source_dir:l.source_dir,install_dir:l.install_dir,version:l.version??null}));
-  activity('资产复核：再次完整验证输入内容');const after=validateAssets(roots(c),c.validation??{mode:'node'});receipt.phases.postValidationMs=after.elapsedMs;receipt.postAssetProof={...after,rows:undefined};if(before.sha256!==after.sha256||sha(norm(fs.readFileSync(sourceFile,'utf8')))!==sha(source))throw Error('Input changed during build');
+  activity('资产复核：再次完整验证输入内容');const after=validateAssets(roots(c),c.validation??{mode:'node'});receipt.phases.postValidationMs=after.elapsedMs;receipt.postAssetProof={...after,rows:undefined};if(before.sha256!==after.sha256||!unchanged())throw Error('Input changed during build');
   const ruleProof=scheduled.records;
   const auxiliary=(p['build.arch'].toLowerCase()==='avr'?['build.options.json']:['partitions.csv','sketch.ino.bootloader.bin','sdkconfig','build.options.json']).map(n=>{const file=path.join(plan.build,n);return {file,bytes:fs.readFileSync(file)};});
   const outputAt=performance.now(),outputIdentity=c.features.noOpFastPath?observeNoOpTree(plan,c.validation).sha256:null;
@@ -139,7 +146,7 @@ export class BuildSession {
   receipt.speculativeCompilation=graphAllowed?{started:0,consumed:0,discarded:0}:{started:d.speculativeCompiles?.length??0,consumed:d.speculativeCompiles?.filter(p=>p.consumed).length??0,discarded:unusedSpeculative.length};
   receipt.counts={LibraryPchGCC:graphAllowed?0:d.libraryPch?.length??0,DiscoveryGCC:receipt.graphReuse.hit?0:null,DiscoveryCompileGCC:discoveryCompiles,PrototypeGCC:receipt.frontend.replayed||receipt.prototypePreprocessReused?0:1,CTags:receipt.frontend.replayed?0:1,CompileGCC:receipt.steps.filter(x=>x.kind==='COMPILE').length+discoveryCompiles+(receipt.coldPipeline?.compiled??0),PipelinedSketchGCC:receipt.coldPipeline?.compiled??0,SchedulerCompileGCC:receipt.steps.filter(x=>x.kind==='COMPILE').length,ObjectProducedDuringDiscovery:scheduled.decisions.filter(x=>x.decision==='UseDiscoveryObject').length,PchGCC:receipt.steps.filter(x=>x.kind==='PCH').length+(!graphAllowed?(d.libraryPch?.length??0):0),Linker:receipt.steps.filter(x=>x.kind==='LINK').length,ImageGenerator:receipt.steps.filter(x=>x.kind==='IMAGE').length,CacheRestored:scheduled.decisions.filter(x=>x.decision==='Restore').length,ObjectRestored:scheduled.decisions.filter(x=>x.task==='compile'&&x.decision==='Restore').length,ObjectRetained:scheduled.decisions.filter(x=>x.task==='compile'&&x.decision==='Reuse').length,PchRestored:scheduled.decisions.filter(x=>x.task==='pch'&&x.decision==='Restore').length,LinkRestored:scheduled.decisions.filter(x=>x.task==='link'&&x.decision==='Restore').length,ImageRestored:scheduled.decisions.filter(x=>x.task==='image'&&x.decision==='Restore').length,RestoredFileWrites:scheduled.decisions.reduce((n,x)=>n+(x.actualWrites??0),0)};if(!fullFrontend)receipt.counts.DiscoveryGCC=receipt.graphReuse.hit?0:d.probes.filter(p=>p.kind!=='compile').length;
   receipt.compilerInvoked=receipt.compilerInvoked||discoveryCompiles>0||(receipt.coldPipeline?.compiled??0)>0;
-  this.#state.outputIdentity=outputIdentity;this.#state.lastReceipt=receipt;
+  Object.assign(this.#state,{outputIdentity,lastReceipt:receipt,memberIdentity:members.identity,memberNames:names,official:fullFrontend});
   write(path.join(c.evidence,label+'.receipt.json'),receipt);return receipt;
  }catch(e){
   this.reset();receipt.error=String(e.stack);receipt.wallMs=performance.now()-at;

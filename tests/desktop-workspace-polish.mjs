@@ -26,11 +26,13 @@ try{
  for(let i=0;i<25;i++){if(await client.evaluate(`Boolean(window.CK_NATIVE_REGRESSION?.getCurrent()?.workspace?.getBlockById('polish-delay'))`))break;
   await client.evaluate(`window.__TAURI_INTERNALS__.invoke('plugin:event|emit',{event:'ck-project-open-requested',payload:${openFixture}})`);await delay(400);}
  await wait(`window.CK_NATIVE_REGRESSION?.getCurrent()?.workspace.getBlockById('polish-delay') && document.querySelector('[data-ck-role="edit-source"]')?.disabled===false`);
+ if(!process.env.CK_CONFLICT_UI_ONLY){
  await click('.ck-target-detail summary');assert.ok(await client.evaluate(`document.querySelector('.ck-target-detail').open`));
  await client.evaluate(`document.querySelector('.ck-target-detail summary').focus()`);await key('Escape','Escape',27);
  assert.equal(await client.evaluate(`document.querySelector('.ck-target-detail').open`),false);
  await click('[data-ck-role="toolbar-port-select"]');await wait(`Boolean(document.querySelector('.ck-device-tools [role="menu"]'))`);
  await click('.ck-device-tools .fixed');
+ }
  await client.evaluate(`window.__polishCalls=[];window.__polishErrors=[];window.addEventListener('error',e=>window.__polishErrors.push(String(e.error||e.message)));const original=window.fetch.bind(window);window.fetch=async(url,options)=>{const u=new URL(String(url),location.href);if(u.hostname==='ipc.localhost')window.__polishCalls.push(decodeURIComponent(u.pathname.slice(1)));return original(url,options);}`);
  await click('[data-ck-role="edit-source"]');await wait(`Boolean(document.querySelector('.cm-content'))`);
  let code=(await state()).ckSource.code;assert.match(code,/delay\(100\)/);
@@ -46,11 +48,15 @@ try{
  await click('[data-ck-role="edit-source"]');await wait(`Boolean(document.querySelector('.ck-source-sync-review'))`);
  await click('[data-ck-role="build-compile-action"]');await delay(250);assert.equal(await client.evaluate(`window.__polishCalls.includes('compile_sketch')`),false);
  await save();const saved=JSON.parse(JSON.parse(fs.readFileSync(file,'utf8')).xml).ckSource;assert.match(saved.pendingGenerated,/delay\(500\)/);assert.match(saved.code,/delay\(400\)/);
- await click('.ck-source-sync-summary button');await capture('source-conflict');
+ const editorBefore=await rect('.ck-source-edit-area');await click('.ck-source-sync-summary button');await delay(3000);await capture('source-conflict');
+ assert.deepEqual(await rect('.ck-source-edit-area'),editorBefore,'Opening the conflict popover shifted the editor');
  assert.equal(await client.evaluate(`document.querySelector('.ck-source-sync-apply').disabled`),true);
- await client.evaluate(`document.querySelectorAll('.ck-source-sync-options input')[1].click()`);await click('.ck-source-sync-apply');
+ await client.evaluate(`document.querySelectorAll('.ck-source-sync-options input')[1].click()`);await key('Escape','Escape',27);
+ assert.equal(await client.evaluate(`!!document.querySelector('.ck-source-sync-details')`),false);
+ await click('.ck-source-sync-summary button');assert.ok(await client.evaluate(`document.querySelectorAll('.ck-source-sync-options input')[1].checked`));await click('.ck-source-sync-apply');
  await wait(`!document.querySelector('.ck-source-sync-review')`);code=(await state()).ckSource.code;assert.match(code,/delay\(500\)/);assert.ok(code.endsWith(extra));
  report.checks.push('Live block updates; disjoint manual function preserved; overlapping edit presented; unresolved source compile blocked; pending conflict saved; explicit generated choice retains other manual code');
+ if(!process.env.CK_CONFLICT_UI_ONLY){
  // Save immediately after a block edit, before the preview debounce completes.
  await click('[data-ck-role="edit-blocks"]');await client.evaluate(`window.CK_NATIVE_REGRESSION.getCurrent().workspace.getBlockById('polish-delay').setFieldValue(600,'MS')`);await save();
  assert.match(JSON.parse(JSON.parse(fs.readFileSync(file,'utf8')).xml).ckSource.code,/delay\(600\)/);report.checks.push('Immediate save synchronizes source from actual blocks');
@@ -91,6 +97,7 @@ try{
  assert.equal(await client.evaluate(`window.__polishCalls.some(c=>['chat_with_glm_stream','open_serial_monitor','send_serial_data'].includes(c))`),false);
  report.checks.push('Five viewport/theme layouts keep library button and controls in bounds; synthetic native serial event renders; no model request or hardware serial port opened');
  await click('button[aria-label="关闭 AI 面板"]');await click('[data-ck-role="edit-source"]');await save();await capture('synced-source');
+ }
  assert.deepEqual(await client.evaluate('window.__polishErrors'),[]);report.status='PASS';
 }catch(error){report.status='FAIL';report.error=String(error.stack);console.error(error);process.exitCode=1;await capture('failure').catch(()=>{});}
 finally{fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));await command('Emulation.clearDeviceMetricsOverride').catch(()=>{});socket.close();client.close();console.log('POLISH REPORT '+out+' '+report.status);}

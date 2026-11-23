@@ -5,7 +5,7 @@ import test from 'node:test';
 const source = readFileSync(new URL('./Workspace.tsx', import.meta.url), 'utf8');
 
 test('compile diagnostics use an immutable exact-code source map session', () => {
-    assert.match(source, /compileSourceMapSessionRef\.current = \{/);
+    assert.match(source, /compileSourceMapSessionRef\.current = sourceBuild \? null : \{/);
     assert.match(source, /freezeCompileSourceMap\(compileCode, \{ file: 'sketch\.ino' \}\)/);
     assert.match(source, /captureCompileIssueBlockPresentations\([\s\S]*?frozenCompileSourceMap/);
     assert.match(source, /blockPresentations: ReadonlyMap/);
@@ -14,7 +14,7 @@ test('compile diagnostics use an immutable exact-code source map session', () =>
     assert.match(source, /trustedSketchAlias: TrustedCompileSketchAliasV1 \| null/);
     assert.match(source, /sha256Hex\(generatedCodeRef\.current \|\| ''\) !== session\.sourceMap\.codeSha256/);
     assert.match(source, /code: session\.code/);
-    assert.match(source, /const compileSourceMapJson = JSON\.stringify/);
+    assert.match(source, /const compileSourceMapJson = sourceBuild \? null : JSON\.stringify\(frozenCompileSourceMap\)/);
     const nativeEvidenceUses = source.match(/sourceMapJson: compileSourceMapJson/g) || [];
     assert.equal(nativeEvidenceUses.length, 2, 'compile and upload must persist the same verified map');
 });
@@ -54,26 +54,8 @@ test('shows structured error cards in the compile console without requiring the 
     assert.match(source, /title=\{canLocateBlock \? '点击定位到已确认映射的积木' : undefined\}/);
 });
 
-test('compile-error state and its persistent SVG class are always added and cleared together', () => {
-    const enabledMarkers = source.match(/__ckCompileError\s*=\s*true;/g) || [];
-    const disabledMarkers = source.match(/__ckCompileError\s*=\s*false;/g) || [];
-    const synchronizedAdds = source.match(
-        /\((\w+) as any\)\.__ckCompileError\s*=\s*true;\s*\1\.getSvgRoot\(\)\?\.classList\.add\('ck-block-compile-error'\);/g,
-    ) || [];
-    const synchronizedRemovals = source.match(
-        /\((\w+) as any\)\.__ckCompileError\s*=\s*false;\s*\1\.getSvgRoot\(\)\?\.classList\.remove\('ck-block-compile-error'\);/g,
-    ) || [];
-
-    assert.ok(enabledMarkers.length > 0, 'compile diagnostics must mark mapped blocks');
-    assert.ok(disabledMarkers.length > 0, 'new compile state must clear stale mapped blocks');
-    assert.equal(
-        synchronizedAdds.length,
-        enabledMarkers.length,
-        'every __ckCompileError=true assignment must add ck-block-compile-error immediately',
-    );
-    assert.equal(
-        synchronizedRemovals.length,
-        disabledMarkers.length,
-        'every __ckCompileError=false assignment must remove ck-block-compile-error immediately',
-    );
+test('workspace uses the tested compile feedback service to clear and mark mapped blocks', () => {
+    assert.match(source, /clearCompileErrors\(ws\)/);
+    assert.match(source, /markCompileError\(block,/);
+    assert.doesNotMatch(source,/__ckCompileError\s*=/);
 });

@@ -15,6 +15,7 @@ mod bounded_sse;
 mod ai_utf8_stream;
 mod ai_store;
 mod ai_request_options;
+mod ai_responses;
 mod bundled_arduino;
 mod ai_verification;
 mod ai_library_source;
@@ -142,6 +143,15 @@ fn get_required_headers(code: &str) -> HashSet<String> {
         }
     }
     headers
+}
+
+fn project_required_headers(code:&str)->HashSet<String>{
+    let mut all=get_required_headers(code);
+    if let Some(files)=ck_core::builder::demo::project_sources(){
+        for bytes in files.values(){all.extend(get_required_headers(&String::from_utf8_lossy(bytes)));}
+        all.retain(|header| !files.contains_key(header.as_str()));
+    }
+    all
 }
 
 fn header_lookup_keys(raw_header: &str) -> Vec<String> {
@@ -4030,6 +4040,9 @@ use tauri::{AppHandle, Emitter, Manager, State};
 
 struct ActiveSerialMonitor {
     monitor: ck_core::executor::uploader::monitor::SerialMonitor,
+    port: String,
+    baud: u32,
+    sample: Arc<Mutex<Option<Vec<u8>>>>,
     _serial_operation_guard: device_health::SerialOperationGuard,
 }
 
@@ -4038,6 +4051,7 @@ impl ActiveSerialMonitor {
         let ActiveSerialMonitor {
             monitor,
             _serial_operation_guard,
+            ..
         } = self;
         let close_result = monitor
             .close()
@@ -7406,6 +7420,8 @@ async fn open_path_in_explorer(path: String) -> Result<(), String> {
 struct GlmHistoryMessage {
     role: String,
     #[serde(default)]
+    response_reasoning: Vec<ai_responses::Reasoning>,
+    #[serde(default)]
     images: Vec<String>,
     #[serde(default, rename = "reasoning_content")]
     reasoning_content: Option<String>,
@@ -7465,6 +7481,7 @@ struct LlmToolCall {
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GlmChatRequest {
+    api_protocol: Option<String>,
     #[serde(default)]
     images: Vec<String>,
     reasoning_effort: Option<String>,
@@ -7488,6 +7505,8 @@ struct GlmChatRequest {
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct GlmChatResult {
+    #[serde(skip_serializing_if="Vec::is_empty")]
+    response_reasoning: Vec<ai_responses::Reasoning>,
     model: String,
     content: String,
     reasoning_content: Option<String>,
@@ -7610,6 +7629,25 @@ fn build_completions_url(base_url: &str) -> String {
     format!("{}/chat/completions", trimmed)
 }
 
+fn ai_endpoint(base: &str, responses: bool) -> Result<String,String> {
+    let full = build_completions_url(base);
+    if !responses && !base.trim_end_matches('/').ends_with("/responses") { return Ok(full); }
+    let mut url=url::Url::parse(if base.trim().is_empty() {&full} else {base.trim()}).map_err(|_|"API 地址无效")?;
+    let suffix=if responses {"responses"} else {"chat/completions"};
+    url.set_path(&format!("{}/{suffix}",ai_responses::base_path(url.path())));
+    Ok(url.into())
+}
+
+fn ai_http_client(endpoint: &str, timeout_ms:u64) -> Result<reqwest::Client,String> {
+    let mut builder=reqwest::Client::builder().redirect(reqwest::redirect::Policy::none())
+        .timeout(std::time::Duration::from_millis(timeout_ms));
+    if url::Url::parse(endpoint).ok().is_some_and(|url| match url.host() {
+        Some(url::Host::Domain(h))=> h.eq_ignore_ascii_case("localhost"),
+        Some(url::Host::Ipv4(ip))=>ip.is_loopback(),Some(url::Host::Ipv6(ip))=>ip.is_loopback(),None=>false,
+    }) {builder=builder.no_proxy();}
+    builder.build().map_err(|e|format!("Failed to create HTTP client: {e}"))
+}
+
 /// Legacy compat: read default model from settings (used as fallback).
 fn read_default_model_from_settings() -> Option<String> {
     resolve_active_provider()
@@ -7704,6 +7742,7 @@ fn truncate_for_llm(text: &str, max_chars: usize) -> String {
 
 fn normalize_glm_history_messages(
     history: Option<Vec<GlmHistoryMessage>>,
+    responses: bool,
 ) -> Result<Vec<serde_json::Value>, String> {
     let mut cleaned: Vec<serde_json::Value> = Vec::new();
     let rows = history.unwrap_or_default();
@@ -7733,6 +7772,9 @@ fn normalize_glm_history_messages(
                     });
                     if let Some(reasoning) = item.reasoning_content {
                         message["reasoning_content"] = serde_json::Value::String(reasoning);
+                    }
+                    if responses && !item.response_reasoning.is_empty() {
+                        message["responseReasoning"] = serde_json::json!(item.response_reasoning);
                     }
                     cleaned.push(message);
                 } else {
@@ -7867,7 +7909,7 @@ async fn ai_list_models(base_url: String, api_key: String) -> Result<Vec<String>
     if !url.username().is_empty() || url.password().is_some() || url.query().is_some() || url.fragment().is_some()
         || !(url.scheme()=="https" || (url.scheme()=="http" && matches!(url.host_str(),Some("localhost"|"127.0.0.1"|"[::1]")))) {return Err("请使用 HTTPS API 地址，本机服务可用 HTTP".into());}
     if api_key.trim().is_empty() {return Err("请先填写 API 密钥".into());}
-    let path=url.path().trim_end_matches('/').strip_suffix("/chat/completions").unwrap_or(url.path().trim_end_matches('/')).to_string();
+    let path=ai_responses::base_path(url.path()).to_string();
     url.set_path(&format!("{path}/models"));
     let mut builder=reqwest::Client::builder().redirect(reqwest::redirect::Policy::none()).timeout(std::time::Duration::from_secs(20));
     if matches!(url.host_str(),Some("localhost"|"127.0.0.1"|"[::1]")){builder=builder.no_proxy();}
@@ -7908,7 +7950,8 @@ async fn chat_with_glm(req: GlmChatRequest) -> Result<GlmChatResult, String> {
     .ok_or(
         "API key is missing. Please provide key in UI or set provider-specific env (GLM_API_KEY / DEEPSEEK_API_KEY / MINIMAX_API_KEY).",
     )?;
-    let completions_url = build_completions_url(&provider_base_url);
+    let responses=ai_responses::selected(req.api_protocol.as_deref())?;
+    let completions_url = ai_endpoint(&provider_base_url,responses)?;
 
     let model = req
         .model
@@ -7947,7 +7990,7 @@ async fn chat_with_glm(req: GlmChatRequest) -> Result<GlmChatResult, String> {
         }
     }
 
-    let normalized_history = normalize_glm_history_messages(req.history_messages)?;
+    let normalized_history = normalize_glm_history_messages(req.history_messages,responses)?;
     log::info!(
         "LLM non-stream request: {} history rows, model={}, url={}",
         normalized_history.len(),
@@ -7978,7 +8021,7 @@ async fn chat_with_glm(req: GlmChatRequest) -> Result<GlmChatResult, String> {
         body["max_tokens"] = serde_json::json!(max_tokens.clamp(64, 32768));
     }
 
-    ai_request_options::apply_reasoning(&mut body, req.reasoning_protocol.as_deref(), req.reasoning_effort.as_deref(), &provider_base_url)?;
+    if !responses { ai_request_options::apply_reasoning(&mut body, req.reasoning_protocol.as_deref(), req.reasoning_effort.as_deref(), &provider_base_url)?; }
 
     // Add function calling tools if provided.
     if let Some(ref tools) = req.tools {
@@ -8008,10 +8051,8 @@ async fn chat_with_glm(req: GlmChatRequest) -> Result<GlmChatResult, String> {
         body["tool_choice"] = tool_choice.clone();
     }
 
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_millis(timeout_ms))
-        .build()
-        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+    if responses {body=ai_responses::request(&body,req.reasoning_effort.as_deref())?;}
+    let client=ai_http_client(&completions_url,timeout_ms)?;
 
     let response = client
         .post(&completions_url)
@@ -8023,10 +8064,8 @@ async fn chat_with_glm(req: GlmChatRequest) -> Result<GlmChatResult, String> {
         .map_err(|e| format!("LLM request failed: {}", e))?;
 
     let status = response.status();
-    let raw = response
-        .text()
-        .await
-        .map_err(|e| format!("Failed to read LLM response: {}", e))?;
+    let limit=if status.is_success() {bounded_sse::AGENT_SSE_LIMITS.raw_stream_bytes} else {bounded_sse::ERROR_RESPONSE_MAX_BYTES};
+    let raw=bounded_sse::read_response_text_bounded(response,limit,"LLM response").await?;
     if !status.is_success() {
         let msg = serde_json::from_str::<serde_json::Value>(&raw)
             .ok()
@@ -8042,6 +8081,7 @@ async fn chat_with_glm(req: GlmChatRequest) -> Result<GlmChatResult, String> {
 
     let parsed: serde_json::Value =
         serde_json::from_str(&raw).map_err(|e| format!("LLM JSON parse failed: {}", e))?;
+    if responses {return ai_responses::result(&parsed);}
     let choice0 = parsed
         .get("choices")
         .and_then(|v| v.as_array())
@@ -8120,6 +8160,7 @@ async fn chat_with_glm(req: GlmChatRequest) -> Result<GlmChatResult, String> {
 
     Ok(GlmChatResult {
         model: used_model,
+        response_reasoning:Vec::new(),
         content,
         reasoning_content: message_obj.get("reasoning_content").and_then(|v| v.as_str()).map(str::to_owned),
         finish_reason,
@@ -8170,7 +8211,8 @@ async fn chat_with_glm_stream(
     .ok_or(
         "API key is missing. Please provide key in UI or set provider-specific env (GLM_API_KEY / DEEPSEEK_API_KEY / MINIMAX_API_KEY).",
     )?;
-    let completions_url = build_completions_url(&provider_base_url);
+    let responses=ai_responses::selected(req.api_protocol.as_deref())?;
+    let completions_url = ai_endpoint(&provider_base_url,responses)?;
 
     let model = req
         .model
@@ -8209,7 +8251,7 @@ async fn chat_with_glm_stream(
         }
     }
 
-    let normalized_history = normalize_glm_history_messages(req.history_messages)?;
+    let normalized_history = normalize_glm_history_messages(req.history_messages,responses)?;
     log::info!(
         "LLM stream request: {} history rows, model={}, url={}, run_id={}",
         normalized_history.len(),
@@ -8243,7 +8285,7 @@ async fn chat_with_glm_stream(
         .unwrap_or(if is_reasoner_model { 8192 } else { 4096 });
     body["max_tokens"] = serde_json::json!(max_toks.clamp(64, 32768));
 
-    ai_request_options::apply_reasoning(&mut body, req.reasoning_protocol.as_deref(), req.reasoning_effort.as_deref(), &provider_base_url)?;
+    if !responses { ai_request_options::apply_reasoning(&mut body, req.reasoning_protocol.as_deref(), req.reasoning_effort.as_deref(), &provider_base_url)?; }
 
     // Add function calling tools if provided.
     if let Some(ref tools) = req.tools {
@@ -8273,19 +8315,8 @@ async fn chat_with_glm_stream(
         body["tool_choice"] = tool_choice.clone();
     }
 
-    let mut client_builder = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_millis(timeout_ms));
-    // A local model server must stay on loopback, including on machines with
-    // a system HTTP proxy. Do not route its credentials through that proxy.
-    let loopback = url::Url::parse(&completions_url).ok().map_or(false, |parsed| match parsed.host() {
-        Some(url::Host::Domain(host)) => host.eq_ignore_ascii_case("localhost"),
-        Some(url::Host::Ipv4(ip)) => ip.is_loopback(),
-        Some(url::Host::Ipv6(ip)) => ip.is_loopback(),
-        None => false,
-    });
-    if loopback { client_builder = client_builder.no_proxy(); }
-    let client = client_builder.build()
-        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+    if responses { body=ai_responses::request(&body,req.reasoning_effort.as_deref())?; }
+    let client=ai_http_client(&completions_url,timeout_ms)?;
 
     // Do not log prompts, tool content or user credentials.
     let sending = client
@@ -8319,6 +8350,12 @@ async fn chat_with_glm_stream(
         return Err(format!("LLM API HTTP {}: {}", status.as_u16(), msg));
     }
 
+    if responses {
+        return tokio::select! {
+            result=ai_responses::stream(response,&app,&run_id)=>result,
+            reason=wait_for_ai_cancellation(&cancel_state,&run_id)=>Err(reason)
+        };
+    }
     let mut stream = response.bytes_stream();
     let mut buffer = String::new();
     let mut full_content = String::new();
@@ -8640,6 +8677,7 @@ async fn chat_with_glm_stream(
 
     Ok(GlmChatResult {
         model: used_model,
+        response_reasoning:Vec::new(),
         content: final_content,
         reasoning_content: if full_reasoning.is_empty() { None } else { Some(full_reasoning) },
         finish_reason,
@@ -12653,7 +12691,7 @@ mod native_relink_qualification_token_tests {
 async fn compile_ai_candidate(
     app: AppHandle, candidate_id: String, run_id: String, code: String,
     fqbn: String, board_package_id: String, core_version: String, source_map_json: String,
-    library_token: Option<String>, capture_firmware: Option<bool>,
+    library_token: Option<String>, capture_firmware: Option<bool>, project_path: Option<String>,
 ) -> Result<String, String> {
     let candidate_id = normalize_foreground_build_run_id(&candidate_id)?;
     let run_id = normalize_foreground_build_run_id(&run_id)?;
@@ -12663,14 +12701,16 @@ async fn compile_ai_candidate(
     let source_sha256 = sha256_text(&code);
     let library_lease = library_token.as_deref().map(|token| ai_library::compile_lease(token, &code, &fqbn, &board_package_id, &core_version)).transpose()?;
     let firmware_fqbn = fqbn.clone();
-    let result = ck_core::builder::demo::with_native_graph_project(
+    let members = project_files::snapshot(project_path.as_deref())?;
+    let member_identity = project_files::source_identity(members.as_ref());
+    let result = ck_core::builder::demo::PROJECT_SOURCES.scope(members.map(Arc::new),ck_core::builder::demo::with_native_graph_project(
         Some(format!("ai-candidate:{candidate_id}")), Box::pin(compile_sketch_impl(
             app, code.clone(), fqbn, Some(board_package_id), Some(run_id.clone()),
             Some(source_sha256.clone()), Some(source_map_json), Some(false), Some(false), None,
             Some(core_version),
             library_lease.as_ref().map(|lease| lease.path()),
         )),
-    ).await;
+    )).await;
     let mut firmware = serde_json::Value::Null;
     let (ok, log, artifact_count) = match result {
         Ok(raw) => {
@@ -12699,7 +12739,7 @@ async fn compile_ai_candidate(
         format!("{head}\n[候选日志过长，中段省略]\n{tail}")
     } else { log };
     Ok(serde_json::json!({ "ok": ok, "runId": run_id, "sourceSha256": source_sha256,
-        "log": log, "artifactCount": artifact_count, "alias": alias, "firmware": firmware }).to_string())
+        "log": log, "artifactCount": artifact_count, "alias": alias, "firmware": firmware, "memberIdentity":member_identity }).to_string())
 }
 
 #[tauri::command]
@@ -12711,6 +12751,7 @@ async fn compile_sketch(
     run_id: Option<String>,
     workspace_fingerprint: Option<String>,
     project_id: Option<String>,
+    project_path: Option<String>,
     source_map_json: Option<String>,
     silent: Option<bool>,
     qualification: Option<bool>,
@@ -12727,7 +12768,8 @@ async fn compile_sketch(
     if project_id.as_ref().is_some_and(|value| value.is_empty() || value.len() > 4096) {
         return Err("Invalid build project identity".into());
     }
-    ck_core::builder::demo::with_native_graph_project(project_id, Box::pin(compile_sketch_impl(
+    let files=project_files::snapshot(project_path.as_deref())?.map(Arc::new);
+    ck_core::builder::demo::PROJECT_SOURCES.scope(files,ck_core::builder::demo::with_native_graph_project(project_id, Box::pin(compile_sketch_impl(
         app,
         code,
         fqbn,
@@ -12740,7 +12782,7 @@ async fn compile_sketch(
         qualification_authorization,
         None,
         None,
-    )))
+    ))))
     .await
 }
 
@@ -12905,7 +12947,7 @@ async fn compile_sketch_impl(
 
     // --- Smart Library Filtering ---
     // 1. Parse code for includes
-    let required_headers = get_required_headers(&code);
+    let required_headers = project_required_headers(&code);
     let mut required_headers_sorted: Vec<String> = required_headers.into_iter().collect();
     required_headers_sorted.sort();
 
@@ -14018,18 +14060,28 @@ async fn upload_sketch(
     port: String,
     workspace_fingerprint: Option<String>,
     project_id: Option<String>,
+    project_path: Option<String>,
     source_map_json: Option<String>,
     probe_memory: Option<bool>,
     last_working_version: Option<last_working_version::LastWorkingVersionCapture>,
     structured_result: Option<bool>,
+    expected_member_identity: Option<String>,
 ) -> Result<String, String> {
     if project_id.as_ref().is_some_and(|value| value.is_empty() || value.len() > 4096) {
         return Err("Invalid build project identity".into());
     }
-    ck_core::builder::demo::with_native_graph_project(project_id, Box::pin(upload_sketch_impl(
+    let files=project_files::snapshot(project_path.as_deref())?.map(Arc::new);
+    if let Some(expected) = expected_member_identity {
+        if expected != project_files::source_identity(files.as_deref()) {
+            return Err("候选验证后的工程源码文件已变化，请重新验证；未上传。".into());
+        }
+    }
+    // Locked rebuild currently captures only the main source.
+    let last_working_version=last_working_version.filter(|_|files.as_ref().is_none_or(|s|s.is_empty()));
+    ck_core::builder::demo::PROJECT_SOURCES.scope(files,ck_core::builder::demo::with_native_graph_project(project_id, Box::pin(upload_sketch_impl(
         app, code, fqbn, board_package_id, run_id, port, workspace_fingerprint,
         source_map_json, probe_memory, last_working_version, false, structured_result.unwrap_or(false),
-    ))).await
+    )))).await
 }
 
 /// Local diagnostic of the actual product upload-preparation path. It neither
@@ -14045,13 +14097,16 @@ async fn observe_upload_preparation(
     board_package_id: Option<String>,
     run_id: String,
     workspace_fingerprint: Option<String>,
+    project_path: Option<String>,
+    project_id: Option<String>,
     qualification_token: String,
 ) -> Result<String, String> {
     validate_external_native_relink_qualification(true, Some(&qualification_token))?;
-    upload_sketch_impl(
+    let files=project_files::snapshot(project_path.as_deref())?.map(Arc::new);
+    ck_core::builder::demo::PROJECT_SOURCES.scope(files,ck_core::builder::demo::with_native_graph_project(project_id, Box::pin(upload_sketch_impl(
         app, code, fqbn, board_package_id, run_id, String::new(),
         workspace_fingerprint, None, Some(false), None, true, false,
-    ).await
+    )))).await
 }
 
 async fn upload_sketch_impl(
@@ -14120,7 +14175,7 @@ async fn upload_sketch_impl(
 
     // --- Smart Library Filtering ---
     // 1. Parse code for includes
-    let required_headers = get_required_headers(&code);
+    let required_headers = project_required_headers(&code);
     let mut required_headers_sorted: Vec<String> = required_headers.into_iter().collect();
     required_headers_sorted.sort();
 
@@ -15096,11 +15151,17 @@ async fn cancel_foreground_build(
 async fn open_serial_monitor(
     port: String,
     baud: u32,
+    only_if_idle: Option<bool>,
     state: State<'_, MonitorState>,
     app: AppHandle,
 ) -> Result<(), String> {
     println!("[Rust] Opening Serial Monitor on {} @ {}", port, baud);
     let mut guard = state.monitor.lock().map_err(|e| e.to_string())?;
+    if only_if_idle == Some(true) {
+        if let Some(active) = guard.as_ref() {
+            return if active.port == port && active.baud == baud && active.monitor.is_connected() { Ok(()) } else { Err("串口会话已断开或其他设备正在使用，未切换设备".into()) };
+        }
+    }
 
     // Close existing if any
     if let Some(active) = guard.take() {
@@ -15112,10 +15173,18 @@ async fn open_serial_monitor(
         .map_err(|_| "串口监视器未打开：真机体检、上传或另一串口监视器操作正在进行".to_string())?;
 
     let app_disconnect = app.clone();
+    let sample = Arc::new(Mutex::new(None::<Vec<u8>>));
+    let receive_sample = Arc::clone(&sample);
     let monitor = ck_core::executor::uploader::monitor::SerialMonitor::new(
         &port,
         baud,
         move |data| {
+            if let Ok(mut slot) = receive_sample.lock() {
+                if let Some(bytes) = slot.as_mut() {
+                    let available = 4097usize.saturating_sub(bytes.len());
+                    bytes.extend_from_slice(&data[..data.len().min(available)]);
+                }
+            }
             let _ = app.emit("serial-data", data);
         },
         move |reason: String| {
@@ -15131,6 +15200,7 @@ async fn open_serial_monitor(
     println!("[Rust] Serial Monitor started successfully.");
     *guard = Some(ActiveSerialMonitor {
         monitor,
+        sample, port, baud,
         _serial_operation_guard: serial_operation_guard,
     });
     Ok(())
@@ -15162,6 +15232,31 @@ async fn send_serial_data(data: Vec<u8>, state: State<'_, MonitorState>) -> Resu
         return Err("Monitor not open".to_string());
     }
     Ok(())
+}
+
+#[tauri::command]
+async fn ai_serial_sample(port:String, baud:u32, text:Option<String>, wait_ms:u64, state:State<'_, MonitorState>) -> Result<serde_json::Value,String> {
+    if !(100..=3000).contains(&wait_ms) || text.as_ref().is_some_and(|s| s.is_empty() || s.len()>256 || s.chars().any(|c| c.is_control() && !matches!(c,'\r'|'\n'|'\t'))) {
+        return Err("串口采样参数无效".into());
+    }
+    let sample = {
+        let guard=state.monitor.lock().map_err(|e|e.to_string())?;
+        let active=guard.as_ref().filter(|a|a.port==port && a.baud==baud && a.monitor.is_connected()).ok_or("所选串口会话未连接")?;
+        let mut slot=active.sample.lock().map_err(|e|e.to_string())?;
+        if slot.is_some(){return Err("串口正在采样".into());}
+        *slot=Some(Vec::new());
+        if let Some(s)=&text {
+            if let Err(e)=active.monitor.send(s.as_bytes()){*slot=None;return Err(e.to_string());}
+        }
+        Arc::clone(&active.sample)
+    };
+    tokio::time::sleep(std::time::Duration::from_millis(wait_ms)).await;
+    let guard=state.monitor.lock().map_err(|e|e.to_string())?;
+    let mut bytes=sample.lock().map_err(|e|e.to_string())?.take().unwrap_or_default();
+    if !guard.as_ref().is_some_and(|a|Arc::ptr_eq(&a.sample,&sample) && a.monitor.is_connected()){return Err("采样期间串口已断开、关闭或切换，结果作废".into());}
+    let truncated=bytes.len()>4096; bytes.truncate(4096);
+    Ok(serde_json::json!({"port":port,"baud":baud,"observedMs":wait_ms,"sentBytes":text.as_deref().map_or(0,str::len),
+        "receivedBytes":bytes.len(),"truncated":truncated,"text":String::from_utf8_lossy(&bytes)}))
 }
 
 const CORE_PIN_ALIAS_SCHEMA_VERSION: u64 = 1;
@@ -23635,6 +23730,7 @@ mod package_quality;
 mod project;
 mod project_build_target;
 mod source_project;
+mod project_files;
 mod ipc_error;
 mod project_open;
 mod project_checkpoints;
@@ -23852,6 +23948,7 @@ pub fn run() {
             cancel_foreground_build,
             cancel_upload,
             open_serial_monitor,
+            ai_serial_sample,
             close_serial_monitor,
             send_serial_data,
             get_board_details,
@@ -23872,6 +23969,12 @@ pub fn run() {
             project::rename_project,
             project::save_project,
             source_project::open_source_project,
+            project_files::list_project_sources,
+            project_files::project_source_identity,
+            project_files::read_project_source,
+            project_files::write_project_source,
+            project_files::create_ai_project_sources,
+            project_files::change_project_source,
             source_project::save_source_project,
             project::save_project_as,
             project::load_project,

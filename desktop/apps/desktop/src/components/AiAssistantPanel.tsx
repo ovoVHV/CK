@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { AI_ATTACHMENT_ACCEPT, aiAttachmentBytes, importAiAttachment, validateAiAttachments, type AiAttachment } from '../services/ai_attachments';
 import * as Blockly from 'blockly';
-import { ArrowUp, ArrowLeft, Check, ChevronDown, ChevronRight, CircleAlert, CircuitBoard, Code2, Loader2, MessageSquare, Plus, Settings2, Sparkles, Square, Undo2, X, History, Pencil, Trash2, Paperclip, FileText, FolderOpen, Copy } from 'lucide-react';
+import { ArrowUp, ArrowLeft, Check, ChevronDown, CircleAlert, CircuitBoard, Code2, Gauge, Loader2, MessageSquare, Plus, Settings2, Sparkles, Square, Undo2, X, History, Pencil, Trash2, Paperclip, FileText, FolderOpen, Copy, Wrench } from 'lucide-react';
 import { applyAiPreview, aiWorkspaceSnapshot, type AiPreview } from '../services/ai_workspace';
 import { runAiTask, validateAiConnection, AiPrivacyFilter, type AiHost, type AiIntent } from '../services/ai_assistant_runtime';
 import { requestAiModel } from '../services/ai_transport';
@@ -14,6 +14,7 @@ import { validateAiContext, type AiMemory, type AiUsage, type AiChatMessage } fr
 import { DEFAULT_AI_PREFERENCES, AiChatWriter, newAiChat, loadAiPreferences, saveAiPreferences, listAiChats, loadAiChat, deleteAiChat, type AiPreferences, type AiChat, type AiChatListEntry } from '../services/ai_chat_store';
 import './AiAssistantPanel.css';
 import { PanelResizeHandle, useSavedPanelSize } from './PanelResizeHandle';
+import { noDeviceGrants, type AiDeviceGrants, type NewProjectSource } from '../services/ai_project_device';
 
 export interface AiAssistantPanelProps {
     open: boolean;
@@ -23,6 +24,10 @@ export interface AiAssistantPanelProps {
     projectPath?: string;
     host: AiHost;
     boardLabel: string;
+    devicePort:string;
+    deviceBaud:number;
+    verifyMembers:(members:string)=>Promise<void>;
+    onVerifiedUpload:(proof:{source:string;members:string},check:()=>void)=>Promise<boolean>;
     disabledReason?: string;
     onClose: () => void;
     onCode: () => void;
@@ -47,21 +52,39 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
     const [connection, setConnection] = useState<AiPreferences>(readConnection);
     const [preferencesReady, setPreferencesReady] = useState(false);
     const [savingSettings, setSavingSettings] = useState(false);
-    const [settings, setSettings] = useState(false);
+    const [page, setPage] = useState<'chat'|'settings'|'history'|'access'>('chat');
+    const previousPage = useRef(page);
     const [draft, setDraft] = useState('');
     const [attachments, setAttachments] = useState<AiAttachment[]>([]);
     const [importing, setImporting] = useState(false);
     const [loadingModels, setLoadingModels] = useState(false);
+    const [manualModel, setManualModel] = useState(false);
+    const listedModel = connection.modelChoices.includes(connection.model);
+    const customModel = manualModel || (!!connection.model && !listedModel);
     const fileInput = useRef<HTMLInputElement>(null);
     const importGeneration = useRef(0);
     const projectPath = props.projectKey.startsWith('file:') ? (props.projectPath || props.projectKey.slice(5)).replace(/^\\\\\?\\/, '') : '尚未保存 · 当前工程';
-    const deepseek = connection.reasoningProtocol === 'deepseek' || (connection.reasoningProtocol === 'auto' && (()=>{try{return new URL(connection.baseUrl).hostname==='api.deepseek.com';}catch{return false;}})());
+    const deepseek = connection.apiProtocol !== 'responses' && (connection.reasoningProtocol === 'deepseek' || (connection.reasoningProtocol === 'auto' && (()=>{try{return new URL(connection.baseUrl).hostname==='api.deepseek.com';}catch{return false;}})()));
     const efforts = deepseek ? [['auto','模型默认'],['none','关闭思考'],['low','低'],['high','高'],['max','最高']] : [['auto','模型默认'],['none','关闭思考'],['low','低'],['medium','中'],['high','高'],['max','最高（需API支持）']];
     const [messages, setMessages] = useState<AiChatMessage[]>([]);
     const [chat, setChat] = useState<AiChat>(() => newAiChat(props.projectKey));
+    const permissionScope=JSON.stringify([props.open,props.sessionKey,chat.id,props.host.target(),props.devicePort,props.deviceBaud,connection.baseUrl,connection.model]);
+    const pathParts=props.projectPath?.split(/[\\/]/);
+    const entry=pathParts?.[pathParts.length-1];
+    const folderProject=!!entry&&/\.ck$/i.test(entry)&&pathParts?.[pathParts.length-2]===entry.slice(0,-3);
+    const [sourceReview,setSourceReview]=useState<{files:NewProjectSource[];finish:(yes:boolean)=>void}>();
+    const authority=useRef({scope:permissionScope,grants:{...noDeviceGrants},ticket:0});
+    const [,refreshGrants]=useState(0);
+    if(authority.current.scope!==permissionScope)authority.current={scope:permissionScope,grants:{...noDeviceGrants},ticket:0};
+    const grant=(key:keyof AiDeviceGrants,yes:boolean)=>{
+        const a=authority.current; a.grants={...a.grants,[key]:yes};
+        if(key==='serial'&&!yes)a.grants.send=false;
+        if(key==='upload')a.ticket++;
+        refreshGrants(n=>n+1);
+    };
+    const uploadAfterApply=useRef<{candidate:AiPreview;check:()=>void}|null>(null);
     const [memory, setMemory] = useState<AiMemory>();
     const [usage, setUsage] = useState<AiUsage>();
-    const [historyOpen, setHistoryOpen] = useState(false);
     const [chatList, setChatList] = useState<AiChatListEntry[]>([]);
     const [storeReady, setStoreReady] = useState(false);
     const [storeStatus, setStoreStatus] = useState('正在读取聊天');
@@ -110,6 +133,9 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
     const planIdentity = useRef('');
     const originFocus = useRef<HTMLElement | null>(null);
     const scope = useRef(intent); scope.current = intent;
+    useEffect(()=>{
+        if(sourceReview&&(!authority.current.grants.create||props.disabledReason))sourceReview.finish(false);
+    },[permissionScope,authority.current.grants.create,props.disabledReason,sourceReview]);
     const pending = useRef(preview); pending.current = preview;
     const canConnect = Boolean(connection.baseUrl && connection.model && connection.apiKey);
     const writer = useRef(new AiChatWriter());
@@ -150,7 +176,7 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
     }, []);
     useEffect(() => {
         let cancelled = false;
-        request.current?.abort(); request.current = null; setBusy(false); setStoreReady(false); setHistoryOpen(false);
+        request.current?.abort(); request.current = null; setBusy(false); setStoreReady(false); setPage('chat');
         setMessages([]); setDraft(''); setMemory(undefined); setPreview(undefined); setStoreStatus('正在读取聊天');
         void (async () => {
             try {
@@ -185,11 +211,16 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
     useEffect(() => { setLibraryPreview(undefined); setLibraryLoaded(false); }, [props.sessionKey]);
     useEffect(() => {
         if (props.open) return;
+        setPage('chat');
         request.current?.abort();
         // Keep the request busy until native compilation/installation settles.
         // Reopening the panel must not race a still-running rollback.
         setStream('');
     }, [props.open]);
+    useLayoutEffect(()=>{
+        if(props.open && page==='chat' && previousPage.current!=='chat') input.current?.focus({preventScroll:true});
+        previousPage.current=page;
+    },[page,props.open]);
     useEffect(() => {
         if (request.current) { request.current.abort(); setStopping(true); }
         importGeneration.current++; setAttachments([]); setImporting(false);
@@ -238,7 +269,7 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
     useLayoutEffect(() => { props.onLayout(); }, [props.open, drawer]);
     useLayoutEffect(() => {
         const textarea = input.current;
-        if (!textarea || !props.open || settings || historyOpen) return;
+        if (!textarea || !props.open || page !== 'chat') return;
         // Grow only with the draft, then scroll inside the capped input. Reading
         // the CSS limits also respects the shorter layout above an open console.
         const style = getComputedStyle(textarea);
@@ -248,7 +279,7 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
         const contentHeight = textarea.scrollHeight;
         textarea.style.height = `${Math.max(minimum, Math.min(maximum, contentHeight))}px`;
         textarea.style.overflowY = contentHeight > maximum ? 'auto' : 'hidden';
-    }, [draft, props.open, settings, historyOpen, available, availableHeight, panelWidth]);
+    }, [draft, props.open, page, available, availableHeight, panelWidth]);
     useEffect(() => {
         if (follow.current && scroll.current) scroll.current.scrollTop = messages.length || preview || error || notice ? scroll.current.scrollHeight : 0;
     }, [messages, stream, step, preview, expanded, error, notice]);
@@ -289,13 +320,14 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
         if (loadingModels) return;setLoadingModels(true);setError('');
         const base=connection.baseUrl, key=connection.apiKey;
         try {const models=await invoke<string[]>('ai_list_models',{baseUrl:base,apiKey:key});
-            setConnection(old=>old.baseUrl===base&&old.apiKey===key?{...old,modelChoices:models,model:old.model||models[0]}:old);
+            setConnection(old=>old.baseUrl===base&&old.apiKey===key?{...old,modelChoices:models,model:old.model||(models.length===1?models[0]:'')}:old);
         } catch(cause){setError(reasonText(cause));}finally{if(mount.current)setLoadingModels(false);}
     };
     const commitPreview = async (candidate: AiPreview, identity: string, session: string, automatic: boolean, signal?: AbortSignal) => {
         signal?.throwIfAborted();
         if (session!==latest.current.sessionKey || latest.current.disabledReason || identity!==latest.current.host.identity()) throw Error('工程状态已变化，未应用方案');
         await latest.current.beforeApply();
+        if(candidate.verifiedInputs)await latest.current.verifyMembers(candidate.verifiedInputs.members);
         signal?.throwIfAborted();
         if (!mount.current || session!==latest.current.sessionKey || latest.current.disabledReason || identity!==latest.current.host.identity()) throw Error('工程状态已变化，未应用方案');
         const workspace=latest.current.host.workspace(); if (!workspace) throw Error('工作区已关闭');
@@ -306,9 +338,24 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
         setMessages(old=>[...old,{id:crypto.randomUUID(),role:'assistant',text:`操作记录：${automatic?'AI 已自动应用':'用户已确认应用'}本次修改。新增 ${candidate.added} · 修改 ${candidate.changed} · 删除 ${candidate.removed}。\n${candidate.changes.map(c=>`${c.kind==='added'?'新增':c.kind==='removed'?'删除':'修改'}：${c.after||c.before}`).join('\n').slice(0,2400)}\n可撤销；尚未验证真机。`}]);
         setNotice('已应用到当前工程。可点击撤销或使用 Ctrl+Z；保存工程后写入工程文件。');
     };
+    const uploadAppliedRepair=async(candidate:AiPreview)=>{
+        const permit=uploadAfterApply.current;
+        if(!permit||permit.candidate!==candidate)return false;
+        uploadAfterApply.current=null;
+        permit.check();
+        if(!candidate.verifiedInputs)throw Error('候选缺少主程序或附带文件的验证记录，未上传');
+        const selected=latest.current.devicePort;
+        try {
+            const ok=await latest.current.onVerifiedUpload(candidate.verifiedInputs,permit.check);
+            if(!ok)throw Error('上传未完成；请查看编译输出，排除错误后再授权');
+            const text=`修复固件已上传到 ${selected}。尚未验证 LED、接线或其他实体行为。`;
+            if(mount.current&&latest.current.devicePort===selected){setNotice(text);setMessages(old=>[...old,{id:crypto.randomUUID(),role:'assistant',text}]);}
+            return true;
+        }finally{try{permit.check();grant('upload',false);}catch{/* A revoked or replaced grant stays unchanged. */}}
+    };
     const send = async (resume?: AiTaskCheckpoint) => {
         if ((!draft.trim() && !attachments.length && !resume) || importing || savingSettings || busy || applying || chatAction || !storeReady || !preferencesReady || props.disabledReason || storeError) return;
-        if (!canConnect) { setSettings(true); return; }
+        if (!canConnect) { setPage('settings'); return; }
         if(!resume && aiAttachmentBytes(messages.flatMap(m=>m.attachments||[]))+2*aiAttachmentBytes(attachments)>8*1024*1024){setError('这份聊天的附件接近上限，请新建聊天，或移除待发送附件；已有聊天保留。');return;}
         const controller = new AbortController(); request.current = controller;
         const started = performance.now();
@@ -318,7 +365,15 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
         const safePrompt = privateFilter?.redact(prompt) || prompt;
         const requestIdentity = latest.current.host.identity();
         const requestSession = latest.current.sessionKey;
+        const permit=authority.current, ticket=permit.ticket;
+        uploadAfterApply.current=null;
+        const mayUpload=!resume && scope.current.kind==='repair' && permit.grants.upload;
+        const checkGrant=()=>{
+            controller.signal.throwIfAborted();
+            if(!mount.current||!latest.current.open||authority.current!==permit||!permit.grants.upload||permit.ticket!==ticket)throw Error('单次上传授权已失效，未启动新的刷写');
+        };
         let committedLibrary = false, committedProject = false;
+        const createdPaths:string[]=[];
         const sentAttachments = resume ? [] : attachments.map(f=>f.kind==='text'?{...f,content:privateFilter?.redact(f.content)||f.content}:f);
         setAttachments([]);
         setLibraryPreview(undefined); setLibraryLoaded(false);
@@ -338,12 +393,27 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
                     get boardProfile() { return latest.current.host.boardProfile; },
                     get projectIdentity() { return latest.current.host.projectIdentity; },
                     get libraryInventory() { return latest.current.host.libraryInventory; },
+                    get device(){return latest.current.host.device;},
+                    grants:()=>authority.current===permit?permit.grants:noDeviceGrants,
                     diagnostics: () => latest.current.host.diagnostics(),
                     inspectCandidate: candidate => latest.current.host.inspectCandidate(candidate),
                     validateCandidate: (candidate, context) => latest.current.host.validateCandidate(candidate, context),
                     get validateBehavior() { return latest.current.host.validateBehavior; },
                     get library() { return latest.current.host.library; },
                 }, transport: requestAiModel,
+                confirmSources:files=>new Promise(resolve=>{
+                    if(!current()||authority.current!==permit||!permit.grants.create){resolve(false);return;}
+                    const abort=()=>finish(false);
+                    const finish=(yes:boolean)=>{controller.signal.removeEventListener('abort',abort);clearTimeout(timer);setSourceReview(undefined);resolve(yes);};
+                    const timer=setTimeout(abort,120000);
+                    controller.signal.addEventListener('abort',abort,{once:true});
+                    setStep('等待确认新建文件');setPage('chat');setSourceReview({files,finish});
+                }),
+                onSourcesCreated:paths=>{
+                    createdPaths.push(...paths);
+                    if(mount.current && request.current===controller && latest.current.sessionKey===requestSession && chatRef.current.id===chat.id)
+                        setMessages(old=>[...old,{id:crypto.randomUUID(),role:'assistant',text:`工程文件已创建：\n${paths.join('\n')}\n已写入磁盘；可在工程文件树管理。`}]);
+                },
                 onPlan: steps => { if (current()) setPlan(steps); },
                 onValidation: value => { if (current()) { setValidations(old => [...old, value]); setMessages(old => [...old, { id: crypto.randomUUID(), role: 'assistant', text: `验证记录：${value.scope === 'library' ? `库「${value.label || ''}」` : '工程候选'}第 ${value.attempt} 次本地编译${value.ok ? '通过' : '未通过'}，${(value.elapsedMs / 1000).toFixed(1)} 秒，未应用、未上传。${value.diagnostics.map(d => d.message).join('；').slice(0, 1800)}` }]); } },
                 onLibraryInstalled: library => {
@@ -359,9 +429,13 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
             planIdentity.current = result.identity || requestIdentity;
             setStream(''); setPreview(result.preview); setExpanded(false);
             setMessages(old => [...old, { id: crypto.randomUUID(), role: 'assistant' as const, text: result.text }]);
+            if(result.preview && mayUpload && authority.current===permit && permit.ticket===ticket && permit.grants.upload){
+                uploadAfterApply.current={candidate:result.preview,check:checkGrant};
+            }
             if (result.preview && connection.autoApply) {
                 await commitPreview(result.preview, result.identity || requestIdentity, requestSession, true, controller.signal);
                 committedProject = true;
+                await uploadAppliedRepair(result.preview);
             }
             if (result.library) {
                 libraryIdentity.current = requestIdentity;
@@ -380,8 +454,10 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
             }
         } catch (cause) {
             if (current()) { setError(reasonText(cause)); setStream(''); setDraft(old=>old||prompt); setAttachments(sentAttachments); }
-        } finally { if (mount.current && request.current === controller) {
-            if (controller.signal.aborted && latest.current.sessionKey === requestSession) { if(!committedProject)setPreview(undefined); setNotice(committedProject ? '修改已经应用，可撤销。后续任务已停止。' : committedLibrary ? '已停止。已安装的库保留；当前工程积木未修改。' : '已停止，本次请求没有修改工程。'); if(!committedProject){setDraft(old=>old||prompt);setAttachments(sentAttachments);} }
+        } finally {
+            if(mayUpload && authority.current===permit && permit.grants.upload && permit.ticket===ticket && (!uploadAfterApply.current || controller.signal.aborted))grant('upload',false);
+            if (mount.current && request.current === controller) {
+            if (controller.signal.aborted && latest.current.sessionKey === requestSession) { if(!committedProject)setPreview(undefined); setNotice((committedProject ? '积木修改已经应用，可撤销。后续任务已停止。' : committedLibrary ? '已停止。已安装的库保留；当前工程积木未修改。' : '已停止，本次请求未修改工程积木。')+(createdPaths.length?` 已写入的 ${createdPaths.length} 个源码文件保留。`:'')); if(!committedProject){setDraft(old=>old||prompt);setAttachments(sentAttachments);} }
             setBusy(false); setStopping(false); setStep(''); request.current = null;
         } }
     };
@@ -403,6 +479,7 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
         setApplying(true); setError(''); working.current = true;
         try {
             await commitPreview(plan, planIdentity.current, identity, false);
+            if(await uploadAppliedRepair(plan))return;
             if (compile) {
                 setNotice('已应用，正在执行本地编译…');
                 const result = await latest.current.onCompile();
@@ -420,14 +497,14 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
             await saveAiPreferences(value);
             sessionConnection = value;
             try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ baseUrl: value.baseUrl, model: value.model })); } catch { /* Session-only use still works. */ }
-            setConnection(value); setSettings(false); setError(''); setNotice(value.rememberKey ? '全局设置已保存，密钥已用当前 Windows 用户加密，下次启动可继续使用。' : '全局设置已保存；密钥仅在当前会话使用，已删除磁盘上的保存密钥。');
+            setConnection(value); setPage('chat'); setError(''); setNotice(value.rememberKey ? '全局设置已保存，密钥已用当前 Windows 用户加密，下次启动可继续使用。' : '全局设置已保存；密钥仅在当前会话使用，已删除磁盘上的保存密钥。');
         } catch (cause) { setError(reasonText(cause)); }
         finally { setSavingSettings(false); }
     };
     const chooseChat = async (id?: string) => {
         if (busy || applying || chatAction) return; setChatAction(true);
         try { await flushChat(); const value = id ? await loadAiChat(id,props.projectKey) : newAiChat(props.projectKey);
-            adoptChat(value); setHistoryOpen(false); setSettings(false); setIntent({id:Date.now(),kind:'generate'}); await refreshChats();
+            adoptChat(value); setPage('chat'); setIntent({id:Date.now(),kind:'generate'}); await refreshChats();
         } catch (cause) { setStoreError(reasonText(cause)); } finally { setChatAction(false); }
     };
     const removeChat = async (id: string) => {
@@ -449,38 +526,64 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
     const actualWidth = Math.max(minWidth, Math.min(panelWidth, maxWidth));
     return <aside ref={panel} className={`ck-ai-panel ${drawer ? 'ck-ai-panel--drawer' : ''} ${compact ? 'ck-ai-panel--compact' : ''} ${availableHeight < 360 ? 'ck-ai-panel--tight' : ''}`} style={{ width: actualWidth }}
         data-ck-role="ai-assistant" aria-label="CK AI 积木助手" onKeyDown={event => {
-            if (event.key === 'Escape' && !event.nativeEvent.isComposing) { event.stopPropagation(); if (settings) setSettings(false); else if(historyOpen)setHistoryOpen(false);else close(); }
+            if (event.key === 'Escape' && !event.nativeEvent.isComposing) { event.stopPropagation(); if (page !== 'chat') setPage('chat'); else close(); }
         }}>
         <PanelResizeHandle target={panel} axis="width" size={actualWidth} min={minWidth} max={maxWidth} onCommit={savePanelWidth} label="调整 AI 面板宽度" />
         <header className="ck-ai-header">
-            <div className="ck-ai-heading"><span className="ck-ai-mark"><Sparkles size={17} /></span><strong>CK AI</strong><span>积木助手</span></div>
+            <div className="ck-ai-heading"><span className="ck-ai-mark"><Sparkles size={15} /></span><strong>CK AI</strong>
+                {page==='chat' && (chat.revision || messages.length || storeStatus !== '新聊天') ? <span className="ck-ai-chat-caption" title={`${chat.title} · ${storeStatus}`}>{chat.title}</span> : null}
+            </div>
             <div className="ck-ai-actions">
-                <button type="button" aria-label="聊天记录" title="聊天记录 · 切换、重命名、删除" aria-pressed={historyOpen} disabled={busy || applying || importing || chatAction || !storeReady} onClick={() => {setHistoryOpen(!historyOpen);setSettings(false);void flushChat().then(()=>refreshChats()).catch(cause=>setStoreError(reasonText(cause)));}}><History size={17}/></button>
+                {page==='chat' && <>
+                <button type="button" aria-label="聊天记录" title="聊天记录 · 切换、重命名、删除" disabled={busy || applying || importing || chatAction || !storeReady} onClick={() => {setPage('history');void flushChat().then(()=>refreshChats()).catch(cause=>setStoreError(reasonText(cause)));}}><History size={17}/></button>
                 <button type="button" aria-label="新对话" title="新对话" disabled={busy || applying || chatAction || !storeReady} onClick={() => void chooseChat()}><Plus size={17} /></button>
                 <button type="button" aria-label="查看生成代码" title="查看生成代码" onClick={props.onCode}><Code2 size={17} /></button>
-                <button type="button" aria-label="模型连接设置" title="模型连接设置" aria-pressed={settings} disabled={busy || applying || !preferencesReady} onClick={() => { setSettings(!settings); setHistoryOpen(false); setError(''); }}><Settings2 size={17} /></button>
+                <button type="button" aria-label="模型连接设置" title="模型连接设置" disabled={busy || applying || !preferencesReady} onClick={() => { setPage('settings'); setError(''); }}><Settings2 size={17} /></button>
+                </>}
                 <button type="button" aria-label="关闭 AI 面板" title={busy ? '停止请求并关闭' : '关闭 AI 面板'} disabled={applying} onClick={close}><X size={17} /></button>
             </div>
         </header>
-        <div className="ck-ai-context"><CircuitBoard size={14} /><span title={props.boardLabel}>{props.boardLabel || '尚未选择板卡'}</span><span className="ck-ai-mode">{modeLabel[intent.kind]}{intent.blockId ? ' · 已选中' : ''}</span></div>
-        {!settings && !historyOpen && <>{(chat.revision || messages.length || storeStatus !== '新聊天') ? <div className="ck-ai-currentchat"><span title={chat.title}>{chat.title}</span><small role="status">{storeStatus}</small></div> : null}
-            <div className="ck-ai-task-modes" aria-label="AI任务模式">
+        {page==='chat' && <>
+          <div className="ck-ai-scopebar">
+            <div className="ck-ai-task-modes" role="group" aria-label="AI任务模式">
                 <button type="button" aria-pressed={intent.kind !== 'library'} disabled={busy || applying} onClick={()=>startTask('generate')}>编程助手</button>
                 <button type="button" aria-pressed={intent.kind === 'library'} disabled={busy || applying} onClick={()=>startTask('library')}>制作积木库</button>
             </div>
-            {intent.kind === 'library' && <label className="ck-ai-library-auto"><input type="checkbox" checked={autoInstallLibrary} disabled={busy || applying} onChange={e=>setAutoInstallLibrary(e.target.checked)}/>验证通过后自动安装并加载</label>}
+            <button type="button" className="ck-ai-access-entry" title={`${props.boardLabel || '尚未选择板卡'} · 工程文件与设备权限`} onClick={()=>setPage('access')}><CircuitBoard size={14}/>工程与设备</button>
+          </div>
         </>}
-        {settings ? <form className="ck-ai-settings" onSubmit={event => { event.preventDefault(); void saveSettings(); }}>
-            <button type="button" className="ck-ai-back" onClick={() => { setSettings(false); setError(''); }}><ArrowLeft size={15} />返回对话</button>
-            <h2>连接你的模型</h2><p>使用支持工具调用的 Chat Completions API。模型服务由你选择，费用由服务商收取。</p>
-            <label>API 地址<input autoFocus type="url" value={connection.baseUrl} placeholder="https://api.example.com/v1" autoComplete="off" spellCheck={false} onChange={e => setConnection({ ...connection, baseUrl: e.target.value, modelChoices: [], reasoningEffort: 'auto', apiKey: connection.baseUrl===e.target.value?connection.apiKey:'' })} /></label>
-            <label>模型名称<input list="ck-ai-model-options" value={connection.model} placeholder="填写服务商提供的模型名称" autoComplete="off" spellCheck={false} onChange={e => setConnection({ ...connection, model: e.target.value })} /></label>
-            <datalist id="ck-ai-model-options">{connection.modelChoices.map(m=><option key={m} value={m}/>)}</datalist>
+        {page==='access' ? <section className="ck-ai-permissions" aria-label="工程与设备">
+            <button type="button" autoFocus className="ck-ai-back" onClick={()=>setPage('chat')}><ArrowLeft size={15}/>返回对话</button>
+            <h2>工程与设备</h2><p>仅对当前对话与目标有效</p>
+            <fieldset><legend><FolderOpen size={15}/>工程文件</legend><p title={projectPath}>{projectPath}</p>
+                <label><span>读取工程源码<small>文件内容可发送给所选模型</small></span><input type="checkbox" checked={authority.current.grants.files} disabled={!props.projectPath||(busy&&!authority.current.grants.files)} onChange={e=>grant('files',e.target.checked)}/></label>
+                <label><span>在 src/ 下新建源码<small>{folderProject?'保留已有文件，不覆盖同名文件':'需要先保存为独立文件夹工程'}</small></span><input type="checkbox" checked={authority.current.grants.create} disabled={!authority.current.grants.create&&(!folderProject||!!props.disabledReason||busy)} onChange={e=>grant('create',e.target.checked)}/></label>
+            </fieldset>
+            <fieldset><legend><CircuitBoard size={15}/>串口设备</legend><p>{props.boardLabel || '未选板卡'} · {props.devicePort ? `${props.devicePort} · ${props.deviceBaud} baud` : '未选择串口'}</p>
+                {props.devicePort && <>
+                    <label><span>读取串口回包<small>新收到的文本可发送给模型</small></span><input type="checkbox" checked={authority.current.grants.serial} disabled={busy&&!authority.current.grants.serial} onChange={e=>grant('serial',e.target.checked)}/></label>
+                    <label><span>向设备发送调试文本</span><input type="checkbox" checked={authority.current.grants.send} disabled={!authority.current.grants.serial||(busy&&!authority.current.grants.send)} onChange={e=>grant('send',e.target.checked)}/></label>
+                    <label><span>修复后上传一次<small>修复通过编译且应用后才写入设备</small></span><input type="checkbox" checked={authority.current.grants.upload} disabled={busy&&!authority.current.grants.upload} onChange={e=>grant('upload',e.target.checked)}/></label>
+                </>}
+            </fieldset>
+        </section> : page==='settings' ? <form className="ck-ai-settings" onSubmit={event => { event.preventDefault(); void saveSettings(); }}>
+            <button type="button" className="ck-ai-back" onClick={() => { setPage('chat'); setError(''); }}><ArrowLeft size={15} />返回对话</button>
+            <h2>连接你的模型</h2><p>模型服务由你选择，费用由服务商收取。</p>
+            <label>API 地址<input autoFocus type="url" value={connection.baseUrl} placeholder="https://api.example.com/v1" autoComplete="off" spellCheck={false} onChange={e => {setManualModel(false);setConnection({ ...connection, baseUrl: e.target.value, modelChoices: [], reasoningEffort: 'auto', apiKey: connection.baseUrl===e.target.value?connection.apiKey:'' });}} /></label>
+            <label>API 协议<select value={connection.apiProtocol ?? 'chat'} onChange={e=>setConnection({...connection,apiProtocol:e.target.value==='responses'?'responses':'chat'})}><option value="chat">Chat Completions</option><option value="responses">Responses</option></select></label>
+            {connection.modelChoices.length>0 && <label>模型名称（{connection.modelChoices.length} 个可选）<select aria-label="服务商模型列表" value={customModel?'manual':listedModel?'id:'+connection.model:''} onChange={e=>{
+                const choice=e.target.value;setManualModel(choice==='manual');
+                setConnection({...connection,model:choice==='manual'?connection.model:choice.slice(3)});
+            }}>
+                {!connection.model && !manualModel && <option value="" disabled>选择模型</option>}
+                <optgroup label="服务商模型">{connection.modelChoices.map(m=><option key={m} value={'id:'+m}>{m}</option>)}</optgroup>
+                <option value="manual">手动填写…</option>
+            </select></label>}
+            {(!connection.modelChoices.length || customModel) && <label>{connection.modelChoices.length?'自定义模型名称':'模型名称'}<input aria-label="手动填写模型名称" value={connection.model} placeholder="填写服务商提供的模型名称" autoComplete="off" spellCheck={false} onChange={e => setConnection({ ...connection, model: e.target.value })} /></label>}
             <button type="button" className="ck-ai-secondary" disabled={loadingModels||!connection.baseUrl||!connection.apiKey} onClick={()=>void fetchModels()}>{loadingModels?'正在获取…':'获取服务商模型列表'}</button>
-            <label>API 密钥<input type="password" value={connection.apiKey} placeholder="填写或替换密钥" autoComplete="off" spellCheck={false} onChange={e => setConnection({ ...connection, apiKey: e.target.value })} /></label>
+            <label>API 密钥<input type="password" value={connection.apiKey} placeholder="填写或替换密钥" autoComplete="off" spellCheck={false} onChange={e => {setManualModel(false);setConnection({ ...connection, apiKey: e.target.value, modelChoices: [] });}} /></label>
             <label className="ck-ai-checkbox"><input type="checkbox" checked={connection.rememberKey} onChange={e=>setConnection({...connection,rememberKey:e.target.checked})}/>在这台电脑记住密钥，所有工程共用</label>
-            <label>思考参数协议<select value={connection.reasoningProtocol} onChange={e=>setConnection({...connection,reasoningProtocol:e.target.value,reasoningEffort:'auto'})}><option value="auto">自动（识别官方 DeepSeek 地址）</option><option value="standard">标准 reasoning_effort</option><option value="deepseek">DeepSeek thinking + reasoning_effort</option></select></label>
-            <p className="ck-ai-privacy">思考强度由服务商和模型支持情况决定，不等同于智商。默认不额外发送思考参数；选择档位后会实际发送，接口拒绝时显示错误，不会悄悄忽略。DeepSeek 中转接口可手动选择协议。</p>
+            {connection.apiProtocol !== 'responses' && <label>思考参数协议<select value={connection.reasoningProtocol} onChange={e=>setConnection({...connection,reasoningProtocol:e.target.value,reasoningEffort:'auto'})}><option value="auto">自动（识别官方 DeepSeek 地址）</option><option value="standard">标准 reasoning_effort</option><option value="deepseek">DeepSeek thinking + reasoning_effort</option></select></label>}
             <div className="ck-ai-setting-divider"/>
             <h3>上下文与用量</h3>
             <label>上下文预算（tokens）<input aria-label="上下文预算" type="number" min={16384} max={262144} step={1024} value={connection.contextTokens} onChange={e=>setConnection({...connection,contextTokens:Number(e.target.value)})}/></label>
@@ -490,7 +593,8 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
             <p className="ck-ai-privacy">密钥用当前 Windows 用户加密保存，不写入工程或导出包。修改 API 地址会清空输入框中的旧密钥，避免发给错误服务。</p>
             {error && <div role="alert" className="ck-ai-error"><CircleAlert size={16} /><span>{error}</span></div>}
             <button className="ck-ai-primary" type="submit" disabled={savingSettings}>{savingSettings?'正在保存…':'保存连接设置'}<Check size={15} /></button>
-        </form> : historyOpen ? <section className="ck-ai-history" aria-label="当前工程聊天记录">
+        </form> : page==='history' ? <section className="ck-ai-history" aria-label="当前工程聊天记录">
+            <button type="button" autoFocus className="ck-ai-back" onClick={()=>setPage('chat')}><ArrowLeft size={15}/>返回对话</button>
             <div className="ck-ai-history-head"><div><h2>聊天记录</h2><p>当前工程 · 本机保存</p></div><button type="button" className="ck-ai-secondary" disabled={chatAction} onClick={()=>void chooseChat()}><Plus size={14}/>新聊天</button></div>
             {storeError && <p role="alert" className="ck-ai-error">{storeError}</p>}
             {!chatList.length && <p className="ck-ai-history-empty">还没有已保存的聊天。发送第一条需求后会自动保存。</p>}
@@ -503,13 +607,9 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
             </div>)}</div>
         </section> : <>
             <div className="ck-ai-feed" ref={scroll} onScroll={() => { const node = scroll.current; if (node) follow.current = node.scrollHeight - node.clientHeight - node.scrollTop < 60; }}>
-                {intent.kind === 'library' && !busy && !libraryPreview && <div className="ck-ai-library-intro"><strong>把硬件能力做成可复用积木</strong><p>说明硬件型号、需要的操作和参数。已有驱动时提供接口用法；CK 会生成库、检查积木并试编译，然后按上方开关加载。</p><small>新库先适配当前板卡；缺少硬件资料时 AI 会询问，不代表真机验证。</small></div>}
-                {messages.length === 0 && intent.kind !== 'library' && <div className="ck-ai-welcome">
-                    <h2>想搭建什么程序？</h2>
-                    <div className="ck-ai-starters">{[
-                        ['让板载 LED 每秒闪烁', '搭一个可以直接编辑的程序', Plus],
-                        ['解释当前程序', '逐步查看积木的执行顺序', MessageSquare],
-                    ].map(([title, detail, Icon], index) => { const Glyph = Icon as typeof Plus; return <button type="button" key={String(title)} onClick={() => startTask(index === 1 ? 'explain' : 'generate', String(title))}><Glyph size={17} /><span><strong>{String(title)}</strong><small>{String(detail)}</small></span><ChevronRight size={14} /></button>; })}</div>
+                {messages.length === 0 && !task && intent.kind === 'generate' && !draft && <div className="ck-ai-shortcuts" role="group" aria-label="新对话快捷操作">
+                    <button type="button" onClick={()=>startTask('generate','让板载 LED 每秒闪烁')}><Plus size={14}/>闪灯示例</button>
+                    <button type="button" onClick={()=>startTask('explain','解释当前程序')}><MessageSquare size={14}/>解释当前程序</button>
                 </div>}
                 {storeError && <p role="alert" className="ck-ai-error">{storeError}</p>}
                 {memory && <details className="ck-ai-memory"><summary>已压缩 {memory.compressions} 次 · 原聊天仍保留</summary><p>{memory.summary}</p></details>}
@@ -525,6 +625,11 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
                     {message.attachments?.map(file=><details className="ck-ai-attachment-view" key={file.id}><summary><FileText size={12}/>{file.name}</summary>{file.kind==='image'?<img src={file.content} alt={file.name}/>:<pre>{file.content}</pre>}</details>)}
                 </article>)}
                 {busy && <div className="ck-ai-current"><div className="ck-ai-step" role="status"><Loader2 size={14} className="ck-ai-spin" />{step || '正在连接模型'}</div>{stream && <div className="ck-ai-stream">{stream}</div>}</div>}
+                {sourceReview&&<section className="ck-ai-resume ck-ai-source-review" aria-label="待创建的工程文件">
+                    <strong>新建 {sourceReview.files.length} 个工程文件</strong>
+                    {sourceReview.files.map(f=><details key={f.path}><summary>{f.path}</summary><pre>{f.code}</pre></details>)}
+                    <div><button className="ck-ai-primary" type="button" onClick={()=>sourceReview.finish(true)}>确认创建</button><button className="ck-ai-text-button" type="button" onClick={()=>sourceReview.finish(false)}>取消</button></div>
+                </section>}
                 {(plan.length > 0 || progress.length > 0) && <details className="ck-ai-task-progress"><summary>任务过程 · {progress.length} 条记录</summary>
                     {plan.length > 0 && <><strong>任务计划</strong><ol>{plan.map((text, i) => <li key={i}>{text}</li>)}</ol></>}
                     <ol>{progress.map((item, i) => <li key={i}><time>{(item.elapsedMs / 1000).toFixed(1)}s</time>{item.text}</li>)}</ol>
@@ -590,26 +695,31 @@ export function AiAssistantPanel(props: AiAssistantPanelProps) {
                 }}><Undo2 size={14} />撤销本次修改</button>}
             </div>
             <footer className="ck-ai-composer">
-                {!canConnect && <button type="button" className="ck-ai-connect" onClick={() => { setSettings(true); setError(''); }}><span className="ck-ai-dot" />先连接你的模型<ChevronRight size={14} /></button>}
                 {props.disabledReason && <p className="ck-ai-disabled" role="status">{props.disabledReason}</p>}
-                <div className="ck-ai-usage" title={`包含工具定义和近期对话；回复预留 ${connection.responseTokens} tokens。模型实际限制与账单以服务商为准。`}><span>{usage ? `上下文 ≈ ${Math.ceil(usage.estimatedInputTokens/100)/10}k / ${Math.round(connection.contextTokens/1024)}k` : `上下文预算 ${Math.round(connection.contextTokens/1024)}k`}</span><span>{usage?.requests ? `${usage.requests} 次请求` : '发送后估算用量'}</span></div>
-                {usage?.inputTokens!=null && <div className="ck-ai-token-detail">服务商返回：输入 {usage.inputTokens.toLocaleString()} / 输出 {(usage.outputTokens||0).toLocaleString()} tokens（本次合计）</div>}
+                {intent.kind === 'library' ? <label className="ck-ai-library-auto"><input type="checkbox" checked={autoInstallLibrary} disabled={busy || applying} onChange={e=>setAutoInstallLibrary(e.target.checked)}/>验证通过后自动安装并加载</label> : intent.kind !== 'generate' && <div className="ck-ai-intent">{modeLabel[intent.kind]}{intent.blockId ? ' · 已选中积木' : ''}</div>}
                 <input ref={fileInput} type="file" accept={AI_ATTACHMENT_ACCEPT} multiple hidden aria-label="选择 AI 附件" onChange={e=>{const files=Array.from(e.target.files||[]);e.target.value='';void addAttachments(files);}}/>
                 {attachments.length>0&&<div className="ck-ai-attachments" aria-label="待发送附件">{attachments.map(file=><div key={file.id}><span title={`${file.name} · ${Math.ceil(file.size/1024)} KB`}>{file.kind==='image'?<img src={file.content} alt=""/>:<FileText size={14}/>}<span>{file.name}</span></span><button type="button" aria-label={`移除附件 ${file.name}`} disabled={busy||applying||importing} onClick={()=>setAttachments(old=>old.filter(f=>f.id!==file.id))}><X size={13}/></button></div>)}</div>}
-                <div className="ck-ai-input-shell"><textarea ref={input} value={draft} maxLength={6000} rows={2} aria-label="发给 AI 的需求" placeholder={intent.kind === 'edit' ? '想怎样修改选中的积木？' : '描述你想搭建或修改的功能…'} disabled={applying}
+                {attachments.length>0 && <small className="ck-ai-attachment-note">发送时，附件将一并发给所选模型服务。</small>}
+                <div className="ck-ai-input-shell"><textarea ref={input} value={draft} maxLength={6000} rows={1} aria-label="发给 AI 的需求" placeholder={intent.kind === 'library' ? '输入硬件型号、驱动接口和需要的积木…' : intent.kind === 'edit' ? '想怎样修改选中的积木？' : '描述你想搭建或修改的功能…'} disabled={applying}
                     onPaste={event=>{const files=Array.from(event.clipboardData.files);if(files.length){event.preventDefault();void addAttachments(files);}}}
                     onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
-                    <div className="ck-ai-input-bottom"><button type="button" className="ck-ai-attach" aria-label="添加图片或文件" title="图片、UTF-8 文本和代码 · 最多4个；支持粘贴图片" disabled={busy||applying||importing} onClick={()=>fileInput.current?.click()}>{importing?<Loader2 size={16} className="ck-ai-spin"/>:<Paperclip size={16}/>}</button><span>Ctrl + Enter 发送</span><button type="button" className="ck-ai-inline-action" disabled={busy||applying} onClick={()=>startTask('repair','请读取最近一次编译的诊断，分析错误原因并提出最小修改方案。')}>分析最新错误</button>{busy ? <button type="button" className="ck-ai-send" aria-label="停止 AI 请求" disabled={stopping} onClick={stop}><Square size={14} fill="currentColor" /></button> : <button type="button" className="ck-ai-send" aria-label="发送需求" disabled={(!draft.trim()&&!attachments.length) || importing || savingSettings || applying || chatAction || !storeReady || !preferencesReady || Boolean(props.disabledReason) || Boolean(storeError)} onClick={() => void send()}><ArrowUp size={18} /></button>}</div>
+                    <div className="ck-ai-input-bottom"><button type="button" className="ck-ai-attach" aria-label="添加图片或文件" title="添加图片或文件" disabled={busy||applying||importing} onClick={()=>fileInput.current?.click()}>{importing?<Loader2 size={16} className="ck-ai-spin"/>:<Paperclip size={16}/>}</button><button type="button" className="ck-ai-inline-action" disabled={busy||applying} onClick={()=>startTask('repair','请读取最近一次编译的诊断，分析错误原因并提出最小修改方案。')}><Wrench size={13}/>分析最新错误</button>{busy ? <button type="button" className="ck-ai-send" aria-label="停止 AI 请求" title="停止请求" disabled={stopping} onClick={stop}><Square size={14} fill="currentColor" /></button> : <button type="button" className="ck-ai-send" aria-label="发送需求" title="发送（Ctrl + Enter）" disabled={(!draft.trim()&&!attachments.length) || importing || savingSettings || applying || chatAction || !storeReady || !preferencesReady || Boolean(props.disabledReason) || Boolean(storeError)} onClick={() => void send()}><ArrowUp size={18} /></button>}</div>
                 </div>
                 <div className="ck-ai-controls" aria-label="AI 模型与应用模式">
-                    <select aria-label="当前 AI 模型" title={connection.model || '选择模型'} value={connection.model} disabled={busy||applying||savingSettings} onChange={e=>{if(e.target.value==='__custom__')setSettings(true);else void updateControls({model:e.target.value,reasoningEffort:'auto'});}}>
+                    {!canConnect ? <button className="ck-ai-model-connect" type="button" disabled={!preferencesReady||savingSettings||busy||applying} onClick={()=>{setPage('settings');setError('');}}><Settings2 size={13}/>连接模型</button> : <select aria-label="当前 AI 模型" title={connection.model || '选择模型'} value={connection.model} disabled={busy||applying||savingSettings} onChange={e=>{if(e.target.value==='__custom__')setPage('settings');else void updateControls({model:e.target.value,reasoningEffort:'auto'});}}>
                         {!connection.model&&<option value="">选择模型</option>}{[...new Set([connection.model,...connection.modelChoices].filter(Boolean))].map(m=><option value={m} key={m}>{m}</option>)}<option value="__custom__">添加 / 获取模型…</option>
-                    </select>
+                    </select>}
                     <select aria-label="思考强度" title="思考强度：接口须支持所选档位" value={connection.reasoningEffort} disabled={busy||applying||savingSettings} onChange={e=>void updateControls({reasoningEffort:e.target.value})}>{efforts.map(([value,label])=><option key={value} value={value}>思考 · {label}</option>)}</select>
-                    <select className="ck-ai-apply-mode" aria-label="AI 修改模式" value={connection.autoApply?'auto':'manual'} disabled={busy||applying||savingSettings} onChange={e=>void updateControls({autoApply:e.target.value==='auto'})}><option value="auto">AI 自动修改 · 可撤销</option><option value="manual">手动确认后修改</option></select>
+                    <select className="ck-ai-apply-mode" aria-label="AI 修改模式" value={connection.autoApply?'auto':'manual'} disabled={busy||applying||savingSettings} onChange={e=>void updateControls({autoApply:e.target.value==='auto'})}><option value="auto">AI 自动修改 · 积木可撤销</option><option value="manual">手动确认后修改</option></select>
                 </div>
-                <div className="ck-ai-project-path"><FolderOpen size={12}/><span title={projectPath}>{projectPath}</span><button type="button" aria-label="复制工程路径" disabled={!props.projectKey.startsWith('file:')} onClick={()=>void navigator.clipboard.writeText(projectPath).then(()=>setNotice('工程路径已复制')).catch(()=>setError('复制失败，请从路径提示中查看'))}><Copy size={12}/></button></div>
-                <p className="ck-ai-footnote">{connection.autoApply?'校验通过即修改当前工程；保存后写入文件。':'校验后预览，确认后修改。'}附件会发送到所选服务；图片需视觉模型，文字不支持自动识别所有秘密。</p>
+                <div className="ck-ai-statusbar">
+                    <div className="ck-ai-project-path"><FolderOpen size={12}/><span title={projectPath}>{projectPath}</span><button type="button" title="复制工程路径" aria-label="复制工程路径" disabled={!props.projectKey.startsWith('file:')} onClick={()=>void navigator.clipboard.writeText(projectPath).then(()=>setNotice('工程路径已复制')).catch(()=>setError('复制失败，请从路径提示中查看'))}><Copy size={12}/></button></div>
+                    <details className="ck-ai-context-details"><summary title="查看上下文用量" aria-label="查看上下文用量"><Gauge size={13}/>{usage ? `≈${Math.ceil(usage.estimatedInputTokens/100)/10}k / ` : ''}{Math.round(connection.contextTokens/1024)}k<ChevronDown size={11}/></summary>
+                        <div className="ck-ai-usage">上下文预算 {Math.round(connection.contextTokens/1024)}k · 回复预留 {connection.responseTokens.toLocaleString()} tokens{usage?.requests ? ` · ${usage.requests} 次请求` : ''}</div>
+                        {usage?.inputTokens!=null && <div className="ck-ai-token-detail">服务商返回：输入 {usage.inputTokens.toLocaleString()} / 输出 {(usage.outputTokens||0).toLocaleString()} tokens（本次合计）</div>}
+                        <div role="status">{storeStatus}</div>
+                    </details>
+                </div>
             </footer>
         </>}
     </aside>;

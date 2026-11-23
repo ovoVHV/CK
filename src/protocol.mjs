@@ -1,5 +1,6 @@
 import path from 'node:path';
 import {allowsFqbn} from './targets.mjs';
+import {validateMembers} from './sketch-files.mjs';
 import {createHash} from 'node:crypto';
 import {ENGINE_VERSION,PROTOCOL_VERSION,CACHE_SCHEMA,THREAT_MODEL,ARTIFACTS,artifactsFor} from './version.mjs';
 export const normalize=s=>s.replace(/^\uFEFF/,'').replaceAll('\r\n','\n');
@@ -18,6 +19,10 @@ export function validateRequest(msg,config) {
  if(r.forceClean!==undefined&&typeof r.forceClean!=='boolean')throw new BuildError('INVALID_REQUEST','Invalid clean flag');
  if(!Array.isArray(r.libraries)||r.libraries.length>64||r.libraries.some(p=>typeof p!=='string'||!path.isAbsolute(p)))throw new BuildError('INVALID_REQUEST','Invalid library paths');
  const safe={};for(const k of ['requestId','sourceSha256','fqbn','sysroot','workspace','sketchDir','libraries','forceClean','buildSignature'])safe[k]=r[k];
+ if(r.projectFiles!=null){
+  safe.projectFiles=validateMembers(r.projectFiles);
+  if(safe.projectFiles.some(f=>Buffer.from(f.hex,'hex').includes('__TIMESTAMP__')))throw new BuildError('NOT_QUALIFIED','File-time-dependent project source',{fallbackSafe:true});
+ }
  if(r.forceOfficial!==undefined&&typeof r.forceOfficial!=='boolean')throw new BuildError('INVALID_REQUEST','Invalid official mode');
  for(const key of ['frontendReference','historyReference','discoveryPreprocessReference','discoveryCompileReference','coldPipelineReference','nativeImageReference','coldLibraryPchReference','discoveryBatchReference','assetOpenReference','coldReference','avrPropertiesReference','esp32PropertiesReference','directExecutionReference']){
   if(r[key]!==undefined&&typeof r[key]!=='boolean')throw new BuildError('INVALID_REQUEST','Invalid reference flag');

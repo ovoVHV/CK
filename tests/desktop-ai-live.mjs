@@ -113,7 +113,7 @@ try {
     await picture('02-live-compiled');
     report.checks.push('Live DeepSeek generated editable pin-mode, digital-output and delay blocks; user-confirmed proposal created a checkpoint and compiled to real Uno artifacts');
     await client.evaluate(`(()=>{const c=window.CK_NATIVE_REGRESSION.getCurrent();const block=c.workspace.getAllBlocks(false).find(b=>b.type==='control_delay');if(!block)throw Error('Generated delay block missing');const action=c.Blockly.ContextMenuRegistry.registry.getItem('ckAiEditBlock');action.callback({block});return true})()`);
-    await wait(`document.querySelector('.ck-ai-mode')?.textContent==='修改积木 · 已选中'`, 'selected-block mode');
+    await wait(`document.querySelector('.ck-ai-intent')?.textContent==='修改积木 · 已选中积木'`, 'selected-block mode');
     const edited = await proposal('只将选中的这个等待积木改为200毫秒，其他等待和引脚输出保持原样。', 'edit-selected-delay');
     await applyCompile(edited, [/delay\(200\)/, /delay\(500\)/]);
     report.checks.push('Live model edited only the selected delay; remaining delay stayed at 500 ms and actual native compilation passed');

@@ -7,7 +7,7 @@ import type { AiTaskCheckpoint } from './ai_task_checkpoint';
 export interface AiPreferences extends AiConnection, AiContextSettings { rememberKey: boolean; autoApply: boolean; reasoningEffort: string; reasoningProtocol: string; modelChoices: string[] }
 export interface AiChat { schemaVersion: 1; id: string; projectKey: string; title: string; updatedAt: number; revision: number; messages: AiChatMessage[]; memory?: AiMemory; draft: string; draftAttachments?: AiAttachment[]; task?: AiTaskCheckpoint; taskError?: string }
 export interface AiChatListEntry { id: string; title: string; updatedAt: number; messages: number }
-export const DEFAULT_AI_PREFERENCES: AiPreferences = { baseUrl: '', model: '', apiKey: '', rememberKey: true, autoApply: true, reasoningEffort: 'auto', reasoningProtocol: 'auto', modelChoices: [], ...DEFAULT_AI_CONTEXT };
+export const DEFAULT_AI_PREFERENCES: AiPreferences = { baseUrl: '', model: '', apiKey: '', apiProtocol:'chat', rememberKey: true, autoApply: true, reasoningEffort: 'auto', reasoningProtocol: 'auto', modelChoices: [], ...DEFAULT_AI_CONTEXT };
 export const newAiChat = (projectKey: string): AiChat => ({ schemaVersion: 1, id: crypto.randomUUID(), projectKey, title: '新聊天', updatedAt: Date.now(), revision: 0, messages: [], draft: '' });
 export const loadAiPreferences = () => invoke<AiPreferences | null>('ai_load_preferences');
 export const saveAiPreferences = (value: AiPreferences) => invoke<void>('ai_save_preferences', { value });

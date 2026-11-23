@@ -19,6 +19,9 @@ mod identity_content;
 pub async fn with_native_graph_project<F: std::future::Future>(project: Option<String>, future: F) -> F::Output {
     native_graph_backend::with_project(project, future).await
 }
+pub type ProjectSources = std::sync::Arc<BTreeMap<String,Vec<u8>>>;
+tokio::task_local! {pub static PROJECT_SOURCES: Option<ProjectSources>;}
+pub fn project_sources()->Option<ProjectSources>{PROJECT_SOURCES.try_with(Clone::clone).ok().flatten()}
 mod native_relink;
 /// Discovery-only Arduino recipe capability API.  Reports from this module are
 /// qualification evidence, never production Fast authorization by themselves.
@@ -23028,6 +23031,7 @@ where
     let active_build_cancellation = current_build_cancellation();
     let resource_observer = crate::builder::resource_observation::current();
     let native_graph_project = native_graph_backend::current_project();
+    let sources=project_sources();
     // Test task-locals, like cancellation/observation, do not automatically
     // cross the dedicated worker thread. Preserve the real control-flow tests
     // without ever compiling these injection hooks into a product build.
@@ -23067,6 +23071,7 @@ where
                         log_callback,
                     );
                     let future = native_graph_backend::with_project(native_graph_project, Box::pin(future));
+                    let future = PROJECT_SOURCES.scope(sources,future);
                     let future = crate::builder::resource_observation::with_observer(resource_observer, async {
                         if let Some(cancellation) = active_build_cancellation {
                             with_build_cancellation(cancellation, future).await
@@ -23135,7 +23140,7 @@ where
             }
             return Ok(result);
         }
-        if let Some(result) = linux_backend::try_compile(sysroot, code, fqbn, extra_libs,
+        if project_sources().is_none() && let Some(result) = linux_backend::try_compile(sysroot, code, fqbn, extra_libs,
             max_jobs, build_signature, identity_lease, clean, exact_reuse_policy, &progress, &log_callback).await?
         {
             if clean {
@@ -23189,6 +23194,14 @@ where
             }), "Invalid AI candidate identity");
             Ok(candidate.replace('-', "").to_ascii_lowercase())
         }).transpose()?;
+    // Older reuse schemes key only the main sketch. Isolate compatibility
+    // builds by the complete ordered project snapshot before consulting them.
+    let sources=project_sources();
+    let cache_dir=if let Some(files)=&sources {
+        let mut hash=Sha256::new();
+        for (name,data) in files.iter(){hash.update((name.len() as u64).to_le_bytes());hash.update(name);hash.update(Sha256::digest(data));}
+        cache_dir.join("mf").join(hex::encode(hash.finalize()))
+    }else{cache_dir};
     let cache_dir = if let Some(namespace) = &candidate_namespace {
         let target = Sha256::digest(canonical_fqbn_cache_identity(fqbn).as_bytes());
         cache_dir.join("ai").join(namespace).join(hex::encode(&target[..16]))
@@ -23213,6 +23226,10 @@ where
         cache_dir.join(format!("sketch_{}_{}", fqbn_safe, mode_suffix))
     };
     tokio::fs::create_dir_all(&project_dir).await?;
+    if let Some(files)=sources {for (name,bytes) in files.iter(){
+        let file=project_dir.join(name);tokio::fs::create_dir_all(file.parent().context("project source parent")?).await?;
+        if tokio::fs::read(&file).await.ok().as_deref()!=Some(bytes.as_slice()){tokio::fs::write(file,bytes).await?;}
+    }}
     let arduino_cli_working_directory =
         prepare_managed_arduino_cli_working_directory(&project_dir).await?;
     // Authorized external qualification probes must never reuse a build

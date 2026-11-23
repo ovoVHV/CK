@@ -199,7 +199,7 @@ test('copy uses the preview source while raw compilation and workspace identitie
     const userReadableCode = stripBlockMarkers(rawGeneratedCode);
     const source = await readFile(new URL('./Workspace.tsx', import.meta.url), 'utf8');
     assert.match(source, /const userReadableCode = useMemo\(\(\) => (?:codeViewOpen \? )?stripBlockMarkers\(generatedCode\)/);
-    assert.match(source, /\{userReadableCode\}\s*<\/SyntaxHighlighter>/);
+    assert.match(source, /<SketchCodePreview code=\{userReadableCode\}/);
     const tree=ts.createSourceFile('Workspace.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
     let handler;
     const visit=node=>{

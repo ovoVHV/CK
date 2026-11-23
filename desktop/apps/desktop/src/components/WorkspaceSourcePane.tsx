@@ -35,6 +35,7 @@ export function WorkspaceSourcePane({ code, documentKey, active, dirty, followsB
             <div className="ck-source-filename"><Code2 size={15} aria-hidden="true" /><strong>sketch.ino</strong>
                 {dirty && <span className="ck-source-dirty" title="工程有未保存修改" aria-label="未保存" />}
             </div>
+            {active && source.pendingGenerated !== undefined && <SourceSyncReview key={documentKey} source={source} disabled={actionsDisabled} onResolve={onResolve} />}
             <div ref={menu} className="ck-source-menu" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false); }}>
                 <button ref={menuTrigger} type="button" className="ck-source-menu-trigger" data-ck-role="source-actions" disabled={actionsDisabled}
                     aria-expanded={menuOpen} aria-controls="ck-source-actions" onClick={() => setMenuOpen(value => !value)}>源码操作<ChevronDown size={12} /></button>
@@ -47,7 +48,6 @@ export function WorkspaceSourcePane({ code, documentKey, active, dirty, followsB
                 </div>}
             </div>
         </div>
-        {source.pendingGenerated !== undefined && <SourceSyncReview key={documentKey} source={source} disabled={actionsDisabled} onResolve={onResolve} />}
         {diagnostics.length > 0 && <div className="ck-source-errors" aria-label="源码诊断">{diagnostics.map((d, i) =>
             <button key={i} onClick={() => setReveal({ ...d, sequence: Date.now() })} title={d.message}><b>第 {d.line} 行</b><span>{d.message}</span></button>)}</div>}
         <div className="ck-source-edit-area"><SourceCodeEditor code={code} documentKey={documentKey} active={active} dark={dark} readOnly={readOnly}

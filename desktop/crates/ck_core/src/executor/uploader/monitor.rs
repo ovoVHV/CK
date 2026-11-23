@@ -183,6 +183,8 @@ impl SerialMonitor {
         })
     }
 
+    pub fn is_connected(&self) -> bool { self.running.load(Ordering::Acquire) }
+
     pub fn send(&self, data: &[u8]) -> Result<()> {
         let port_writer = self
             .port_writer
