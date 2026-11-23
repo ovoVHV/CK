@@ -28,7 +28,9 @@ export class LazyBuildController {
    throw new BuildError('NOT_QUALIFIED','V9 会话目录已改变，请重新打开 CK 以使用新目录',{fallbackSafe:true});
   }
   if(this.readinessError){this.readinessError=null;this.onStatus({ready:true,reason:'current-input-environment-validated'});}
-  return this.controller.submit(message,options);
+  // This toggle only selects when Core compilation is scheduled. It cannot
+  // authorize a retained object or change the session's validation policy.
+  return this.controller.submit(message,{...options,deferCoreOnRediscovery:config.features?.deferCoreOnRediscovery});
  }
  async acknowledge(...args){if(!this.controller)throw new BuildError('ACK_MISMATCH','No build is awaiting acknowledgement');return this.controller.acknowledge(...args);}
  async cancel(...args){return this.controller?.cancel(...args);}

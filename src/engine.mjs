@@ -102,7 +102,9 @@ export class BuildSession {
     const prepAt=performance.now(),retained=state?saveTree(path.join(c.workspace,'build')).filter(x=>!/[.]o$|[.]gch$|[.]a$|[.]bin$|[.]elf$/.test(x.file)):[];prepare(c,p);for(const x of retained)if(fs.existsSync(x.file)&&fs.readFileSync(x.file).equals(x.bytes))fs.utimesSync(x.file,x.atime,x.mtime);receipt.phases.prepareMs=performance.now()-prepAt;
     const indexAt=performance.now(),index=buildIndex([{dir:path.join(p['runtime.platform.path'],'libraries'),location:'platform'},{dir:c.userLibraries,location:'user'},...(c.collections??[]).map(dir=>({dir,location:'user'})),...(c.explicitLibraries??[]).map(dir=>({dir,location:'unmanaged',single:true}))]);if(index.diagnostics.length)throw new NeedsOfficial('Index diagnostics');receipt.phases.indexMs=performance.now()-indexAt;
     const rediscover=state&&sameAssets&&sameContext&&state.memberNames===names&&!sameMembers;
-    activity('依赖发现：开始 GCC 探测和并行编译');const dt=performance.now();d=await discover(rediscover?{...c,discoveryCompileReference:true}:c,p,index,{onSketchReady:rediscover||members.units.length||c.discoveryCompileReference||c.coldPipelineReference||c.pchDiagnostics?undefined:async(discovered,pool)=>{
+    const deferCore=!!((c.deferCoreOnRediscovery??c.features?.deferCoreOnRediscovery)!==false&&state&&!state.official&&sameContext&&sameAssets&&sameMembers&&state.memberNames===names);
+    receipt.deferredCoreAdmission=deferCore;
+    activity('依赖发现：开始 GCC 探测和并行编译');const dt=performance.now();d=await discover(rediscover?{...c,discoveryCompileReference:true}:c,p,index,{deferCore,onSketchReady:rediscover||members.units.length||c.discoveryCompileReference||c.coldPipelineReference||c.pchDiagnostics?undefined:async(discovered,pool)=>{
      provisionalIncludes=discovered.includes.join('\0');compilationDatabase(c,p,discovered);front=frontendObject(p,discovered.selected);buildPlan();coldFrontend(discovered);
      const sketch=plan.rules.find(r=>r.kind==='compile'&&r.inputs[0]===path.join(plan.build,'sketch/sketch.ino.cpp'));
      // PCH-dependent recipes keep the ordinary PCH-before-Sketch scheduler.

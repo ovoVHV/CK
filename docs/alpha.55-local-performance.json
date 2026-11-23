@@ -1,0 +1,1452 @@
+{
+  "date": "2026-11-23",
+  "version": "9.1.0-alpha.55",
+  "baseline": "alpha.54 scheduling",
+  "boundary": "One local Windows machine, AVR 1.8.6 / ESP32 3.3.6, released alpha.54 desktop with an isolated scheduler switch. Engine session clean is not an OS cold-cache measurement.",
+  "comparison": "Wire project, add/remove SPI. Both routes re-run discovery. History restore explicitly disabled for attribution. Compare same-board same-source artifacts at identical absolute paths. No P95 or general cold-start claim.",
+  "exclusions": "buffered-* is an independent rejected file-reading experiment; its optimization is not shipped. Matrix runs are correctness-only and were allowed to overlap packaging. All available timings, including slower runs, are retained.",
+  "data": [
+    {
+      "test": "buffered-1795434314755.json",
+      "board": "arduino:avr:uno",
+      "boundary": "desktop compile_sketch IPC to verified artifact export",
+      "rows": [
+        {
+          "route": "candidate",
+          "scenario": "first",
+          "ms": 6902.699999988079,
+          "gcc": 29,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 354.9035,
+          "postValidationMs": 232.2467999999999,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "672b9b690b8f8a7be627510f1a482df4300f26fd488fd7e069dc75252b97b071",
+            "sketch.ino.hex": "65ec8042dd5696fe1b34cd7eec38edffc956b94ef6823991b70d40d398071a19",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 3029.6000000089407,
+          "gcc": 29,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 244.8795,
+          "postValidationMs": 225.5035000000007,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "672b9b690b8f8a7be627510f1a482df4300f26fd488fd7e069dc75252b97b071",
+            "sketch.ino.hex": "65ec8042dd5696fe1b34cd7eec38edffc956b94ef6823991b70d40d398071a19",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "edit",
+          "ms": 1679.199999988079,
+          "gcc": 1,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 251.0829000000003,
+          "postValidationMs": 226.7506000000012,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "327cf684c4fe5fcbc7502dcc5844ba8efc824fb1e51f7a253f083af92be305f8",
+            "sketch.ino.hex": "036605eb52f532766ab459b8b44e889f8935a9d6c6aded1fc1a6780bfd439258",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "repeat",
+          "ms": 819.7999999970198,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 148.7871,
+          "postValidationMs": 147.4228,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "327cf684c4fe5fcbc7502dcc5844ba8efc824fb1e51f7a253f083af92be305f8",
+            "sketch.ino.hex": "036605eb52f532766ab459b8b44e889f8935a9d6c6aded1fc1a6780bfd439258",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "repeat",
+          "ms": 733,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 129.5235,
+          "postValidationMs": 120.7332,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "327cf684c4fe5fcbc7502dcc5844ba8efc824fb1e51f7a253f083af92be305f8",
+            "sketch.ino.hex": "036605eb52f532766ab459b8b44e889f8935a9d6c6aded1fc1a6780bfd439258",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "edit",
+          "ms": 1644.7000000029802,
+          "gcc": 1,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 241.00790000000052,
+          "postValidationMs": 222.1220000000012,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "672b9b690b8f8a7be627510f1a482df4300f26fd488fd7e069dc75252b97b071",
+            "sketch.ino.hex": "65ec8042dd5696fe1b34cd7eec38edffc956b94ef6823991b70d40d398071a19",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "repeat",
+          "ms": 792.2999999970198,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 139.1454,
+          "postValidationMs": 141.0803,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "672b9b690b8f8a7be627510f1a482df4300f26fd488fd7e069dc75252b97b071",
+            "sketch.ino.hex": "65ec8042dd5696fe1b34cd7eec38edffc956b94ef6823991b70d40d398071a19",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "repeat",
+          "ms": 723.5999999940395,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 121.9126,
+          "postValidationMs": 134.963,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "672b9b690b8f8a7be627510f1a482df4300f26fd488fd7e069dc75252b97b071",
+            "sketch.ino.hex": "65ec8042dd5696fe1b34cd7eec38edffc956b94ef6823991b70d40d398071a19",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "edit",
+          "ms": 1649.4000000059605,
+          "gcc": 1,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 231.37690000000111,
+          "postValidationMs": 216.64060000000063,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "327cf684c4fe5fcbc7502dcc5844ba8efc824fb1e51f7a253f083af92be305f8",
+            "sketch.ino.hex": "036605eb52f532766ab459b8b44e889f8935a9d6c6aded1fc1a6780bfd439258",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "repeat",
+          "ms": 855.7999999970198,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 126.5722,
+          "postValidationMs": 157.016,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "327cf684c4fe5fcbc7502dcc5844ba8efc824fb1e51f7a253f083af92be305f8",
+            "sketch.ino.hex": "036605eb52f532766ab459b8b44e889f8935a9d6c6aded1fc1a6780bfd439258",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "repeat",
+          "ms": 765.5,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 136.1929,
+          "postValidationMs": 123.2586,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "327cf684c4fe5fcbc7502dcc5844ba8efc824fb1e51f7a253f083af92be305f8",
+            "sketch.ino.hex": "036605eb52f532766ab459b8b44e889f8935a9d6c6aded1fc1a6780bfd439258",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "edit",
+          "ms": 1627.6000000089407,
+          "gcc": 1,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 236.85930000000008,
+          "postValidationMs": 233.3637000000017,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "672b9b690b8f8a7be627510f1a482df4300f26fd488fd7e069dc75252b97b071",
+            "sketch.ino.hex": "65ec8042dd5696fe1b34cd7eec38edffc956b94ef6823991b70d40d398071a19",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "repeat",
+          "ms": 757,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 132.5224,
+          "postValidationMs": 137.9435,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "672b9b690b8f8a7be627510f1a482df4300f26fd488fd7e069dc75252b97b071",
+            "sketch.ino.hex": "65ec8042dd5696fe1b34cd7eec38edffc956b94ef6823991b70d40d398071a19",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "repeat",
+          "ms": 857,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 134.0659,
+          "postValidationMs": 127.508,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "672b9b690b8f8a7be627510f1a482df4300f26fd488fd7e069dc75252b97b071",
+            "sketch.ino.hex": "65ec8042dd5696fe1b34cd7eec38edffc956b94ef6823991b70d40d398071a19",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "9ff1fa33de2e921d24e48d421620fecd4ffd46b50805666373fe95441ca1e0b6"
+          }
+        }
+      ]
+    },
+    {
+      "test": "core-rediscovery-1795434542703.json",
+      "board": "arduino:avr:uno",
+      "boundary": "desktop compile_sketch IPC to verified export; history restore disabled on both sides",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 4012.9000000059605,
+          "coreObjects": 25,
+          "coreRetained": 0,
+          "gcc": 28,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 256.10900000000004,
+          "postValidationMs": 234.4082000000003,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "bfc1f0eca17e7e26858a53319dd1f5d80478678925e2eb2c35026645ad62b8d5",
+            "sketch.ino.hex": "92127016bbea0c769ac5f687a78e1045bb3202c85ff1bc181b5063aca34409c4",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "66b33d39e7e191a088d695d4ed8a579afe78ec7ba76f4e51968eaec69155a230"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "add-library",
+          "ms": 3118.7000000029802,
+          "coreObjects": 25,
+          "coreRetained": 0,
+          "gcc": 29,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 247.50649999999996,
+          "postValidationMs": 233.61210000000028,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "14526ff4522f76c34d2f26d0ff0dfaa839c7637bb8184e5d742f2441eec132f2",
+            "sketch.ino.hex": "fb6b746d2f746fc7305e127a605b3688ce5c30da1c0dcf866b5d17bed57b0d36",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "66b33d39e7e191a088d695d4ed8a579afe78ec7ba76f4e51968eaec69155a230"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "remove-library",
+          "ms": 2246.5999999940395,
+          "coreObjects": 25,
+          "coreRetained": 25,
+          "gcc": 3,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 275.1187,
+          "postValidationMs": 229.8865999999989,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "bfc1f0eca17e7e26858a53319dd1f5d80478678925e2eb2c35026645ad62b8d5",
+            "sketch.ino.hex": "92127016bbea0c769ac5f687a78e1045bb3202c85ff1bc181b5063aca34409c4",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "66b33d39e7e191a088d695d4ed8a579afe78ec7ba76f4e51968eaec69155a230"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "add-library",
+          "ms": 2305.7000000029802,
+          "coreObjects": 25,
+          "coreRetained": 25,
+          "gcc": 4,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 243.60459999999875,
+          "postValidationMs": 224.38850000000093,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "14526ff4522f76c34d2f26d0ff0dfaa839c7637bb8184e5d742f2441eec132f2",
+            "sketch.ino.hex": "fb6b746d2f746fc7305e127a605b3688ce5c30da1c0dcf866b5d17bed57b0d36",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "66b33d39e7e191a088d695d4ed8a579afe78ec7ba76f4e51968eaec69155a230"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "remove-library",
+          "ms": 2967.2999999970198,
+          "coreObjects": 25,
+          "coreRetained": 0,
+          "gcc": 28,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 255.84699999999975,
+          "postValidationMs": 232.11889999999948,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "bfc1f0eca17e7e26858a53319dd1f5d80478678925e2eb2c35026645ad62b8d5",
+            "sketch.ino.hex": "92127016bbea0c769ac5f687a78e1045bb3202c85ff1bc181b5063aca34409c4",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "66b33d39e7e191a088d695d4ed8a579afe78ec7ba76f4e51968eaec69155a230"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "damaged-core",
+          "ms": 2415.7000000029802,
+          "coreObjects": 25,
+          "coreRetained": 24,
+          "gcc": 5,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 252.41740000000027,
+          "postValidationMs": 224.39929999999913,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "14526ff4522f76c34d2f26d0ff0dfaa839c7637bb8184e5d742f2441eec132f2",
+            "sketch.ino.hex": "fb6b746d2f746fc7305e127a605b3688ce5c30da1c0dcf866b5d17bed57b0d36",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "66b33d39e7e191a088d695d4ed8a579afe78ec7ba76f4e51968eaec69155a230"
+          }
+        }
+      ]
+    },
+    {
+      "test": "core-rediscovery-button-1795434763182.json",
+      "board": "arduino:avr:uno",
+      "boundary": "Editor compile button through progress overlay closed; history restore disabled on both sides",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 4401,
+          "coreObjects": 25,
+          "coreRetained": 0,
+          "gcc": 28,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 410.2175000000001,
+          "postValidationMs": 256.3960000000002,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "a0a28d0b056c4adc4e345ee3838c9624339872c1c3fa40537e1f5089869861e0",
+            "sketch.ino.hex": "92127016bbea0c769ac5f687a78e1045bb3202c85ff1bc181b5063aca34409c4",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "2cfb74251df31b5555d3fbe22661b00030c3efda92757c0a3694ee2652dc4aa9"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "add-library",
+          "ms": 3594.0999999940395,
+          "coreObjects": 25,
+          "coreRetained": 0,
+          "gcc": 29,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 260.3144000000002,
+          "postValidationMs": 262.73129999999946,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "f3e27313524264114f07e8b497efa470858fc35a92c66244d542d5255904313f",
+            "sketch.ino.hex": "fb6b746d2f746fc7305e127a605b3688ce5c30da1c0dcf866b5d17bed57b0d36",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "2cfb74251df31b5555d3fbe22661b00030c3efda92757c0a3694ee2652dc4aa9"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "remove-library",
+          "ms": 2422.4000000059605,
+          "coreObjects": 25,
+          "coreRetained": 25,
+          "gcc": 3,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 269.16539999999986,
+          "postValidationMs": 235.13990000000013,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "a0a28d0b056c4adc4e345ee3838c9624339872c1c3fa40537e1f5089869861e0",
+            "sketch.ino.hex": "92127016bbea0c769ac5f687a78e1045bb3202c85ff1bc181b5063aca34409c4",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "2cfb74251df31b5555d3fbe22661b00030c3efda92757c0a3694ee2652dc4aa9"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "add-library",
+          "ms": 2648.5,
+          "coreObjects": 25,
+          "coreRetained": 25,
+          "gcc": 4,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 286.3063000000002,
+          "postValidationMs": 233.70550000000003,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "f3e27313524264114f07e8b497efa470858fc35a92c66244d542d5255904313f",
+            "sketch.ino.hex": "fb6b746d2f746fc7305e127a605b3688ce5c30da1c0dcf866b5d17bed57b0d36",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "2cfb74251df31b5555d3fbe22661b00030c3efda92757c0a3694ee2652dc4aa9"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "remove-library",
+          "ms": 3216,
+          "coreObjects": 25,
+          "coreRetained": 0,
+          "gcc": 28,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 259.5433000000012,
+          "postValidationMs": 251.808500000001,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "a0a28d0b056c4adc4e345ee3838c9624339872c1c3fa40537e1f5089869861e0",
+            "sketch.ino.hex": "92127016bbea0c769ac5f687a78e1045bb3202c85ff1bc181b5063aca34409c4",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "2cfb74251df31b5555d3fbe22661b00030c3efda92757c0a3694ee2652dc4aa9"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "damaged-core",
+          "ms": 2647.7999999970198,
+          "coreObjects": 25,
+          "coreRetained": 24,
+          "gcc": 5,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 258.2743999999984,
+          "postValidationMs": 241.14689999999973,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "f3e27313524264114f07e8b497efa470858fc35a92c66244d542d5255904313f",
+            "sketch.ino.hex": "fb6b746d2f746fc7305e127a605b3688ce5c30da1c0dcf866b5d17bed57b0d36",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "2cfb74251df31b5555d3fbe22661b00030c3efda92757c0a3694ee2652dc4aa9"
+          }
+        }
+      ]
+    },
+    {
+      "test": "core-rediscovery-matrix-1795435214206.json",
+      "board": "arduino:avr:nano:cpu=atmega328old",
+      "boundary": "Desktop compile_sketch IPC to verified export; history restore disabled on both sides",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 6245.20000000298,
+          "coreObjects": 25,
+          "coreRetained": 0,
+          "gcc": 28,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 634.9902,
+          "postValidationMs": 447.797,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "eeff635ef9fef08ae55bf13d98c55cc696314d7ce6c600dd52d73eb9610332bb",
+            "sketch.ino.hex": "92127016bbea0c769ac5f687a78e1045bb3202c85ff1bc181b5063aca34409c4",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "ae8755cb35d85d1c4c660d9ee2a402b2dc8dc547b49ffd86e86d95f93785e1b4"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "add-library",
+          "ms": 3044,
+          "coreObjects": 25,
+          "coreRetained": 25,
+          "gcc": 4,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 319.7577000000001,
+          "postValidationMs": 441.2015000000001,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "1870bc0dd655f2773201b79c37517b0998dc12d7fae597e407f73517c3014a81",
+            "sketch.ino.hex": "fb6b746d2f746fc7305e127a605b3688ce5c30da1c0dcf866b5d17bed57b0d36",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "ae8755cb35d85d1c4c660d9ee2a402b2dc8dc547b49ffd86e86d95f93785e1b4"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "remove-library",
+          "ms": 2684.1000000089407,
+          "coreObjects": 25,
+          "coreRetained": 25,
+          "gcc": 3,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 280.2081999999991,
+          "postValidationMs": 450.9105,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "eeff635ef9fef08ae55bf13d98c55cc696314d7ce6c600dd52d73eb9610332bb",
+            "sketch.ino.hex": "92127016bbea0c769ac5f687a78e1045bb3202c85ff1bc181b5063aca34409c4",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "ae8755cb35d85d1c4c660d9ee2a402b2dc8dc547b49ffd86e86d95f93785e1b4"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "damaged-core",
+          "ms": 3365,
+          "coreObjects": 25,
+          "coreRetained": 24,
+          "gcc": 5,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 442.27600000000166,
+          "postValidationMs": 472.2353999999996,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "1870bc0dd655f2773201b79c37517b0998dc12d7fae597e407f73517c3014a81",
+            "sketch.ino.hex": "fb6b746d2f746fc7305e127a605b3688ce5c30da1c0dcf866b5d17bed57b0d36",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "ae8755cb35d85d1c4c660d9ee2a402b2dc8dc547b49ffd86e86d95f93785e1b4"
+          }
+        }
+      ]
+    },
+    {
+      "test": "core-rediscovery-matrix-1795435231682.json",
+      "board": "arduino:avr:mega:cpu=atmega2560",
+      "boundary": "Desktop compile_sketch IPC to verified export; history restore disabled on both sides",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 6958.5,
+          "coreObjects": 25,
+          "coreRetained": 0,
+          "gcc": 28,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 523.9218,
+          "postValidationMs": 960.2177,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "cf64008bacb0ed9f3ba748fc072f450b87fbe655fcde8a0756a39d1ab94d3fe9",
+            "sketch.ino.hex": "1b9f5a22742eb5e0e883b19b52a03c8c58254d1b34165244513b71d59ac78faa",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "df1b11185245a1d5bc1326c43091c4e5740aeb8521e4097a565bea0c6751e089"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "add-library",
+          "ms": 3105.6000000089407,
+          "coreObjects": 25,
+          "coreRetained": 25,
+          "gcc": 4,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 331.26770000000033,
+          "postValidationMs": 279.22900000000027,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "d1419e56f162476fc7dbd1189cb2d054a2d6a7d7c49b39bc928e3cf0606b4872",
+            "sketch.ino.hex": "dc2cf89cba808e9aaef1e7734417f500a6c3d22c124febb6ca891fd1a4227991",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "df1b11185245a1d5bc1326c43091c4e5740aeb8521e4097a565bea0c6751e089"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "remove-library",
+          "ms": 2790.3999999910593,
+          "coreObjects": 25,
+          "coreRetained": 25,
+          "gcc": 3,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 410.7536999999993,
+          "postValidationMs": 234.9933000000001,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "cf64008bacb0ed9f3ba748fc072f450b87fbe655fcde8a0756a39d1ab94d3fe9",
+            "sketch.ino.hex": "1b9f5a22742eb5e0e883b19b52a03c8c58254d1b34165244513b71d59ac78faa",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "df1b11185245a1d5bc1326c43091c4e5740aeb8521e4097a565bea0c6751e089"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "damaged-core",
+          "ms": 2807.4000000059605,
+          "coreObjects": 25,
+          "coreRetained": 24,
+          "gcc": 5,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 250.1934000000001,
+          "postValidationMs": 250.83770000000004,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "d1419e56f162476fc7dbd1189cb2d054a2d6a7d7c49b39bc928e3cf0606b4872",
+            "sketch.ino.hex": "dc2cf89cba808e9aaef1e7734417f500a6c3d22c124febb6ca891fd1a4227991",
+            "sketch.ino.eep": "788e5ffc44ae4ee912fe01f495951f96b0accd5705e184dcaea197d8b64856a6",
+            "build.options.json": "df1b11185245a1d5bc1326c43091c4e5740aeb8521e4097a565bea0c6751e089"
+          }
+        }
+      ]
+    },
+    {
+      "test": "buffered-1795434339597.json",
+      "board": "esp32:esp32:esp32s3",
+      "boundary": "desktop compile_sketch IPC to verified artifact export",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 48239.60000000894,
+          "gcc": 71,
+          "link": 1,
+          "images": 3,
+          "inputValidationMs": 1016.3427,
+          "postValidationMs": 1908.5195999999996,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "89385f04da124e5ad03d32d2e4125a2e0740c5c0513e76c3eb479731ee990fcb",
+            "sketch.ino.bin": "115b7b4efb439768aeb0956a47059ab3c6641d380f2eda6fb77198c877b09186",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "df79f721f5258626fd4f9312b257bafdc108180ce7879145d04c1f1b2fcf247a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "first",
+          "ms": 44123.89999999106,
+          "gcc": 71,
+          "link": 1,
+          "images": 3,
+          "inputValidationMs": 1991.4464999999984,
+          "postValidationMs": 912.8392000000022,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "89385f04da124e5ad03d32d2e4125a2e0740c5c0513e76c3eb479731ee990fcb",
+            "sketch.ino.bin": "115b7b4efb439768aeb0956a47059ab3c6641d380f2eda6fb77198c877b09186",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "df79f721f5258626fd4f9312b257bafdc108180ce7879145d04c1f1b2fcf247a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "edit",
+          "ms": 16723,
+          "gcc": 1,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 924.229999999996,
+          "postValidationMs": 908.0009999999892,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5df3b97db4eb4bf037ec8ceeca8d57f4b8df4551c692567d2a2aece45191abf8",
+            "sketch.ino.bin": "055ac78a2946139624651c879e41359bb3cb66415f83c97d2a8d72d767d9a632",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "dae6664ec0e94b69ec39e7e50b504610544d877ec19138a3cdbafd7143ad5771",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "repeat",
+          "ms": 3621.2000000029802,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 838.7312000000001,
+          "postValidationMs": 805.5790000000001,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5df3b97db4eb4bf037ec8ceeca8d57f4b8df4551c692567d2a2aece45191abf8",
+            "sketch.ino.bin": "055ac78a2946139624651c879e41359bb3cb66415f83c97d2a8d72d767d9a632",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "dae6664ec0e94b69ec39e7e50b504610544d877ec19138a3cdbafd7143ad5771",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "repeat",
+          "ms": 3571.9000000059605,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 819.8311,
+          "postValidationMs": 834.8361,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5df3b97db4eb4bf037ec8ceeca8d57f4b8df4551c692567d2a2aece45191abf8",
+            "sketch.ino.bin": "055ac78a2946139624651c879e41359bb3cb66415f83c97d2a8d72d767d9a632",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "dae6664ec0e94b69ec39e7e50b504610544d877ec19138a3cdbafd7143ad5771",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "edit",
+          "ms": 17112,
+          "gcc": 1,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 947.8983000000007,
+          "postValidationMs": 877.844299999997,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "89385f04da124e5ad03d32d2e4125a2e0740c5c0513e76c3eb479731ee990fcb",
+            "sketch.ino.bin": "115b7b4efb439768aeb0956a47059ab3c6641d380f2eda6fb77198c877b09186",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "df79f721f5258626fd4f9312b257bafdc108180ce7879145d04c1f1b2fcf247a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "repeat",
+          "ms": 3567.4000000059605,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 841.0691999999999,
+          "postValidationMs": 796.8486,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "89385f04da124e5ad03d32d2e4125a2e0740c5c0513e76c3eb479731ee990fcb",
+            "sketch.ino.bin": "115b7b4efb439768aeb0956a47059ab3c6641d380f2eda6fb77198c877b09186",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "df79f721f5258626fd4f9312b257bafdc108180ce7879145d04c1f1b2fcf247a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "repeat",
+          "ms": 3609.5,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 825.5265,
+          "postValidationMs": 825.1463,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "89385f04da124e5ad03d32d2e4125a2e0740c5c0513e76c3eb479731ee990fcb",
+            "sketch.ino.bin": "115b7b4efb439768aeb0956a47059ab3c6641d380f2eda6fb77198c877b09186",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "df79f721f5258626fd4f9312b257bafdc108180ce7879145d04c1f1b2fcf247a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "edit",
+          "ms": 16864.40000000596,
+          "gcc": 1,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 917.7097000000068,
+          "postValidationMs": 899.9379999999946,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5df3b97db4eb4bf037ec8ceeca8d57f4b8df4551c692567d2a2aece45191abf8",
+            "sketch.ino.bin": "055ac78a2946139624651c879e41359bb3cb66415f83c97d2a8d72d767d9a632",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "dae6664ec0e94b69ec39e7e50b504610544d877ec19138a3cdbafd7143ad5771",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "repeat",
+          "ms": 3568.7000000029802,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 835.1645,
+          "postValidationMs": 857.1265999999999,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5df3b97db4eb4bf037ec8ceeca8d57f4b8df4551c692567d2a2aece45191abf8",
+            "sketch.ino.bin": "055ac78a2946139624651c879e41359bb3cb66415f83c97d2a8d72d767d9a632",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "dae6664ec0e94b69ec39e7e50b504610544d877ec19138a3cdbafd7143ad5771",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "repeat",
+          "ms": 3510.5999999940395,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 855.8981,
+          "postValidationMs": 795.6737,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5df3b97db4eb4bf037ec8ceeca8d57f4b8df4551c692567d2a2aece45191abf8",
+            "sketch.ino.bin": "055ac78a2946139624651c879e41359bb3cb66415f83c97d2a8d72d767d9a632",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "dae6664ec0e94b69ec39e7e50b504610544d877ec19138a3cdbafd7143ad5771",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "edit",
+          "ms": 16967.59999999404,
+          "gcc": 1,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 954.1335000000254,
+          "postValidationMs": 901.894100000005,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "89385f04da124e5ad03d32d2e4125a2e0740c5c0513e76c3eb479731ee990fcb",
+            "sketch.ino.bin": "115b7b4efb439768aeb0956a47059ab3c6641d380f2eda6fb77198c877b09186",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "df79f721f5258626fd4f9312b257bafdc108180ce7879145d04c1f1b2fcf247a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "repeat",
+          "ms": 3541.199999988079,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 815.6831,
+          "postValidationMs": 810.4925,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "89385f04da124e5ad03d32d2e4125a2e0740c5c0513e76c3eb479731ee990fcb",
+            "sketch.ino.bin": "115b7b4efb439768aeb0956a47059ab3c6641d380f2eda6fb77198c877b09186",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "df79f721f5258626fd4f9312b257bafdc108180ce7879145d04c1f1b2fcf247a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "repeat",
+          "ms": 3607.7999999970198,
+          "gcc": 0,
+          "link": 0,
+          "images": 0,
+          "inputValidationMs": 846.9407,
+          "postValidationMs": 822.1149,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "89385f04da124e5ad03d32d2e4125a2e0740c5c0513e76c3eb479731ee990fcb",
+            "sketch.ino.bin": "115b7b4efb439768aeb0956a47059ab3c6641d380f2eda6fb77198c877b09186",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "df79f721f5258626fd4f9312b257bafdc108180ce7879145d04c1f1b2fcf247a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "29277af74bdb5a5d6095b2edca621d09195036633c38b07a4517dc5717927c8c",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        }
+      ]
+    },
+    {
+      "test": "core-rediscovery-1795434561399.json",
+      "board": "esp32:esp32:esp32s3",
+      "boundary": "desktop compile_sketch IPC to verified export; history restore disabled on both sides",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 31921.20000000298,
+          "coreObjects": 56,
+          "coreRetained": 0,
+          "gcc": 58,
+          "link": 1,
+          "images": 3,
+          "inputValidationMs": 1035.3347,
+          "postValidationMs": 908.7256000000016,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "0065f89bce2e682da233c83989ac63046056f6770e9f6c7cdd2fc6fe643659d5",
+            "sketch.ino.bin": "fef6e57ed85f9f5d5a611d2ea75479955eac99500706f07518762d211133c165",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "2b3d97b0ebd65297ea184fdd56d3bae9cf43f922652f73f04453d2557bf96faf",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "53642b5155e9ffb9593369e2b5aa7b058b9e8e0ff95015806dc9c3d12dce60f4",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "add-library",
+          "ms": 23085.20000000298,
+          "coreObjects": 56,
+          "coreRetained": 56,
+          "gcc": 3,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 937.3364,
+          "postValidationMs": 877.4795999999988,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5ffd5c309c6e3587856903105c44e59bd12d7dcf9d53892ec09f476bfd66712f",
+            "sketch.ino.bin": "feb9ae92841ecd710330790505bba8d980fec82ed9600504125743a011c6c9ff",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "378036cb52f3c8746ec93bfb20497c3c14a099956ee72d0ff5933bf887bc808a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "53642b5155e9ffb9593369e2b5aa7b058b9e8e0ff95015806dc9c3d12dce60f4",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "remove-library",
+          "ms": 29200.70000000298,
+          "coreObjects": 56,
+          "coreRetained": 0,
+          "gcc": 58,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 905.1659,
+          "postValidationMs": 904.9478999999992,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "0065f89bce2e682da233c83989ac63046056f6770e9f6c7cdd2fc6fe643659d5",
+            "sketch.ino.bin": "fef6e57ed85f9f5d5a611d2ea75479955eac99500706f07518762d211133c165",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "2b3d97b0ebd65297ea184fdd56d3bae9cf43f922652f73f04453d2557bf96faf",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "53642b5155e9ffb9593369e2b5aa7b058b9e8e0ff95015806dc9c3d12dce60f4",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "add-library",
+          "ms": 35373.40000000596,
+          "coreObjects": 56,
+          "coreRetained": 0,
+          "gcc": 59,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 1054.466100000005,
+          "postValidationMs": 943.1367000000027,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5ffd5c309c6e3587856903105c44e59bd12d7dcf9d53892ec09f476bfd66712f",
+            "sketch.ino.bin": "feb9ae92841ecd710330790505bba8d980fec82ed9600504125743a011c6c9ff",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "378036cb52f3c8746ec93bfb20497c3c14a099956ee72d0ff5933bf887bc808a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "53642b5155e9ffb9593369e2b5aa7b058b9e8e0ff95015806dc9c3d12dce60f4",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "remove-library",
+          "ms": 19390.59999999404,
+          "coreObjects": 56,
+          "coreRetained": 56,
+          "gcc": 2,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 954.523000000001,
+          "postValidationMs": 879.1589000000095,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "0065f89bce2e682da233c83989ac63046056f6770e9f6c7cdd2fc6fe643659d5",
+            "sketch.ino.bin": "fef6e57ed85f9f5d5a611d2ea75479955eac99500706f07518762d211133c165",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "2b3d97b0ebd65297ea184fdd56d3bae9cf43f922652f73f04453d2557bf96faf",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "53642b5155e9ffb9593369e2b5aa7b058b9e8e0ff95015806dc9c3d12dce60f4",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "damaged-core",
+          "ms": 22878.40000000596,
+          "coreObjects": 56,
+          "coreRetained": 55,
+          "gcc": 4,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 949.4228000000004,
+          "postValidationMs": 905.9792999999772,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "5ffd5c309c6e3587856903105c44e59bd12d7dcf9d53892ec09f476bfd66712f",
+            "sketch.ino.bin": "feb9ae92841ecd710330790505bba8d980fec82ed9600504125743a011c6c9ff",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "378036cb52f3c8746ec93bfb20497c3c14a099956ee72d0ff5933bf887bc808a",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "53642b5155e9ffb9593369e2b5aa7b058b9e8e0ff95015806dc9c3d12dce60f4",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        }
+      ]
+    },
+    {
+      "test": "core-rediscovery-button-1795434789316.json",
+      "board": "esp32:esp32:esp32s3",
+      "boundary": "Editor compile button through progress overlay closed; history restore disabled on both sides",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 42303.5,
+          "coreObjects": 56,
+          "coreRetained": 0,
+          "gcc": 58,
+          "link": 1,
+          "images": 3,
+          "inputValidationMs": 2449.4109,
+          "postValidationMs": 2141.5365999999995,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "ecbbd6f05fe27759baef56d4a579829c32f2ce8aced41f95295a156346e05cbc",
+            "sketch.ino.bin": "349ea9bd74cee0ae74a63be96ba2f131ae5cd11802ae29e3acfdd8eefa9472d3",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "35d95897ef1eeafa333a2585a15bb67692bfdef1af624cd2ec2ccd65ef044357",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "118c849a7abee71ce4b101472d4962e31ba6c03d8c71319e82898aff731001d2",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "add-library",
+          "ms": 25334.30000001192,
+          "coreObjects": 56,
+          "coreRetained": 56,
+          "gcc": 3,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 1096.7001999999993,
+          "postValidationMs": 1461.0693000000028,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "3ac4576c4a1b7bef35dc09a5b08d2ffd1b2fee0558f08b54a910146dca9182bf",
+            "sketch.ino.bin": "b89e0f0c349cfd2e1e9c9f9c0894b6da17f4f29f0997a402ca0137a4c92d55e0",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "93cab2275b254338b158a195ab79318887890afbe19ee5d18ed432d7b3652eea",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "118c849a7abee71ce4b101472d4962e31ba6c03d8c71319e82898aff731001d2",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "remove-library",
+          "ms": 34749.89999999106,
+          "coreObjects": 56,
+          "coreRetained": 0,
+          "gcc": 58,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 1292.7553000000044,
+          "postValidationMs": 2119.898199999996,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "ecbbd6f05fe27759baef56d4a579829c32f2ce8aced41f95295a156346e05cbc",
+            "sketch.ino.bin": "349ea9bd74cee0ae74a63be96ba2f131ae5cd11802ae29e3acfdd8eefa9472d3",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "35d95897ef1eeafa333a2585a15bb67692bfdef1af624cd2ec2ccd65ef044357",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "118c849a7abee71ce4b101472d4962e31ba6c03d8c71319e82898aff731001d2",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "reference",
+          "scenario": "add-library",
+          "ms": 37420.10000000894,
+          "coreObjects": 56,
+          "coreRetained": 0,
+          "gcc": 59,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 2141.5562000000064,
+          "postValidationMs": 1687.940100000007,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "3ac4576c4a1b7bef35dc09a5b08d2ffd1b2fee0558f08b54a910146dca9182bf",
+            "sketch.ino.bin": "b89e0f0c349cfd2e1e9c9f9c0894b6da17f4f29f0997a402ca0137a4c92d55e0",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "93cab2275b254338b158a195ab79318887890afbe19ee5d18ed432d7b3652eea",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "118c849a7abee71ce4b101472d4962e31ba6c03d8c71319e82898aff731001d2",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "remove-library",
+          "ms": 22380.20000000298,
+          "coreObjects": 56,
+          "coreRetained": 56,
+          "gcc": 2,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 1023.0350000000036,
+          "postValidationMs": 2399.5936999999976,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "ecbbd6f05fe27759baef56d4a579829c32f2ce8aced41f95295a156346e05cbc",
+            "sketch.ino.bin": "349ea9bd74cee0ae74a63be96ba2f131ae5cd11802ae29e3acfdd8eefa9472d3",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "35d95897ef1eeafa333a2585a15bb67692bfdef1af624cd2ec2ccd65ef044357",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "118c849a7abee71ce4b101472d4962e31ba6c03d8c71319e82898aff731001d2",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "damaged-core",
+          "ms": 26708.5,
+          "coreObjects": 56,
+          "coreRetained": 55,
+          "gcc": 4,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 1731.7073999999848,
+          "postValidationMs": 2075.5563000000257,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "3ac4576c4a1b7bef35dc09a5b08d2ffd1b2fee0558f08b54a910146dca9182bf",
+            "sketch.ino.bin": "b89e0f0c349cfd2e1e9c9f9c0894b6da17f4f29f0997a402ca0137a4c92d55e0",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "93cab2275b254338b158a195ab79318887890afbe19ee5d18ed432d7b3652eea",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "8931b324355f2c0b0d0a4ed0e1cdd0856be3695cdfa8243571e26e9db1cc6987",
+            "sdkconfig": "a75e4fd055150af11af0781ce8cadaa3a06af44e9734d43027c36397efa4e0e7",
+            "build.options.json": "118c849a7abee71ce4b101472d4962e31ba6c03d8c71319e82898aff731001d2",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        }
+      ]
+    },
+    {
+      "test": "core-rediscovery-matrix-1795435249204.json",
+      "board": "esp32:esp32:esp32c3",
+      "boundary": "Desktop compile_sketch IPC to verified export; history restore disabled on both sides",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 43808.5,
+          "coreObjects": 56,
+          "coreRetained": 0,
+          "gcc": 58,
+          "link": 1,
+          "images": 3,
+          "inputValidationMs": 5500.7348999999995,
+          "postValidationMs": 4065.695800000002,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "188f367bb449229bdf6f1345c56b0bd271ebabc88028790f09f98b59fb401953",
+            "sketch.ino.bin": "606bc332348398cd5f050deedb2d07620afd8d589c68d64f2c11f89be77e3701",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "9fcfbc06d8bbe8164a51a3b8af388bb6d8a29cd96d4a4e5c4bc1ee7ab594b9de",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "9706794232c595534797125bda6d1dff5801d4b82fe7654d53e714d86e765362",
+            "sdkconfig": "7b5f59891d9bb0991aeb1043cfa4c91029912d3a45c366d49883ec8f10e035a0",
+            "build.options.json": "071dc1bcfb46ada3deafbccbe2049207adcca8377059554cf3cd262c9790cd1b",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "add-library",
+          "ms": 31072.09999999404,
+          "coreObjects": 56,
+          "coreRetained": 56,
+          "gcc": 3,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 3659.6414,
+          "postValidationMs": 3625.1322999999975,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "ae8fb1a81cb33dd07f03ea999916154ae55c5dcb1cd2a40f55103695222a5217",
+            "sketch.ino.bin": "a8e4e7886b56df2948e16d0a0d04c13c8a66b2c3053626646637d8c4116911a2",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "f6b76c800367cd8359fcaf135f4fb9fccdadc40a485b25c6e07e58a02c895e11",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "9706794232c595534797125bda6d1dff5801d4b82fe7654d53e714d86e765362",
+            "sdkconfig": "7b5f59891d9bb0991aeb1043cfa4c91029912d3a45c366d49883ec8f10e035a0",
+            "build.options.json": "071dc1bcfb46ada3deafbccbe2049207adcca8377059554cf3cd262c9790cd1b",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "remove-library",
+          "ms": 25406.09999999404,
+          "coreObjects": 56,
+          "coreRetained": 56,
+          "gcc": 2,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 3489.642599999992,
+          "postValidationMs": 3325.274099999995,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "188f367bb449229bdf6f1345c56b0bd271ebabc88028790f09f98b59fb401953",
+            "sketch.ino.bin": "606bc332348398cd5f050deedb2d07620afd8d589c68d64f2c11f89be77e3701",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "9fcfbc06d8bbe8164a51a3b8af388bb6d8a29cd96d4a4e5c4bc1ee7ab594b9de",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "9706794232c595534797125bda6d1dff5801d4b82fe7654d53e714d86e765362",
+            "sdkconfig": "7b5f59891d9bb0991aeb1043cfa4c91029912d3a45c366d49883ec8f10e035a0",
+            "build.options.json": "071dc1bcfb46ada3deafbccbe2049207adcca8377059554cf3cd262c9790cd1b",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "damaged-core",
+          "ms": 28287,
+          "coreObjects": 56,
+          "coreRetained": 55,
+          "gcc": 4,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 3412.330700000006,
+          "postValidationMs": 3225.3608999999997,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "ae8fb1a81cb33dd07f03ea999916154ae55c5dcb1cd2a40f55103695222a5217",
+            "sketch.ino.bin": "a8e4e7886b56df2948e16d0a0d04c13c8a66b2c3053626646637d8c4116911a2",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "f6b76c800367cd8359fcaf135f4fb9fccdadc40a485b25c6e07e58a02c895e11",
+            "flash_args": "babf49c2e483e1807a8d48af287362908802aa0624b3c12bac95a62c6b530e60",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "9706794232c595534797125bda6d1dff5801d4b82fe7654d53e714d86e765362",
+            "sdkconfig": "7b5f59891d9bb0991aeb1043cfa4c91029912d3a45c366d49883ec8f10e035a0",
+            "build.options.json": "071dc1bcfb46ada3deafbccbe2049207adcca8377059554cf3cd262c9790cd1b",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        }
+      ]
+    },
+    {
+      "test": "core-rediscovery-matrix-1795435379458.json",
+      "board": "esp32:esp32:esp32",
+      "boundary": "Desktop compile_sketch IPC to verified export; history restore disabled on both sides",
+      "rows": [
+        {
+          "route": "reference",
+          "scenario": "first",
+          "ms": 41907.19999998808,
+          "coreObjects": 56,
+          "coreRetained": 0,
+          "gcc": 58,
+          "link": 1,
+          "images": 3,
+          "inputValidationMs": 3429.972,
+          "postValidationMs": 2538.752400000005,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "669c9587b03dab3f4379694d7207c567132e026975a25e8355233a5ad91107d9",
+            "sketch.ino.bin": "39940bfd6092f7ada8c059b5c5bab1fcac22d9596ed1f65e1f0512437b6c7f3a",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "e9d080378360b0df128d6dd6955c9f4f0f13b2deee2507e71543a4cde5cb0508",
+            "flash_args": "0d86964d6bd0ea5ab3afd7f469292934b6d20344d54bd8c73e1e863ad58805cb",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "7b606bcb0dc4865b8adea291638f5746abceb0b0f1f727b0b95e27b55f566e16",
+            "sdkconfig": "3c98bd6117f1751e866409c890b747f86df50121c743bf9c5249029222822eac",
+            "build.options.json": "4ec398e7beb6a5c8c00cf59c00bec24aff61d75fb97ea3648253321e59abacee",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "add-library",
+          "ms": 34109.79999999702,
+          "coreObjects": 56,
+          "coreRetained": 56,
+          "gcc": 3,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 2382.200499999999,
+          "postValidationMs": 2498.593200000003,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "af3663873138fbfa24caf20cda339a91eecefb05ac709ad8089e1cbfeed0f6fd",
+            "sketch.ino.bin": "44e1705dff5d3f58388c7db76836252fd5fc5a4265c12e41897a60752364513e",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "e39c33ccb580413da4253cfa685321aea4a602bdc2c3144d1e4eb88e9ef76a6e",
+            "flash_args": "0d86964d6bd0ea5ab3afd7f469292934b6d20344d54bd8c73e1e863ad58805cb",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "7b606bcb0dc4865b8adea291638f5746abceb0b0f1f727b0b95e27b55f566e16",
+            "sdkconfig": "3c98bd6117f1751e866409c890b747f86df50121c743bf9c5249029222822eac",
+            "build.options.json": "4ec398e7beb6a5c8c00cf59c00bec24aff61d75fb97ea3648253321e59abacee",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "remove-library",
+          "ms": 32046,
+          "coreObjects": 56,
+          "coreRetained": 56,
+          "gcc": 2,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 2637.629199999996,
+          "postValidationMs": 2788.8949999999895,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "669c9587b03dab3f4379694d7207c567132e026975a25e8355233a5ad91107d9",
+            "sketch.ino.bin": "39940bfd6092f7ada8c059b5c5bab1fcac22d9596ed1f65e1f0512437b6c7f3a",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "e9d080378360b0df128d6dd6955c9f4f0f13b2deee2507e71543a4cde5cb0508",
+            "flash_args": "0d86964d6bd0ea5ab3afd7f469292934b6d20344d54bd8c73e1e863ad58805cb",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "7b606bcb0dc4865b8adea291638f5746abceb0b0f1f727b0b95e27b55f566e16",
+            "sdkconfig": "3c98bd6117f1751e866409c890b747f86df50121c743bf9c5249029222822eac",
+            "build.options.json": "4ec398e7beb6a5c8c00cf59c00bec24aff61d75fb97ea3648253321e59abacee",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        },
+        {
+          "route": "candidate",
+          "scenario": "damaged-core",
+          "ms": 36193.5,
+          "coreObjects": 56,
+          "coreRetained": 55,
+          "gcc": 4,
+          "link": 1,
+          "images": 2,
+          "inputValidationMs": 2951.436499999996,
+          "postValidationMs": 2622.5310000000172,
+          "fullOutputSHA256": {
+            "sketch.ino.elf": "af3663873138fbfa24caf20cda339a91eecefb05ac709ad8089e1cbfeed0f6fd",
+            "sketch.ino.bin": "44e1705dff5d3f58388c7db76836252fd5fc5a4265c12e41897a60752364513e",
+            "sketch.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+            "sketch.ino.merged.bin": "e39c33ccb580413da4253cfa685321aea4a602bdc2c3144d1e4eb88e9ef76a6e",
+            "flash_args": "0d86964d6bd0ea5ab3afd7f469292934b6d20344d54bd8c73e1e863ad58805cb",
+            "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+            "sketch.ino.bootloader.bin": "7b606bcb0dc4865b8adea291638f5746abceb0b0f1f727b0b95e27b55f566e16",
+            "sdkconfig": "3c98bd6117f1751e866409c890b747f86df50121c743bf9c5249029222822eac",
+            "build.options.json": "4ec398e7beb6a5c8c00cf59c00bec24aff61d75fb97ea3648253321e59abacee",
+            "partitions.csv": "2683fd26b661bc909dcb8a9f05723d36c4000f9396995941a278fda409b753f7"
+          }
+        }
+      ]
+    }
+  ]
+}

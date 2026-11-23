@@ -30,7 +30,7 @@ export class BuildController {
   const timer=setTimeout(()=>{readyReject(new BuildError('WORKER_TIMEOUT','Worker startup timed out'));this.stopWorker(slot).catch(()=>{});},15000);
   try{await ready;}finally{clearTimeout(timer);}
  }
- async submit(msg,{signal,onActivity}={}){
+ async submit(msg,{signal,onActivity,deferCoreOnRediscovery}={}){
   if(this.closed)throw new BuildError('CLOSED','Controller closed');
   const r=validateRequest(msg,this.config),key=checkedWorkspace(r,this.config.paths.workspaceRoot);
   const {request,previous:predecessor}=await this.reserve(key,r.requestId),slot=request.slot;
@@ -42,6 +42,7 @@ export class BuildController {
    await this.startWorker(key,slot);if(request.cancelled||signal?.aborted)throw new BuildError('CANCELLED','Cancelled before execution');
    const cfg=this.config,p=cfg.paths;
    const c={sysroot:p.sysroot,cli:p.cli,ninja:p.ninja,cliConfig:p.cliConfig,userLibraries:p.userLibraries,workspaceRoot:p.workspaceRoot,evidence:path.join(p.evidenceRoot,'runs'),assetRoots:cfg.assetRoots,features:cfg.features,historyBytes:cfg.limits.historyBytes,sourceDateEpoch:cfg.sourceDateEpoch,jobs:cfg.limits.jobs,...r,collections:[],explicitLibraries:r.libraries,buildProperties:[],validation:{mode:cfg.features.assetBackend==='rust'?'rust':'node',...(r.validationReference?{workers:4,bufferBytes:1048576,sizeGrouped:true}:cfg.assetValidation),...(r.assetOpenReference?{openWorkers:0}:{})},receiptOptimize:false};
+   c.deferCoreOnRediscovery=deferCoreOnRediscovery??cfg.features.deferCoreOnRediscovery;
    const timeout=setTimeout(abort,cfg.limits.requestTimeoutMs);let receipt;
    try{receipt=await new Promise((resolve,reject)=>{slot.pending.set(r.requestId,{resolve,reject,onActivity});slot.runner.stdin.write(JSON.stringify({id:r.requestId,c,code:msg.source,options:{mode:r.forceOfficial?'official':'auto',frontendReplay:cfg.features.frontendReplay&&!r.frontendReference,objectRestore:cfg.features.sessionHistory&&!r.historyReference,linkHistory:cfg.features.sessionHistory&&!r.historyReference,noOpFastPath:r.noOpReference!==true}})+'\n',e=>{if(e)reject(e);});});}finally{clearTimeout(timeout);}
    if(request.cancelled||signal?.aborted)throw new BuildError('CANCELLED','Cancelled before result publication');

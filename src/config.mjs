@@ -21,10 +21,11 @@ export function validateConfig(c) {
  if(path.resolve(p.node).toLowerCase()!==path.resolve(process.execPath).toLowerCase())throw Error('Controller must use the configured Node runtime');
  if(Number(process.versions.node.split('.')[0])!==24)throw Error('V9.0 requires the qualified Node 24 runtime');
  if(beneath(p.workspaceRoot,p.evidenceRoot,true)||beneath(p.evidenceRoot,p.workspaceRoot,true))throw Error('Sessions and evidence must be separate');
- const defaults={enabled:false,independentDiscovery:true,frontendReplay:true,sessionHistory:true,assetBackend:'rust',receiptOptimize:false,noOpFastPath:true,sharedHeaderPch:true,batchInputProof:true,nativeImageRecipes:true,coldScheduling:true,avrProperties:true,avrRepeatValidation:true,esp32Properties:true,esp32RepeatValidation:true,directExecution:true};
+ const defaults={enabled:false,independentDiscovery:true,frontendReplay:true,sessionHistory:true,assetBackend:'rust',receiptOptimize:false,noOpFastPath:true,sharedHeaderPch:true,batchInputProof:true,nativeImageRecipes:true,coldScheduling:true,avrProperties:true,avrRepeatValidation:true,esp32Properties:true,esp32RepeatValidation:true,directExecution:true,deferCoreOnRediscovery:true};
  keys(c.features??{},Object.keys(defaults),'feature');const features={...defaults,...c.features};
  for(const k of ['enabled','independentDiscovery','frontendReplay','sessionHistory','receiptOptimize','noOpFastPath','sharedHeaderPch','batchInputProof','nativeImageRecipes','coldScheduling','avrProperties','avrRepeatValidation','esp32Properties','esp32RepeatValidation','directExecution'])if(typeof features[k]!=='boolean')throw Error('Feature must be boolean: '+k);
  if(features.receiptOptimize)throw Error('G3 is not a V9.0 candidate');
+ if(typeof features.deferCoreOnRediscovery!=='boolean')throw Error('Feature must be boolean: deferCoreOnRediscovery');
  if(!['rust','node-reference'].includes(features.assetBackend))throw Error('Unqualified asset backend');
  keys(c.assetValidation??{},['workers','openWorkers','bufferBytes','sizeGrouped'],'assetValidation');
  const assetValidation={workers:4,openWorkers:16,bufferBytes:1048576,sizeGrouped:true,...c.assetValidation};

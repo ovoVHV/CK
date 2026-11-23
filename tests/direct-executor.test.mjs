@@ -36,5 +36,5 @@ test('Job cancellation drains a directly scheduled tool and its child',async()=>
   for(let i=0;i<200&&!fs.existsSync(pids);i++)await new Promise(r=>setTimeout(r,50));assert(fs.existsSync(pids),error);
   const ids=JSON.parse(fs.readFileSync(pids));fs.writeFileSync(cancel,'cancel');await exited;
   assert.equal(JSON.parse(fs.readFileSync(metrics)).activeProcesses,0);for(const id of ids)assert.throws(()=>process.kill(id,0));
- }finally{if(proc.exitCode===null){fs.writeFileSync(cancel,'cancel');await exited;}fs.rmSync(dir,{recursive:true,force:true});}
+ }finally{if(proc.exitCode===null){fs.writeFileSync(cancel,'cancel');await exited;}fs.rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});}
 });

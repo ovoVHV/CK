@@ -53,7 +53,7 @@ function compileEntry(c,p,file,base,out,dirs){
 }
 function preprocArgs(p,file,dirs){const row={...p,'recipe.preproc':p['recipe.cpp.o.pattern'].replace(p['compiler.cpp.flags'],p['compiler.cpp.flags']+' -w -x c++ -E -CC')};return recipe(row,'recipe.preproc',{includes:includeArgs(dirs),source_file:file,object_file:'nul'}).filter(a=>a!=='-MMD');}
 function searchDirectories(args,cwd){const expanded=responses(args.slice(1),cwd).expanded;const dirs=[];let prefix='';for(let i=0;i<expanded.length;i++){const a=expanded[i];if(a==='-iprefix')prefix=expanded[++i];else if(['-I','-isystem','-iquote','-idirafter'].includes(a))dirs.push(expanded[++i]);else if(['-iwithprefix','-iwithprefixbefore'].includes(a))dirs.push(path.join(prefix,expanded[++i]));else if(a.startsWith('-I'))dirs.push(a.slice(2));}return dirs;}
-export async function discover(c,p,index,{onSketchReady}={}){const started=performance.now(),snapshot=sketchSnapshot(c.sketchDir),selected=[],includes=[p['build.core.path'],p['build.variant.path']],queue=[{file:initialSketch(c,snapshot),extra:null},...snapshot.units.map(name=>({file:path.join(c.workspace,'build/sketch',name),extra:null,projectUnit:true}))],seen=new Set(queue.map(x=>x.file)),probes=[],decisions=[],compiledObjects=new Map(),pool=new DiscoveryPool(c.jobs??8);let pos=0,sketchPreprocess=null;const captureFile=path.join(c.workspace,'graph','frontend','discovery-sketch.cpp');fs.mkdirSync(path.dirname(captureFile),{recursive:true});
+export async function discover(c,p,index,{onSketchReady,deferCore=false}={}){const started=performance.now(),snapshot=sketchSnapshot(c.sketchDir),selected=[],includes=[p['build.core.path'],p['build.variant.path']],queue=[{file:initialSketch(c,snapshot),extra:null},...snapshot.units.map(name=>({file:path.join(c.workspace,'build/sketch',name),extra:null,projectUnit:true}))],seen=new Set(queue.map(x=>x.file)),probes=[],decisions=[],compiledObjects=new Map(),pool=new DiscoveryPool(c.jobs??8);let pos=0,sketchPreprocess=null;const captureFile=path.join(c.workspace,'graph','frontend','discovery-sketch.cpp');fs.mkdirSync(path.dirname(captureFile),{recursive:true});
  const result={selected,includes,probes,decisions,indexSha256:index.sha256,timings:{}};
  Object.defineProperty(result,'sketchPreprocess',{enumerable:false,writable:true,value:null});
  Object.defineProperty(result,'compiledObjects',{enumerable:false,writable:true,value:compiledObjects});
@@ -68,7 +68,9 @@ export async function discover(c,p,index,{onSketchReady}={}){const started=perfo
  const sourceHeaders=earlyLibrary?literalSketchIncludes(fs.readFileSync(source(c),'utf8')):[];
  const libraryPch=p['build.arch'].toLowerCase()==='esp32'&&c.features?.sharedHeaderPch!==false&&c.coldLibraryPchReference!==true?new RequestLibraryPch(c,pool,runCompiler,searchDirectories):null;
  if(libraryPch)result.libraryPch=libraryPch.rows;
- if(c.discoveryCompileReference!==true){
+ // Core commands have their own include order and do not select libraries.
+ // On rediscovery leave their outputs for the content-checking scheduler.
+ if(c.discoveryCompileReference!==true&&!deferCore){
   const coreDirs=[p['build.core.path'],p['build.variant.path']],entries=[];
   for(const dir of [...coreDirs].reverse())for(const file of sourceFiles(dir,true))entries.push(compileEntry(c,p,file,dir,path.join(c.workspace,'build/core'),coreDirs));
   const outputs=entries.map(e=>e.arguments[e.arguments.indexOf('-o')+1]);
