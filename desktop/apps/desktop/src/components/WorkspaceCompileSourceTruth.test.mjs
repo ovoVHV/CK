@@ -7,7 +7,7 @@ import ts from 'typescript';
 const source = await readFile(new URL('./Workspace.tsx', import.meta.url), 'utf8');
 
 test('ordinary compile and upload regenerate source from the visible Blockly workspace', () => {
-    const compileStart = source.indexOf('const handleCompileAndUpload = async');
+    const compileStart = source.indexOf('const prepareBuild =');
     const compileEnd = source.indexOf('const uploadLabel =', compileStart);
     assert.ok(compileStart >= 0 && compileEnd > compileStart, 'compile source selection should exist');
 
@@ -19,9 +19,10 @@ test('ordinary compile and upload regenerate source from the visible Blockly wor
 });
 
 test('trusted pin preflight blocks unsafe workspaces before C++ generation', () => {
-    const compileStart = source.indexOf('const handleCompileAndUpload = async');
+    const compileStart = source.indexOf('const prepareBuild =');
     const compileEnd = source.indexOf('const uploadLabel =', compileStart);
-    const selection = source.slice(compileStart, compileEnd);
+    const selection = source.slice(source.indexOf('const checkBuildResources ='), compileEnd);
+    assert.match(selection, /if \(!sourceBuild && !checkBuildResources\(isUpload, options\)\) return false/);
     const preflightAt = selection.indexOf('const nextPinPreflight = analyzePinPreflight');
     const generatorAt = selection.indexOf('compileCode = resolveCompileSource');
 

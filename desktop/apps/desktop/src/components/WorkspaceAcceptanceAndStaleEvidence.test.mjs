@@ -38,16 +38,18 @@ test('switching boards cannot let stale compile or resource evidence select the 
     assert.doesNotMatch(targetSelection, /compileResourceReport|compileDoctorReport|deviceHealthPublication/);
 });
 
+const reports = await readFile(new URL('../services/foreground_build_reports.ts', import.meta.url), 'utf8');
+
 test('an edit during a slow build cannot publish old health or overwrite its resource baseline', () => {
     assert.match(source, /sha256Hex/);
     assert.match(source, /const computeCodeFingerprint = useCallback\(\(code: string\): string => \{[\s\S]{0,350}const value = sha256Hex\(source\)/);
     assert.match(source, /workspaceFingerprintAtRunStart = workspaceEvidenceFingerprint\(\)/);
     assert.match(source, /workspaceEvidenceFingerprint\(\) === workspaceFingerprintAtRunStart/);
-    assert.match(source, /编译期间工程已编辑；本次日志与产物保留，但不会覆盖当前工程的体检、资源或错误定位证据/);
+    assert.match(reports, /编译期间工程已编辑；本次日志与产物保留，但不会覆盖当前工程的体检、资源或错误定位证据/);
 
-    const resourcesStart = source.indexOf('const publishCompileResources = (');
-    const resourcesEnd = source.indexOf('const publishCompileIssues = (', resourcesStart);
-    const resources = source.slice(resourcesStart, resourcesEnd);
+    const resourcesStart = reports.indexOf('const publishCompileResources = (');
+    const resourcesEnd = reports.indexOf('const publishCompileIssues = (', resourcesStart);
+    const resources = reports.slice(resourcesStart, resourcesEnd);
     const identityGate = resources.indexOf('isSameCompileResourceTarget(resourceTargetIdentity, currentTargetIdentity)');
     const save = resources.indexOf('saveCompileResourceSnapshot(resourceTargetIdentity.projectPath, nextSnapshot)');
     assert.ok(identityGate >= 0 && save > identityGate, 'identity gate must run before baseline persistence');
@@ -62,19 +64,19 @@ test('acceptance compile and resource evidence reuse the same frozen foreground 
         'workspaceSha256', 'generatedCodeSha256',
     ]) assert.match(evidence, new RegExp(`${field}:`));
 
-    const doctorStart = source.indexOf('const publishCompileDoctor = (');
-    const doctorEnd = source.indexOf('const publishCompileResources = (', doctorStart);
-    assert.match(source.slice(doctorStart, doctorEnd), /bindProjectBuildEvidence\(diagnosed, buildEvidence, diagnosed\.recordedAt\)/);
+    const doctorStart = reports.indexOf('const publishCompileDoctor = (');
+    const doctorEnd = reports.indexOf('const publishCompileResources = (', doctorStart);
+    assert.match(reports.slice(doctorStart, doctorEnd), /bindProjectBuildEvidence\(diagnosed, buildEvidence, diagnosed\.recordedAt\)/);
 
-    const resourcesStart = source.indexOf('const publishCompileResources = (');
-    const resourcesEnd = source.indexOf('const publishCompileIssues = (', resourcesStart);
-    assert.match(source.slice(resourcesStart, resourcesEnd), /bindProjectBuildEvidence\(createCompileResourceReport\([\s\S]*\), buildEvidence, capturedAt\)/);
+    const resourcesStart = reports.indexOf('const publishCompileResources = (');
+    const resourcesEnd = reports.indexOf('const publishCompileIssues = (', resourcesStart);
+    assert.match(reports.slice(resourcesStart, resourcesEnd), /bindProjectBuildEvidence\(createCompileResourceReport\([\s\S]*\), buildEvidence, capturedAt\)/);
     assert.doesNotMatch(source, /acceptanceEvidenceIdentityRef|projectBuildEvidenceRef/);
 });
 
 test('instrumented and code-override runs never replace ordinary project health evidence', () => {
     const guardStart = source.indexOf('const runEvidenceIsCurrent = () =>');
-    const guardEnd = source.indexOf('let staleEvidenceNoticeWritten', guardStart);
+    const guardEnd = source.indexOf('// monitorPortRef reflects', guardStart);
     const guard = source.slice(guardStart, guardEnd);
     assert.match(guard, /options\.codeOverride === undefined/);
     assert.match(guard, /!isInstrumentedUpload/);

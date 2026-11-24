@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
 const source = await readFile(new URL('./Workspace.tsx', import.meta.url), 'utf8');
-const buildStart = source.indexOf('const handleCompileAndUpload = async');
+const buildStart = source.indexOf('const prepareBuild =');
 const buildEnd = source.indexOf('const handleCompileIssueAction', buildStart);
 assert.ok(buildStart >= 0 && buildEnd > buildStart, 'foreground build function must remain discoverable');
 const build = source.slice(buildStart, buildEnd);
@@ -35,8 +35,8 @@ test('only successful compile and upload satisfy the exact pending request', () 
 });
 
 test('failure and cancellation paths preserve pending newer work', () => {
-    const catchStart = build.indexOf('} catch (e: any) {');
-    const finallyStart = build.indexOf('} finally {', catchStart);
+    const catchStart = build.indexOf('const reportBuildFailure =');
+    const finallyStart = build.indexOf('const unlockBuild =', catchStart);
     assert.ok(catchStart >= 0 && finallyStart > catchStart, 'catch/finally boundary must remain discoverable');
     assert.doesNotMatch(build.slice(catchStart, finallyStart), /cancelSatisfied|cancelPending/);
 });

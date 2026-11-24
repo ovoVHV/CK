@@ -15,8 +15,9 @@ test('compile diagnostics use an immutable exact-code source map session', () =>
     assert.match(source, /sha256Hex\(generatedCodeRef\.current \|\| ''\) !== session\.sourceMap\.codeSha256/);
     assert.match(source, /code: session\.code/);
     assert.match(source, /const compileSourceMapJson = sourceBuild \? null : JSON\.stringify\(frozenCompileSourceMap\)/);
-    const nativeEvidenceUses = source.match(/sourceMapJson: compileSourceMapJson/g) || [];
-    assert.equal(nativeEvidenceUses.length, 2, 'compile and upload must persist the same verified map');
+    assert.match(source, /createNativeBuildRequest\(buildEvidence, compileCode, nativeBuildProjectId, buildProjectPath, compileSourceMapJson\)/);
+    assert.match(source, /compileProject\(input\.request\)/);
+    assert.match(source, /uploadProject\(input\.request,/);
 });
 
 test('library and arbitrary cpp diagnostics cannot be guessed as sketch blocks', () => {
@@ -29,7 +30,8 @@ test('library and arbitrary cpp diagnostics cannot be guessed as sketch blocks',
     assert.match(source, /diagnosticFile: location\.file/);
     assert.match(source, /setCompileIssues\(issues => reconcileCompileIssueBlocks\(issues\)\)/,
         'a late alias or revocation must reconcile cards independently of event ordering');
-    assert.match(source, /const issues = reconcileCompileIssueBlocks\(analyzedIssues\)/,
+    const reports = readFileSync(new URL('../services/foreground_build_reports.ts', import.meta.url), 'utf8');
+    assert.match(reports, /const issues = reconcileCompileIssueBlocks\(analyzedIssues\)/,
         'cards created after the alias must use the same reconciliation path');
 });
 

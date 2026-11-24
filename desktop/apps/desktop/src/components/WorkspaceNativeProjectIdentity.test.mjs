@@ -5,5 +5,7 @@ test('compile and upload freeze project ownership separately from changing sourc
  assert(at>0&&freeze>at);const expression=source.slice(at,source.indexOf(';',at));
  for(const key of ['nativeBuildProjectRef.current','currentPathRef.current','reloadTriggerRef.current'])assert(expression.includes(key));
  assert(!expression.includes('codeFingerprint'));assert(!expression.includes('workspaceFingerprint'));
- for(const name of ['compile_sketch','upload_sketch']){const start=source.indexOf(`invoke('${name}'`),end=source.indexOf('}) as string',start),call=source.slice(start,end);assert(call.includes('projectId: nativeBuildProjectId'));assert(call.includes('workspaceFingerprint: buildEvidence.workspaceFingerprint'));}
+ assert.match(source,/createNativeBuildRequest\(buildEvidence, compileCode, nativeBuildProjectId, buildProjectPath,/);
+ assert.match(source,/compileProject\(input\.request\)/);
+ assert.match(source,/uploadProject\(input\.request,/);
 });

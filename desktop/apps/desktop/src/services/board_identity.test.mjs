@@ -117,8 +117,8 @@ test('selection, persistence, libraries and pins carry package identity separate
     assert.match(workspaceSource, /data\?\.board_package_id/);
     assert.match(workspaceSource, /setActiveBoard\(targetBoard, targetBoardPackageId\)/);
     assert.match(workspaceSource, /boardPackageId:\s*activeBoardPackageId/);
-    assert.match(workspaceSource, /invoke\('compile_sketch',[\s\S]{0,260}?boardPackageId:\s*activeBoardPackageId/);
-    assert.match(workspaceSource, /invoke\('upload_sketch',[\s\S]{0,320}?boardPackageId:\s*activeBoardPackageId/);
+    assert.match(workspaceSource, /compileProject\(input\.request\)/);
+    assert.match(workspaceSource, /uploadProject\(input\.request,/);
     assert.match(workspaceSource, /if \(!activeBoardPackageBuildGate\.canBuild\)/);
     assert.match(workspaceSource, /\[板卡包门禁\] 已阻止/);
     assert.match(

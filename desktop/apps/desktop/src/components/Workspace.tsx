@@ -1,3 +1,7 @@
+import { restoreUploadMonitor } from '../services/foreground_upload_serial';
+import { runForegroundBuild } from '../services/foreground_build';
+import { createNativeBuildRequest, compileProject, uploadProject } from '../services/foreground_build_native';
+import { createBuildReports } from '../services/foreground_build_reports';
 import { captureProjectBuildTarget, readProjectBuildTarget, projectBuildTargetDifference, targetFromRecordedFqbn, sourceWithBuildTarget, type ProjectBuildTarget, type ProjectBuildEnvironment } from '../services/project_build_target';
 import { BuildActivitySpinner } from './BuildActivitySpinner';
 import { clearCompileErrors, markCompileError, revealCompileError } from '../services/compile_block_feedback';
@@ -172,17 +176,12 @@ import {
     type TrustedCompileSketchAliasV1,
 } from '../services/compile_source_map';
 import {
-    diagnoseCompile,
-    compareCompileEnvironment,
     loadCompileEnvironmentSnapshot,
-    saveCompileEnvironmentSnapshot,
-    type CompileDiagnosticsPayload,
     type CompileDoctorReport,
     type CompileEnvironmentSnapshot,
     type CurrentCompileEnvironment,
 } from '../services/compile_doctor';
 import {
-    analyzeCompileIssues,
     type CompileIssueAction,
     type CompileIssueCard,
 } from '../services/compile_issue_cards';
@@ -220,29 +219,18 @@ import {
     type DiagnosticBundleExportData,
 } from '../services/diagnostic_bundle';
 import {
-    bindProjectBuildEvidence,
     createProjectUploadResult,
     createProjectAcceptanceReport,
     type ProjectUploadResult,
     type ProjectAcceptanceNotes,
 } from '../services/project_acceptance_report';
 import { projectHealthCapabilities } from '../services/project_health_capabilities';
-import { parseSuccessfulUploadResult } from '../services/upload_result';
 import {
     compileResourceSnapshotToReport,
-    createCompileResourceReport,
-    createCompileResourceSnapshot,
     loadCompileResourceSnapshot,
-    isSameCompileResourceTarget,
-    normalizeLinkerMapResourceSummary,
-    parseLinkerMapResourceSummary,
-    parseCompileResourceUsage,
-    parseResolvedCompileFqbn,
-    saveCompileResourceSnapshot,
     type CompileResourceReport,
     type CompileResourceSnapshot,
     type CompileResourceTargetIdentity,
-    type LinkerMapResourceSummary,
 } from '../services/compile_resources';
 import {
     applyBuildLogLine,
@@ -2781,47 +2769,24 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         try {
             if (runId) {
                 const report = await invoke<string>('cancel_foreground_build', { runId });
+                if (foregroundBuildRunIdRef.current !== runId) return;
                 appendCompileLog(`[信息] ${report}\n`);
             } else {
                 await invoke('cancel_upload');
             }
         } catch (error) {
+            if (foregroundBuildRunIdRef.current !== runId) return;
             if (runId) cancelRequestedBuildRunIdsRef.current.delete(runId);
             appendCompileLog(`[错误] 无法确认后台任务已经停止：${String(error)}\n`);
             showToast('取消失败，仍在等待后台任务安全退出', 'error');
             buildCancelInFlightRef.current = false;
             return;
         }
-        pendingForceRebuildRef.current = false;
-        appendCompileLog('[信息] 编译或上传已安全取消；后台进程已退出。\n');
-        serialMonitorRef.current?.write('\r\n[系统] 操作已被用户安全取消。\r\n');
-        showToast('编译或上传已安全取消', 'info');
+        // The operation publishes the final outcome after restoring its serial lease.
     };
     cancelDebugBuildRef.current = handleCancel;
 
-    const handleCompileAndUpload = async (
-        isUpload: boolean,
-        options: CompileRunOptions = {},
-    ): Promise<boolean> => {
-        if (isCompilingRef.current || projectLoadingRef.current) return false;
-        if(options.aiUpload && (memberFiles.current?.pending() || boardOptionsStatus==='loading'))return false;
-        if (memberFiles.current?.pending() && !await memberFiles.current.saveAll()) {
-            showToast('附带源码尚未保存，请先处理文件编辑器中的提示', 'error'); return false;
-        }
-        if (isCompilingRef.current || projectLoadingRef.current) return false;
-        if (workspaceRef.current && getWorkspaceSource(workspaceRef.current)) {
-            try { syncWorkspaceSource(workspaceRef.current, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspaceRef.current))); }
-            catch (error) { showToast(`源码同步失败：${String(error)}`, 'error'); return false; }
-        }
-        const sourceBuild = workspaceSourceRef.current?.mode === 'source';
-        if (sourceBuild && workspaceSourceRef.current?.pendingGenerated !== undefined) {
-            showToast('积木与手写源码有冲突，请先在源码上方处理同步。', 'info');
-            return false;
-        }
-        if (sourceBuild && (options.uploadMode === 'debug' || options.uploadMode === 'trace')) {
-            showToast('积木断点与运行轨迹仅用于积木模式，请先切回积木', 'info');
-            return false;
-        }
+    const checkBuildTarget = (isUpload: boolean, options: CompileRunOptions, sourceBuild: boolean) => {
         if (unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure) {
             showToast('工程处于只读保护模式，已阻止编译和上传', 'error');
             appendCompileLog(
@@ -2937,10 +2902,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             return false;
         }
 
-        // Pin safety must run before Blockly code generation. In particular,
-        // the custom-board "undeclared pin" sentinel must never be allowed to
-        // enter generated C++ when the active package has no trusted catalog.
-        if (!sourceBuild) {
+        return true;
+    };
+
+    const checkBuildResources = (isUpload: boolean, options: CompileRunOptions) => {
         const pinBoardCatalog = createPinBoardCatalog(
             availableBoards,
             activeBoardPackage,
@@ -3016,7 +2981,26 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         } finally {
             setIsResourcePreflightRunning(false);
         }
+        return true;
+    };
+
+    const prepareBuild = (isUpload: boolean, options: CompileRunOptions) => {
+        if (isCompilingRef.current || projectLoadingRef.current) return false;
+        if (workspaceRef.current && getWorkspaceSource(workspaceRef.current)) {
+            try { syncWorkspaceSource(workspaceRef.current, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspaceRef.current))); }
+            catch (error) { showToast(`源码同步失败：${String(error)}`, 'error'); return false; }
         }
+        const sourceBuild = workspaceSourceRef.current?.mode === 'source';
+        if (sourceBuild && workspaceSourceRef.current?.pendingGenerated !== undefined) {
+            showToast('积木与手写源码有冲突，请先在源码上方处理同步。', 'info');
+            return false;
+        }
+        if (sourceBuild && (options.uploadMode === 'debug' || options.uploadMode === 'trace')) {
+            showToast('积木断点与运行轨迹仅用于积木模式，请先切回积木', 'info');
+            return false;
+        }
+        if (!checkBuildTarget(isUpload, options, sourceBuild)) return false;
+        if (!sourceBuild && !checkBuildResources(isUpload, options)) return false;
 
         const isForceRebuild = pendingForceRebuildRef.current;
         pendingForceRebuildRef.current = false;
@@ -3142,6 +3126,24 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (compileSourceMapSessionRef.current?.sourceMap === frozenCompileSourceMap) {
             compileSourceMapSessionRef.current.runId = buildRunId;
         }
+        // Freeze the checkpoint payload at the same instant as the compiler
+        // input. Ordinary compilation persists it off the critical path;
+        // upload still waits for this exact snapshot before reaching backend
+        // compilation or flashing.
+        const checkpointInput = createWorkspaceCheckpointInput(
+            isUpload ? 'before_upload' : 'before_compile',
+        );
+        const request = createNativeBuildRequest(buildEvidence, compileCode, nativeBuildProjectId, buildProjectPath, compileSourceMapJson);
+        return { isUpload, options, sourceBuild, isForceRebuild, compileCode, compileSourceMapJson, buildEvidence,
+            request, compileEnvironment, workspaceEvidenceFingerprint, workspaceFingerprintAtRunStart,
+            foregroundWarmupRequest, uploadLabel, isInstrumentedUpload, lastWorkingVersionCapture, lastWorkingCaptureWarning, checkpointInput };
+    };
+    type PreparedBuild = Exclude<ReturnType<typeof prepareBuild>, false>;
+
+    const beginBuild = (input: PreparedBuild) => {
+        const {isUpload, options, buildEvidence, compileEnvironment, isInstrumentedUpload, workspaceEvidenceFingerprint,
+            workspaceFingerprintAtRunStart, lastWorkingCaptureWarning, uploadLabel, checkpointInput, isForceRebuild} = input;
+        const buildRunId = buildEvidence.runId;
         foregroundBuildRunIdRef.current = buildRunId;
         isCompilingRef.current = true;
         compileStreamSeenRef.current = false;
@@ -3167,20 +3169,6 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             && effectiveCompileFqbnRef.current === resourceTargetIdentity.requestedFqbn
             && workspaceEvidenceFingerprint() === workspaceFingerprintAtRunStart
         );
-        let staleEvidenceNoticeWritten = false;
-        const noteStaleEvidence = () => {
-            if (staleEvidenceNoticeWritten) return;
-            staleEvidenceNoticeWritten = true;
-            appendCompileLog('[信息] 编译期间工程已编辑；本次日志与产物保留，但不会覆盖当前工程的体检、资源或错误定位证据。\n');
-        };
-        // Freeze the checkpoint payload at the same instant as the compiler
-        // input. Ordinary compilation persists it off the critical path;
-        // upload still waits for this exact snapshot before reaching backend
-        // compilation or flashing.
-        const checkpointInput = createWorkspaceCheckpointInput(
-            isUpload ? 'before_upload' : 'before_compile',
-        );
-
         // monitorPortRef reflects the confirmed backend endpoint and avoids
         // relying solely on a possibly one-render-old React boolean.
         const serialMonitorWasOpen = isSerialMonitorOpen || monitorPortRef.current !== null;
@@ -3192,9 +3180,6 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         );
         const restorePort = monitorPortRef.current || activePort;
         const restoreBaud = options.serialBaudRate || monitorBaudRateRef.current || baudRateRef.current;
-        let operationResultCode: BuildOperationResultCode = 'pending';
-        let uploadSerialSettingsSeq: number | undefined;
-
         setConsoleOpen(true);
         setConsoleTab('compile');
         const initialLog = `${lastWorkingCaptureWarning}正在初始化编译环境...\n`;
@@ -3245,540 +3230,360 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             console.warn('[ProjectCheckpoints] Failed to create automatic checkpoint', error);
             if (isCurrentSession()) appendCompileLog(warning);
         };
-        if (isUpload) {
-            const checkpointCompletion = scheduleBuildCheckpoint({
-                mode: 'upload',
-                persist: persistFrozenCheckpoint,
-                onFailure: reportCheckpointFailure,
-            });
-            // Upload is intentionally stricter: no backend command can begin
-            // until the safety snapshot has either persisted or emitted its
-            // explicit warning.
-            await checkpointCompletion;
-            if (isCurrentSession()) {
-                setBuildProgress(previous => ({
-                    ...previous,
-                    message: buildT('status.preparingFirmware', { firmware: uploadLabel }),
-                }));
-            }
-        }
-
-        if (!isCurrentSession()) return false;
-        if (cancelRequestedBuildRunIdsRef.current.has(buildRunId)) {
-            cancelRequestedBuildRunIdsRef.current.delete(buildRunId);
-            if (foregroundBuildRunIdRef.current === buildRunId) {
-                foregroundBuildRunIdRef.current = null;
-            }
-            buildCancelInFlightRef.current = false;
-            isCompilingRef.current = false;
-            setForegroundBuildEvidence(null);
-            setIsCompiling(false);
-            setBuildProgress(createIdleBuildProgress());
-            return false;
-        }
-
-        const startTime = performance.now();
-
-        // Clear previous compile-error warnings on blocks
-        if (workspaceRef.current) {
-            clearCompileErrors(workspaceRef.current);
-        }
-
-        const appendReturnedLogIfNeeded = (rawLog: string) => {
-            const cleaned = typeof rawLog === 'string' ? rawLog.trim() : '';
-            if (!cleaned) return;
-            if (compileStreamSeenRef.current && compileLogRef.current.includes(cleaned)) return;
-            appendCompileLog((compileLogRef.current.endsWith('\n') ? '' : '\n') + cleaned + '\n');
-        };
-
-        const publishCompileDoctor = (
-            success: boolean,
-            diagnostics: CompileDiagnosticsPayload | null,
-            durationMs: number,
-            extraLog = '',
-        ): CompileDoctorReport | null => {
-            if (!runEvidenceIsCurrent()) {
-                noteStaleEvidence();
-                return null;
-            }
-            const resolvedFqbn = String(diagnostics?.fqbn || '').trim()
-                || parseResolvedCompileFqbn(`${compileLogRef.current}\n${extraLog}`);
-            const resolvedEnvironment = resolvedFqbn
-                ? { ...compileEnvironment, fqbn: resolvedFqbn }
-                : compileEnvironment;
-            const diagnosed = diagnoseCompile({
-                success,
-                log: `${compileLogRef.current}\n${extraLog}`,
-                durationMs,
-                diagnostics,
-                currentEnvironment: resolvedEnvironment,
-                previousSnapshot: compileEnvironmentSnapshot,
-            });
-            const report = bindProjectBuildEvidence(diagnosed, buildEvidence, diagnosed.recordedAt);
-            setCompileDoctorReport(report);
-            if (success) {
-                const nextSnapshot = saveCompileEnvironmentSnapshot(
-                    currentPath,
-                    resolvedEnvironment,
-                    diagnostics,
-                );
-                if (nextSnapshot) setCompileEnvironmentSnapshot(nextSnapshot);
-            }
-            return report;
-        };
-
-        const publishCompileResources = (
-            extraLog = '',
-            includeUploaderMemory = false,
-            resolvedFqbnOverride = '',
-            linkerMapSummaryOverride: LinkerMapResourceSummary | null = null,
-        ) => {
-            if (!runEvidenceIsCurrent()) {
-                noteStaleEvidence();
-                return;
-            }
-            const combinedLog = `${compileLogRef.current}\n${extraLog}`;
-            const capturedAt = new Date().toISOString();
-            const usage = parseCompileResourceUsage(
-                combinedLog,
-                { includeUploaderMemory, uploaderMeasuredAt: capturedAt },
-            );
-            if (!usage) {
-                setCompileResourceReport(null);
-                return;
-            }
-
-            const resolvedFqbn = String(resolvedFqbnOverride || '').trim()
-                || parseResolvedCompileFqbn(combinedLog)
-                || compileEnvironment.fqbn;
-            const linkerMapSummary = linkerMapSummaryOverride
-                || parseLinkerMapResourceSummary(combinedLog, resolvedFqbn);
-
-            const currentTargetIdentity: CompileResourceTargetIdentity = {
+        const reports = createBuildReports({
+            buildEvidence, compileEnvironment, compileEnvironmentSnapshot, resourceTargetIdentity, runEvidenceIsCurrent,
+            currentTarget: () => ({
                 projectPath: currentPathRef.current,
                 requestedFqbn: effectiveCompileFqbnRef.current,
                 sessionId: compileSessionRef.current,
                 codeFingerprint: computeCodeFingerprint(workspaceSourceRef.current?.mode === 'source' ? workspaceSourceRef.current.code : generatedCodeRef.current || ''),
                 runId: foregroundBuildRunIdRef.current || '',
-            };
-            if (!isSameCompileResourceTarget(resourceTargetIdentity, currentTargetIdentity)) {
-                noteStaleEvidence();
-                return;
+            }),
+            readLog: () => compileLogRef.current, appendCompileLog, setCompileDoctorReport, setCompileEnvironmentSnapshot,
+            setCompileResourceReport, publishSnapshot: snapshot => {
+                compileResourceSnapshotRef.current = snapshot;
+                setCompileResourceSnapshot(snapshot);
+            }, reconcileCompileIssueBlocks, setCompileIssues,
+        });
+        const checkpoint = (mode: 'compile' | 'upload') => scheduleBuildCheckpoint({mode,
+            persist: persistFrozenCheckpoint, onFailure: reportCheckpointFailure});
+        return {input, buildRunId, isCurrentSession, runEvidenceIsCurrent, reports, timer, checkpoint,
+            serialMonitorWasOpen, shouldRestoreSerialMonitor, restorePort, restoreBaud,
+            uploadSerialSettingsSeq: undefined as number | undefined, startTime: performance.now()};
+    };
+    type BuildSession = ReturnType<typeof beginBuild>;
+
+    const appendReturnedLogIfNeeded = (rawLog: string) => {
+        const cleaned = typeof rawLog === 'string' ? rawLog.trim() : '';
+        if (!cleaned) return;
+        if (compileStreamSeenRef.current && compileLogRef.current.includes(cleaned)) return;
+        appendCompileLog((compileLogRef.current.endsWith('\n') ? '' : '\n') + cleaned + '\n');
+    };
+
+    const releaseSerialForUpload = async (run: BuildSession) => {
+        const {serialMonitorWasOpen, input: {uploadLabel}} = run;
+        serialSettingsSeqRef.current += 1;
+        run.uploadSerialSettingsSeq = serialSettingsSeqRef.current;
+        clearSerialReconnectTimer();
+        if (serialMonitorWasOpen) {
+            appendCompileLog(`\n${uploadLabel}上传前自动关闭串口监视器...\n`);
+            try {
+                const serialCloseStarted = performance.now();
+                await invoke('close_serial_monitor');
+                appendCompileLog(
+                    `[Timing] 串口监视器已同步关闭并释放端口：${Math.round(performance.now() - serialCloseStarted)}ms\n`,
+                );
+            } catch (e) {
+                console.warn('Failed to close serial monitor', e);
             }
+            if (!run.isCurrentSession() || serialSettingsSeqRef.current !== run.uploadSerialSettingsSeq) return;
+            monitorPortRef.current = null;
+            monitorBaudRateRef.current = null;
+            setMonitorPort(null);
+            setMonitorBaudRate(null);
+            setIsSerialMonitorOpen(false);
+        }
+    };
 
-            const persistedSnapshot = loadCompileResourceSnapshot(
-                resourceTargetIdentity.projectPath,
-                resourceTargetIdentity.requestedFqbn,
-            );
-            // The live ref may already belong to another project after a
-            // navigation. Only the captured project/config storage key is a
-            // safe comparison baseline for this async result.
-            const previousSnapshot = persistedSnapshot?.fqbn === resolvedFqbn
-                ? persistedSnapshot
-                : null;
-            const report = bindProjectBuildEvidence(createCompileResourceReport(
-                usage,
-                previousSnapshot,
-                capturedAt,
-                resolvedFqbn,
-                linkerMapSummary,
-            ), buildEvidence, capturedAt);
-            const nextSnapshot = createCompileResourceSnapshot(
-                resolvedFqbn,
-                { ...usage, uploaderMemory: report.uploaderMemory },
-                capturedAt,
-                resourceTargetIdentity.requestedFqbn,
-                linkerMapSummary,
-            );
-            saveCompileResourceSnapshot(resourceTargetIdentity.projectPath, nextSnapshot);
-
-            compileResourceSnapshotRef.current = nextSnapshot;
-            setCompileResourceSnapshot(nextSnapshot);
-            setCompileResourceReport(report);
-        };
-
-        const publishCompileIssues = (
-            operation: 'compile' | 'upload',
-            extraLog = '',
-            environmentChanges = compareCompileEnvironment(
-                compileEnvironmentSnapshot,
-                compileEnvironment,
-            ),
-        ) => {
-            if (!runEvidenceIsCurrent()) {
-                noteStaleEvidence();
-                return [];
-            }
-            const analyzedIssues = analyzeCompileIssues({
-                log: `${compileLogRef.current}\n${extraLog}`,
-                operation,
-                fqbn: compileEnvironment.fqbn,
-                activePort,
-                environmentChanges,
-            });
-            const issues = reconcileCompileIssueBlocks(analyzedIssues);
-            setCompileIssues(issues);
-            return issues;
-        };
-
+    const restoreBuildSerial = async (run: BuildSession) => {
+        const {isCurrentSession, shouldRestoreSerialMonitor, restorePort, restoreBaud, uploadSerialSettingsSeq, input: {options, uploadLabel}} = run;
+        if (!shouldRestoreSerialMonitor || !restorePort || uploadSerialSettingsSeq === undefined) return;
+        const ownsPort = () => isCurrentSession() && serialSettingsSeqRef.current === uploadSerialSettingsSeq;
+        if (!ownsPort()) return;
+        if (options.serialBaudRate) {
+            baudRateRef.current = options.serialBaudRate;
+            setBaudRate(options.serialBaudRate);
+        }
+        const started = performance.now();
         try {
-            // @ts-ignore
-            const { invoke } = await import('@tauri-apps/api/core');
-
-            if (isUpload) {
-                serialSettingsSeqRef.current += 1;
-                uploadSerialSettingsSeq = serialSettingsSeqRef.current;
-                clearSerialReconnectTimer();
-                if (serialMonitorWasOpen) {
-                    appendCompileLog(`\n${uploadLabel}上传前自动关闭串口监视器...\n`);
-                    try {
-                        const serialCloseStarted = performance.now();
-                        await invoke('close_serial_monitor');
-                        appendCompileLog(
-                            `[Timing] 串口监视器已同步关闭并释放端口：${Math.round(performance.now() - serialCloseStarted)}ms\n`,
-                        );
-                    } catch (e) {
-                        console.warn('Failed to close serial monitor', e);
-                    }
-                    monitorPortRef.current = null;
-                    monitorBaudRateRef.current = null;
-                    setMonitorPort(null);
-                    setMonitorBaudRate(null);
-                    setIsSerialMonitorOpen(false);
-                }
-
-                if (cancelRequestedBuildRunIdsRef.current.has(buildRunId)) {
-                    throw new Error('CK_FRONTEND_BUILD_CANCELED');
-                }
-
-                if(options.aiUpload){options.aiUpload.check();if(!runEvidenceIsCurrent()||memberFiles.current?.pending())throw Error('工程已变化，未启动 AI 上传');}
-                const uploadRaw = await invoke('upload_sketch', {
-                    code: compileCode,
-                    fqbn: buildEvidence.fqbn,
-                    boardPackageId: activeBoardPackageId,
-                    runId: buildEvidence.runId,
-                    port: buildEvidence.port,
-                    workspaceFingerprint: buildEvidence.workspaceFingerprint,
-                    projectId: nativeBuildProjectId,
-                    projectPath: buildProjectPath,
-                    sourceMapJson: compileSourceMapJson,
-                    probeMemory: !isInstrumentedUpload,
-                    lastWorkingVersion: lastWorkingVersionCapture,
-                    structuredResult: true,
-                    expectedMemberIdentity:options.aiUpload?.members,
-                }) as string;
-
-                if (!isCurrentSession()) return false;
-
-                const uploadResult = parseSuccessfulUploadResult(uploadRaw, buildEvidence);
-                const log = uploadResult.log;
-                const evidenceLog = `${uploadResult.compileLog}\n${log}`;
-
-                const duration = ((performance.now() - startTime) / 1000).toFixed(1);
-                appendReturnedLogIfNeeded(log);
-
-                // The native command returns Err for every failed/cancelled
-                // transport. A resolved IPC Result is therefore authoritative
-                // success even when its diagnostic log mentions a recovered
-                // failed attempt or an optional probe failure.
-                operationResultCode = completedBuildOperationResult('upload');
-                if (!isInstrumentedUpload) setDebugRecoveryNotice('');
-                showToast(buildT('result.uploadSuccessToast', { firmware: uploadLabel, duration }), 'success');
-                appendCompileLog(
-                    `\n${buildT('result.uploadSuccessLog', { firmware: uploadLabel, duration })}\n`,
-                    operationResultCode,
-                );
-                if (isInstrumentedUpload) {
-                    appendCompileLog('[信息] 调试/轨迹运行时的资源开销不写入项目 Flash/RAM 基线。\n');
-                } else {
-                    publishCompileDoctor(true, null, performance.now() - startTime, evidenceLog);
-                    publishCompileResources(evidenceLog, true, uploadResult.fqbn);
-                    if (runEvidenceIsCurrent()) {
-                        setProjectUploadResult(createProjectUploadResult(
-                            `${compileLogRef.current}\n${log}`, buildEvidence,
-                            new Date().toISOString(), uploadResult.baselineFailure,
-                        ));
-                    }
-                }
-            } else {
-                appendCompileLog(`\n[信息] 目标 FQBN: ${effectiveCompileFqbn}\n`);
-
-                if (cancelRequestedBuildRunIdsRef.current.has(buildRunId)) {
-                    throw new Error('CK_FRONTEND_BUILD_CANCELED');
-                }
-
-                productionResourceAnalysisRef.current = null;
-                compilerResourcePresentationRef.current = null;
-                compilerObservationAttemptRef.current = null;
-                setHardwareResourceInspector(null);
-                setResourcePreflightReport(report => report ? { ...report, implementationCheck: 'needs-compile' } : report);
-                const resourceWorkspace = workspaceRef.current;
-                let resourceWorkspaceBefore: string | null = null;
-                try {
-                    if (resourceWorkspace && !options.codeOverride && !sourceBuild) resourceWorkspaceBefore = JSON.stringify(Blockly.serialization.workspaces.save(resourceWorkspace));
-                } catch { /* Optional analysis must not block compilation. */ }
-                const resultJson = await invoke('compile_sketch', {
-                    code: compileCode,
-                    fqbn: buildEvidence.fqbn,
-                    boardPackageId: activeBoardPackageId,
-                    runId: buildEvidence.runId,
-                    workspaceFingerprint: buildEvidence.workspaceFingerprint,
-                    projectId: nativeBuildProjectId,
-                    projectPath: buildProjectPath,
-                    sourceMapJson: compileSourceMapJson,
-                }) as string;
-
-                if (!isCurrentSession()) return false;
-
-                let path = "";
-                let log = "";
-                let artifacts: string[] = [];
-                let diagnostics: CompileDiagnosticsPayload | null = null;
-                let sourceMapPath = '';
-                let linkerMapSummary: LinkerMapResourceSummary | null = null;
-                try {
-                    const res = JSON.parse(resultJson);
-                    // This is an optional read-only consumer after compilation, not build input.
-                    // Do not attach an old compile to a workspace edited while it was running.
-                    try {
-                        if (resourceWorkspaceBefore !== null && resourceWorkspace && resourceWorkspace === workspaceRef.current
-                            && resourceWorkspaceBefore === JSON.stringify(Blockly.serialization.workspaces.save(resourceWorkspace))) {
-                            productionResourceAnalysisRef.current = analyzeProductionResolvedResources(
-                                res.resourceBoardIdentity,
-                                resourceWorkspace,
-                                {
-                                    boardResourceGraph: activeBoardPackage?.resource_graph,
-                                    catalog: resourceCatalogFromLibraries(blockCatalogLibrariesRef.current),
-                                },
-                            );
-                            const inspector = inspectorViewFromProductionAnalysis(productionResourceAnalysisRef.current);
-                            setHardwareResourceInspector(inspector);
-                            const productionSnapshot = productionResourceAnalysisRef.current as any;
-                            if (inspector && productionSnapshot?.status === 'ready' && productionSnapshot.report) {
-                                const declaredReport = buildResourcePreflight({
-                                    phase: 'compile',
-                                    analysis: productionSnapshot.report,
-                                    inspector,
-                                });
-                                const attempt: CompilerObservationAttempt = {
-                                    workspaceJson: resourceWorkspaceBefore, fqbn: effectiveCompileFqbn,
-                                    codeSha256: sha256Hex(compileCode), status: 'running',
-                                };
-                                compilerObservationAttemptRef.current = attempt;
-                                setResourcePreflightReport({ ...declaredReport, implementationCheck: 'running' });
-                                const observationIsCurrent = () => isCurrentSession()
-                                    && compilerObservationAttemptRef.current === attempt
-                                    && resourceWorkspace === workspaceRef.current
-                                    && productionResourceAnalysisRef.current === productionSnapshot
-                                    && currentCompilerObservationStatus(
-                                        attempt, JSON.stringify(Blockly.serialization.workspaces.save(resourceWorkspace)),
-                                        effectiveCompileFqbnRef.current, generatedCodeRef.current,
-                                    ) !== 'stale';
-                                const observationUnavailable = () => {
-                                    if (!observationIsCurrent()) return;
-                                    attempt.status = 'unavailable';
-                                    setResourcePreflightReport({ ...declaredReport, implementationCheck: 'unavailable' });
-                                };
-                                // Bounded post-build compiler evidence. Never awaited by
-                                // compilation/upload, never an input to a build signature.
-                                void invoke<CapturedCompilerSnapshot>('observe_compiled_resources', {
-                                    runId: buildEvidence.runId,
-                                }).then(capture => {
-                                    if (!observationIsCurrent()) return;
-                                    const evaluation = integrateCompilerResources(
-                                        productionSnapshot, capture, compileCode, JSON.parse(compileSourceMapJson || 'null'),
-                                        { runId: buildEvidence.runId, alias: compileSourceMapSessionRef.current?.trustedSketchAlias ?? null },
-                                    );
-                                    if (!evaluation) {
-                                        observationUnavailable();
-                                        return;
-                                    }
-                                    attempt.status = 'partial';
-                                    compilerResourcePresentationRef.current = {
-                                        workspaceJson: resourceWorkspaceBefore!, fqbn: effectiveCompileFqbn,
-                                        codeSha256: sha256Hex(compileCode), evaluation,
-                                    };
-                                    setHardwareResourceInspector(evaluation.inspector);
-                                    setResourcePreflightReport(evaluation.report);
-                                    if (evaluation.report.status === 'conflict'
-                                        || evaluation.report.issues.some(issue => issue.code === 'interrupt-latency-risk')) {
-                                        openEngineeringHealth();
-                                    }
-                                }).catch(error => {
-                                    // Unrecognized compiler/version/complex code remains
-                                    // partial. It cannot turn a successful build into failure.
-                                    console.info('[ResourceObservation] evidence unavailable', error);
-                                    observationUnavailable();
-                                }).finally(() => {
-                                    // A result discarded during editing must not leave an
-                                    // endless spinner if Undo later restores the old source.
-                                    if (attempt.status === 'running') attempt.status = 'unavailable';
-                                    if (compilerObservationAttemptRef.current === attempt) {
-                                        setResourcePreflightRevision(revision => revision + 1);
-                                    }
-                                });
-                            }
-                        }
-                    } catch {
-                        productionResourceAnalysisRef.current = null;
-                        setHardwareResourceInspector(null);
-                        setResourcePreflightReport(null);
-                    }
-                    path = typeof res.path === 'string' ? res.path : "";
-                    log = typeof res.log === 'string' ? res.log : "";
-                    if (Array.isArray(res.artifacts)) {
-                        artifacts = res.artifacts.map((item: unknown) => String(item));
-                    }
-                    if (res.diagnostics && typeof res.diagnostics === 'object') {
-                        diagnostics = res.diagnostics as CompileDiagnosticsPayload;
-                    }
-                    sourceMapPath = typeof res.sourceMapPath === 'string' ? res.sourceMapPath : '';
-                    linkerMapSummary = normalizeLinkerMapResourceSummary(
-                        res.linkerMapSummary,
-                        String(res.diagnostics?.fqbn || effectiveCompileFqbn),
-                    );
-                } catch (e) {
-                    path = resultJson;
-                }
-
-                const durationMs = performance.now() - startTime;
-                const duration = (durationMs / 1000).toFixed(1);
-                operationResultCode = completedBuildOperationResult('compile');
-                showToast(buildT('result.compileSuccessToast', { duration }), 'success');
-
-                appendReturnedLogIfNeeded(log);
-                appendCompileLog(
-                    `\n${buildT('result.compileSuccessLog', { duration })}\n`,
-                    operationResultCode,
-                );
-                if (artifacts.length > 0) {
-                    appendCompileLog(`${buildT('result.artifactFiles', { count: artifacts.length })}:\n${artifacts.join('\n')}\n`);
-                } else if (path) {
-                    appendCompileLog(`${buildT('result.artifactFile')}: ${path}\n`);
-                }
-                if (sourceMapPath) {
-                    appendCompileLog(`${buildT('result.sourceMap')}: ${sourceMapPath}\n`);
-                }
-                publishCompileDoctor(true, diagnostics, durationMs, log);
-                publishCompileResources(
-                    log,
-                    false,
-                    String(diagnostics?.fqbn || ''),
-                    linkerMapSummary,
-                );
-            }
-        } catch (e: any) {
-            if (!isCurrentSession()) return false;
-            if (cancelRequestedBuildRunIdsRef.current.has(buildRunId)) {
-                operationResultCode = 'cancelled';
-                appendCompileLog('\n[信息] 后端已确认本次构建取消，正在恢复串口和界面状态。\n');
-            } else {
-                operationResultCode = 'failed';
-                console.error(e);
-                showToast(buildT('result.operationFailed'), 'error');
-                appendCompileLog(`\n失败: ${e}\n`);
-                if (!isUpload) {
-                    const report = publishCompileDoctor(
-                        false,
-                        null,
-                        performance.now() - startTime,
-                        String(e),
-                    );
-                    publishCompileIssues('compile', String(e), report?.environmentChanges || []);
-                } else {
-                    publishCompileIssues('upload', String(e));
-                }
-                if (runEvidenceIsCurrent()) {
-                    // Immediate path when the alias is already present. The
-                    // compileIssues effect repeats this after a late alias.
-                    highlightCompileErrorBlocks(compileLogRef.current);
-                }
-            }
-        } finally {
-            clearInterval(timer);
-            if (compileTimerRef.current === timer) {
-                compileTimerRef.current = null;
-            }
-            if (isCurrentSession() && shouldRestoreSerialMonitor && restorePort) {
-                const restoreRetryDelays = [0, 150, 200, 350, 500];
-                let restoreError: unknown = null;
-                let restored = false;
-                try {
-                    if (options.serialBaudRate) {
-                        baudRateRef.current = options.serialBaudRate;
-                        setBaudRate(options.serialBaudRate);
-                    }
-                    const restoreStarted = performance.now();
-                    for (const delayMs of restoreRetryDelays) {
-                        if (!isCurrentSession()) break;
-                        if (delayMs > 0) {
-                            await new Promise(r => setTimeout(r, delayMs));
-                        }
-                        if (!isCurrentSession()) break;
-                        try {
-                            await openSerialMonitorWithSettings(
-                                restorePort,
-                                restoreBaud,
-                                'restore',
-                                uploadSerialSettingsSeq,
-                            );
-                            restoreError = null;
-                            restored = true;
-                            break;
-                        } catch (error) {
-                            restoreError = error;
-                        }
-                    }
-                    if (!isCurrentSession()) {
-                        // A newer compile/upload session owns the serial endpoint now.
-                    } else if (!restored) {
-                        throw restoreError || new Error('串口尚未重新出现');
-                    } else {
-                        appendCompileLog(
-                            `\n${uploadLabel}上传结束后已恢复串口监视器（${Math.round(performance.now() - restoreStarted)}ms）。\n`,
-                        );
-                    }
-                } catch (e) {
-                    if (isCurrentSession()) {
-                        desiredSerialOpenRef.current = false;
-                        monitorPortRef.current = null;
-                        monitorBaudRateRef.current = null;
-                        setMonitorPort(null);
-                        setMonitorBaudRate(null);
-                        appendCompileLog(`\n${uploadLabel}上传结束后恢复串口监视器失败: ${String(e)}\n`);
-                    }
-                }
-            }
-            if (!isCurrentSession()) return false;
-            if (foregroundBuildRunIdRef.current === buildRunId) {
-                foregroundBuildRunIdRef.current = null;
-            }
-            cancelRequestedBuildRunIdsRef.current.delete(buildRunId);
-            buildCancelInFlightRef.current = false;
-            if (isBuildOperationSuccessful(operationResultCode)) {
-                // Serial restoration and other post-success awaits may have
-                // allowed the same exact request to be queued again. Consume it
-                // at the final blocked boundary, immediately before unlock.
-                silentPrecompileSchedulerRef.current?.cancelSatisfied(foregroundWarmupRequest);
-            }
-            isCompilingRef.current = false;
-            setForegroundBuildEvidence(null);
-            setIsCompiling(false);
-            setIsResourcePreflightRunning(false);
-            setBuildProgress(createIdleBuildProgress());
+            const restored = await restoreUploadMonitor(ownsPort, () => openSerialMonitorWithSettings(
+                restorePort, restoreBaud, 'restore', uploadSerialSettingsSeq,
+            ));
+            if (restored && ownsPort()) appendCompileLog(
+                `\n${uploadLabel}上传结束后已恢复串口监视器（${Math.round(performance.now() - started)}ms）。\n`,
+            );
+        } catch (error) {
+            if (!ownsPort()) return;
+            desiredSerialOpenRef.current = false;
+            monitorPortRef.current = null;
+            monitorBaudRateRef.current = null;
+            setMonitorPort(null);
+            setMonitorBaudRate(null);
+            appendCompileLog(`\n${uploadLabel}上传结束后恢复串口监视器失败: ${String(error)}\n`);
         }
+    };
+
+    const executeUpload = async (run: BuildSession): Promise<BuildOperationResultCode> => {
+        const {input, isCurrentSession, runEvidenceIsCurrent, startTime, buildRunId} = run;
+        const {buildEvidence, isInstrumentedUpload, uploadLabel, lastWorkingVersionCapture, options} = input;
+        const {publishCompileDoctor, publishCompileResources} = run.reports;
+        await releaseSerialForUpload(run);
+        if (!isCurrentSession()) return 'cancelled';
+        if (cancelRequestedBuildRunIdsRef.current.has(buildRunId)) throw new Error('CK_FRONTEND_BUILD_CANCELED');
+        if (options.aiUpload) {
+            options.aiUpload.check();
+            if (!runEvidenceIsCurrent() || memberFiles.current?.pending()) throw Error('工程已变化，未启动 AI 上传');
+        }
+        const uploadResult = await uploadProject(input.request, {port: buildEvidence.port, probeMemory: !isInstrumentedUpload,
+            lastWorkingVersion: lastWorkingVersionCapture, expectedMemberIdentity: options.aiUpload?.members});
+        if (!isCurrentSession()) return 'cancelled';
+        const log = uploadResult.log;
+        const evidenceLog = `${uploadResult.compileLog}\n${log}`;
+
+        const duration = ((performance.now() - startTime) / 1000).toFixed(1);
+        appendReturnedLogIfNeeded(log);
+
+        // The native command returns Err for every failed/cancelled
+        // transport. A resolved IPC Result is therefore authoritative
+        // success even when its diagnostic log mentions a recovered
+        // failed attempt or an optional probe failure.
+        const operationResultCode = completedBuildOperationResult('upload');
+        if (!isInstrumentedUpload) setDebugRecoveryNotice('');
+        showToast(buildT('result.uploadSuccessToast', { firmware: uploadLabel, duration }), 'success');
+        appendCompileLog(
+            `\n${buildT('result.uploadSuccessLog', { firmware: uploadLabel, duration })}\n`,
+            operationResultCode,
+        );
+        if (isInstrumentedUpload) {
+            appendCompileLog('[信息] 调试/轨迹运行时的资源开销不写入项目 Flash/RAM 基线。\n');
+        } else {
+            publishCompileDoctor(true, null, performance.now() - startTime, evidenceLog);
+            publishCompileResources(evidenceLog, true, uploadResult.fqbn);
+            if (runEvidenceIsCurrent()) {
+                setProjectUploadResult(createProjectUploadResult(
+                    `${compileLogRef.current}\n${log}`, buildEvidence,
+                    new Date().toISOString(), uploadResult.baselineFailure,
+                ));
+            }
+        }
+        return operationResultCode;
+    };
+
+    const observeBuildResources = (run: BuildSession, resourceWorkspace: Blockly.WorkspaceSvg | null,
+        resourceWorkspaceBefore: string | null, resourceBoardIdentity: unknown) => {
+        const {isCurrentSession, input: {compileCode, compileSourceMapJson, buildEvidence}} = run;
+        // This is an optional read-only consumer after compilation, not build input.
+        // Do not attach an old compile to a workspace edited while it was running.
+        try {
+            if (resourceWorkspaceBefore !== null && resourceWorkspace && resourceWorkspace === workspaceRef.current
+                && resourceWorkspaceBefore === JSON.stringify(Blockly.serialization.workspaces.save(resourceWorkspace))) {
+                productionResourceAnalysisRef.current = analyzeProductionResolvedResources(
+                    resourceBoardIdentity,
+                    resourceWorkspace,
+                    {
+                        boardResourceGraph: activeBoardPackage?.resource_graph,
+                        catalog: resourceCatalogFromLibraries(blockCatalogLibrariesRef.current),
+                    },
+                );
+                const inspector = inspectorViewFromProductionAnalysis(productionResourceAnalysisRef.current);
+                setHardwareResourceInspector(inspector);
+                const productionSnapshot = productionResourceAnalysisRef.current as any;
+                if (inspector && productionSnapshot?.status === 'ready' && productionSnapshot.report) {
+                    const declaredReport = buildResourcePreflight({
+                        phase: 'compile',
+                        analysis: productionSnapshot.report,
+                        inspector,
+                    });
+                    const attempt: CompilerObservationAttempt = {
+                        workspaceJson: resourceWorkspaceBefore, fqbn: effectiveCompileFqbn,
+                        codeSha256: sha256Hex(compileCode), status: 'running',
+                    };
+                    compilerObservationAttemptRef.current = attempt;
+                    setResourcePreflightReport({ ...declaredReport, implementationCheck: 'running' });
+                    const observationIsCurrent = () => isCurrentSession()
+                        && compilerObservationAttemptRef.current === attempt
+                        && resourceWorkspace === workspaceRef.current
+                        && productionResourceAnalysisRef.current === productionSnapshot
+                        && currentCompilerObservationStatus(
+                            attempt, JSON.stringify(Blockly.serialization.workspaces.save(resourceWorkspace)),
+                            effectiveCompileFqbnRef.current, generatedCodeRef.current,
+                        ) !== 'stale';
+                    const observationUnavailable = () => {
+                        if (!observationIsCurrent()) return;
+                        attempt.status = 'unavailable';
+                        setResourcePreflightReport({ ...declaredReport, implementationCheck: 'unavailable' });
+                    };
+                    // Bounded post-build compiler evidence. Never awaited by
+                    // compilation/upload, never an input to a build signature.
+                    void invoke<CapturedCompilerSnapshot>('observe_compiled_resources', {
+                        runId: buildEvidence.runId,
+                    }).then(capture => {
+                        if (!observationIsCurrent()) return;
+                        const evaluation = integrateCompilerResources(
+                            productionSnapshot, capture, compileCode, JSON.parse(compileSourceMapJson || 'null'),
+                            { runId: buildEvidence.runId, alias: compileSourceMapSessionRef.current?.trustedSketchAlias ?? null },
+                        );
+                        if (!evaluation) {
+                            observationUnavailable();
+                            return;
+                        }
+                        attempt.status = 'partial';
+                        compilerResourcePresentationRef.current = {
+                            workspaceJson: resourceWorkspaceBefore!, fqbn: effectiveCompileFqbn,
+                            codeSha256: sha256Hex(compileCode), evaluation,
+                        };
+                        setHardwareResourceInspector(evaluation.inspector);
+                        setResourcePreflightReport(evaluation.report);
+                        if (evaluation.report.status === 'conflict'
+                            || evaluation.report.issues.some(issue => issue.code === 'interrupt-latency-risk')) {
+                            openEngineeringHealth();
+                        }
+                    }).catch(error => {
+                        // Unrecognized compiler/version/complex code remains
+                        // partial. It cannot turn a successful build into failure.
+                        console.info('[ResourceObservation] evidence unavailable', error);
+                        observationUnavailable();
+                    }).finally(() => {
+                        // A result discarded during editing must not leave an
+                        // endless spinner if Undo later restores the old source.
+                        if (attempt.status === 'running') attempt.status = 'unavailable';
+                        if (compilerObservationAttemptRef.current === attempt) {
+                            setResourcePreflightRevision(revision => revision + 1);
+                        }
+                    });
+                }
+            }
+        } catch {
+            productionResourceAnalysisRef.current = null;
+            setHardwareResourceInspector(null);
+            setResourcePreflightReport(null);
+        }
+    };
+
+    const executeCompile = async (run: BuildSession): Promise<BuildOperationResultCode> => {
+        const {input, isCurrentSession, startTime} = run;
+        const {sourceBuild, options} = input;
+        const {publishCompileDoctor, publishCompileResources} = run.reports;
+        appendCompileLog(`\n[信息] 目标 FQBN: ${effectiveCompileFqbn}\n`);
+        productionResourceAnalysisRef.current = null;
+        compilerResourcePresentationRef.current = null;
+        compilerObservationAttemptRef.current = null;
+        setHardwareResourceInspector(null);
+        setResourcePreflightReport(report => report ? { ...report, implementationCheck: 'needs-compile' } : report);
+        const resourceWorkspace = workspaceRef.current;
+        let resourceWorkspaceBefore: string | null = null;
+        try {
+            if (resourceWorkspace && !options.codeOverride && !sourceBuild) resourceWorkspaceBefore = JSON.stringify(Blockly.serialization.workspaces.save(resourceWorkspace));
+        } catch { /* Optional analysis must not block compilation. */ }
+        const {path, log, artifacts, diagnostics, sourceMapPath, linkerMapSummary, resourceBoardIdentity} = await compileProject(input.request);
+        if (!isCurrentSession()) return 'cancelled';
+        observeBuildResources(run, resourceWorkspace, resourceWorkspaceBefore, resourceBoardIdentity);
+        const durationMs = performance.now() - startTime;
+        const duration = (durationMs / 1000).toFixed(1);
+        const operationResultCode = completedBuildOperationResult('compile');
+        showToast(buildT('result.compileSuccessToast', { duration }), 'success');
+
+        appendReturnedLogIfNeeded(log);
+        appendCompileLog(
+            `\n${buildT('result.compileSuccessLog', { duration })}\n`,
+            operationResultCode,
+        );
+        if (artifacts.length > 0) {
+            appendCompileLog(`${buildT('result.artifactFiles', { count: artifacts.length })}:\n${artifacts.join('\n')}\n`);
+        } else if (path) {
+            appendCompileLog(`${buildT('result.artifactFile')}: ${path}\n`);
+        }
+        if (sourceMapPath) {
+            appendCompileLog(`${buildT('result.sourceMap')}: ${sourceMapPath}\n`);
+        }
+        publishCompileDoctor(true, diagnostics, durationMs, log);
+        publishCompileResources(
+            log,
+            false,
+            String(diagnostics?.fqbn || ''),
+            linkerMapSummary,
+        );
+        return operationResultCode;
+    };
+
+    const reportBuildFailure = (run: BuildSession, e: unknown, cancelled: boolean) => {
+        const {input: {isUpload}, startTime, runEvidenceIsCurrent, reports: {publishCompileDoctor, publishCompileIssues}} = run;
+        if (cancelled) {
+            appendCompileLog('\n[信息] 后端已确认本次构建取消，正在恢复串口和界面状态。\n');
+            return;
+        }
+        console.error(e);
+        showToast(buildT('result.operationFailed'), 'error');
+        appendCompileLog(`\n失败: ${e}\n`);
         if (!isUpload) {
-            // Compile-only checkpoints preserve the payload frozen above, but
-            // write it after the compiler releases its hot-path disk activity.
-            // Compilation never consumes this snapshot, so delaying persistence
-            // removes avoidable I/O contention without weakening upload safety.
-            void scheduleBuildCheckpoint({
-                mode: 'compile',
-                persist: persistFrozenCheckpoint,
-                onFailure: reportCheckpointFailure,
-            });
+            const report = publishCompileDoctor(
+                false,
+                null,
+                performance.now() - startTime,
+                String(e),
+            );
+            publishCompileIssues('compile', String(e), report?.environmentChanges || []);
+        } else {
+            publishCompileIssues('upload', String(e));
         }
-        return isBuildOperationSuccessful(operationResultCode);
+        if (runEvidenceIsCurrent()) {
+            // Immediate path when the alias is already present. The
+            // compileIssues effect repeats this after a late alias.
+            highlightCompileErrorBlocks(compileLogRef.current);
+        }
+    };
+
+    const unlockBuild = (run: BuildSession, operationResultCode: BuildOperationResultCode) => {
+        const {buildRunId, input: {foregroundWarmupRequest}} = run;
+        if (foregroundBuildRunIdRef.current === buildRunId) {
+            foregroundBuildRunIdRef.current = null;
+        }
+        cancelRequestedBuildRunIdsRef.current.delete(buildRunId);
+        buildCancelInFlightRef.current = false;
+        if (operationResultCode === 'cancelled') {
+            pendingForceRebuildRef.current = false;
+            appendCompileLog('[信息] 编译或上传已安全取消。\n', operationResultCode);
+            serialMonitorRef.current?.write('\r\n[系统] 操作已被用户安全取消。\r\n');
+            showToast('编译或上传已安全取消', 'info');
+        }
+        if (isBuildOperationSuccessful(operationResultCode)) {
+            // Serial restoration and other post-success awaits may have
+            // allowed the same exact request to be queued again. Consume it
+            // at the final blocked boundary, immediately before unlock.
+            silentPrecompileSchedulerRef.current?.cancelSatisfied(foregroundWarmupRequest);
+        }
+        isCompilingRef.current = false;
+        setForegroundBuildEvidence(null);
+        setIsCompiling(false);
+        setIsResourcePreflightRunning(false);
+        setBuildProgress(createIdleBuildProgress());
+    };
+
+    const handleCompileAndUpload = async (isUpload: boolean, options: CompileRunOptions = {}): Promise<boolean> => {
+        if (isCompilingRef.current || projectLoadingRef.current) return false;
+        const load = reloadTriggerRef.current;
+        const members = memberFiles.current;
+        if (options.aiUpload && (members?.pending() || boardOptionsStatus === 'loading')) return false;
+        if (members?.pending() && !await members.saveAll()) {
+            showToast('附带源码尚未保存，请先处理文件编辑器中的提示', 'error');
+            return false;
+        }
+        if (reloadTriggerRef.current !== load || currentPathRef.current !== currentPath || effectiveCompileFqbnRef.current !== effectiveCompileFqbn) return false;
+        const input = prepareBuild(isUpload, options);
+        if (!input) return false;
+        const run = beginBuild(input);
+        return runForegroundBuild({
+            isCurrentSession: run.isCurrentSession,
+            isCancelled: () => cancelRequestedBuildRunIdsRef.current.has(run.buildRunId),
+            beforeUpload: isUpload ? async () => {
+                await run.checkpoint('upload');
+                if (run.isCurrentSession()) setBuildProgress(previous => ({...previous,
+                    message: buildT('status.preparingFirmware', {firmware: input.uploadLabel})}));
+            } : undefined,
+            execute: () => {
+                run.startTime = performance.now();
+                if (workspaceRef.current) clearCompileErrors(workspaceRef.current);
+                return isUpload ? executeUpload(run) : executeCompile(run);
+            },
+            onFailure: (error, cancelled) => reportBuildFailure(run, error, cancelled),
+            stopTimer: () => {
+                clearInterval(run.timer);
+                if (compileTimerRef.current === run.timer) compileTimerRef.current = null;
+            },
+            restoreSerial: () => restoreBuildSerial(run),
+            unlock: result => unlockBuild(run, result),
+            afterCompile: isUpload ? undefined : () => { void run.checkpoint('compile'); },
+        });
     };
 
     useEffect(() => {

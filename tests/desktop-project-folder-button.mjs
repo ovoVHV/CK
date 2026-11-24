@@ -10,7 +10,7 @@ import { installFixture, makeProject, header, markers, firmwareData } from './pr
 
 const read=f=>JSON.parse(fs.readFileSync(f,'utf8').replace(/^\uFEFF/,''));
 const cfg=read(process.env.CK_V9_ENGINE_CONFIG), out=fs.mkdtempSync(path.join(cfg.paths.evidenceRoot,'folder-button-'));
-const report={status:'RUNNING',launch:read(path.join(cfg.paths.evidenceRoot,'desktop-launch.json')),runs:[]};
+const report={status:'RUNNING',launch:read(path.join(cfg.paths.evidenceRoot,'desktop-launch.json')),runs:[],exceptionChecks:[]};
 const record=()=>fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));
 const btn='[data-ck-role="build-compile-action"]', bench='.ck-file-workbench', member=bench+' .cm-content', dirty=bench+' .ck-source-dirty';
 const q=JSON.stringify, sel=s=>`document.querySelector(${q(s)})`, delay=ms=>new Promise(r=>setTimeout(r,ms));
@@ -78,10 +78,68 @@ async function build(p,mode,label,n,prior){
     }
     report.runs.push(run);record();console.log('PASS',prefix,run.buttonMs+'ms',run.counts.CompileGCC,sha.slice(0,12));return run;
 }
+async function resumed() {
+    await wait(`${sel(btn)}?.disabled===false && !${sel('[data-ck-role="compile-progress-overlay"]')} && !${sel('[data-ck-role="build-cancel-action"]')}`, 'idle toolbar and overlay');
+}
+async function exceptionPaths(type) {
+    const p=makeProject(path.join(out,'exception-cases'),'arduino:avr:nano:cpu=atmega328',type);
+    await openProject(p);
+    await editHeader(p,101,202);
+    fs.writeFileSync(p.timing,header(404));
+    const count=()=>c.evaluate('window.__mfCalls.length');
+    const before=await count();await click(btn);
+    await wait(`${sel(bench+' [role=alert]')}?.innerText.includes('外部修改') && document.body.innerText.includes('附带源码尚未保存')`,'external change blocked compile');
+    await resumed();assert.equal(await count(),before);assert.equal(fs.readFileSync(p.timing,'utf8'),header(404));
+    assert(await c.evaluate(`!!${sel(dirty)} && ${sel(member)}.textContent.includes('CK_HEADER_202')`));
+    report.exceptionChecks.push({case:'dirty member save conflict',compileIPC:0,disk:404,draft:202});record();
+    await click(`${bench} [aria-label="关闭文件编辑器"]`);await wait(`${sel('dialog[open] .ck-member-primary')}?.innerText==='放弃修改'`,'discard QA draft');await click('dialog[open] .ck-member-primary');
+    await click('#ck-source-tab');const main='#ck-source-panel .cm-content';await wait(`${sel(main)}?.textContent.includes('${markers.blocks}')`,'source tab');
+    const good=`#include "Blink.h"\nvoid setup() {}\nvoid loop() { emitBlink("${markers.source}"); }\n`;
+    async function attempt(label,code) {
+        const start=await count(),aux=await c.evaluate('window.__mfActivity.length');
+        await replaceText(main,code);await wait(`${sel(main)}?.textContent.includes(${q(code.trim().split('\n').at(-1))})`,'edited '+label);
+        await click(btn);await wait(`window.__mfCalls.length>${start}`,'dispatch '+label);
+        if(label==='cancel') {await wait(`!!${sel('[data-ck-role="build-cancel-action"]')}`,'cancel enabled');await click('[data-ck-role="build-cancel-action"]');}
+        const row=await wait(`window.__mfCalls[${start}].done && window.__mfCalls[${start}]`,'result '+label,180000);
+        await resumed();assert.equal(await count(),start+1);assert.equal(row.args.code,code);
+        const extra=await c.evaluate(`window.__mfActivity.slice(${aux})`);
+        assert(!extra.some(a=>a.command==='open_serial_monitor'||a.command==='close_serial_monitor'),'compile must not touch serial');
+        if(label==='error'){assert.notEqual(row.kind,'ok');assert.match(row.response,/CK_QA_EXPECTED_ERROR/);}
+        if(label==='cancel') {assert.notEqual(row.kind,'ok');assert(await c.evaluate(`Array.from(document.querySelectorAll('button[aria-label="关闭提示"]')).some(b=>b.parentElement.textContent.includes('编译或上传已安全取消'))`));const ack=await wait(`window.__mfActivity.slice(${aux}).find(a=>a.command==='cancel_foreground_build'&&a.done)`,'cancellation ack');assert.equal(ack.runId,row.args.runId);assert.equal(ack.kind,'ok');}
+        if(label==='retry') {assert.equal(row.kind,'ok',row.response);const r=JSON.parse(JSON.parse(row.response));const fw=firmwareData('application.hex',fs.readFileSync(path.join(r.path,'sketch.ino.hex')));assert(fw.includes(markers.source)&&fw.includes('CK_HEADER_404'));}
+        report.exceptionChecks.push({case:label,runId:row.args.runId,ipc:row.kind,toolbarIdle:true,serialCommands:0});record();
+    }
+    await attempt('error',good+'#error CK_QA_EXPECTED_ERROR\n');
+    await attempt('cancel',good+'// cancel QA\n');await attempt('retry',good);
+    // Save before navigation, then open a project whose block-generated line and
+    // handwritten line both replaced the same base line. The loader runs real merge.
+    for(const type of ['keyDown','keyUp'])await c.input('Input.dispatchKeyEvent',{type,key:'s',code:'KeyS',windowsVirtualKeyCode:83,modifiers:2});
+    for(let i=0;i<100&&read(p.entry).code!==good;i++)await delay(100);assert.equal(read(p.entry).code,good);
+    const cp=makeProject(path.join(out,'source-conflict'),p.fqbn,type),spec=read(cp.entry),tree=JSON.parse(spec.xml);
+    cp.blockId=tree.blocks.blocks[0].id='conflicting-source-loop';
+    const generated=JSON.parse(read(p.entry).xml).ckSource.generatedBase;
+    assert(generated.includes(markers.blocks));
+    // Both branches replace the same final digit in the actual Blockly-generated literal.
+    const base=generated.replace(markers.blocks,'CK_MODE_BLOCKS_30'),manual=generated.replace(markers.blocks,'CK_MODE_BLOCKS_32');
+    tree.ckSource={version:1,mode:'source',generatedBase:base,code:manual};
+    spec.xml=JSON.stringify(tree);fs.writeFileSync(cp.entry,JSON.stringify(spec));await openProject(cp);
+    await wait(`${sel(main)}?.textContent.includes('CK_MODE_BLOCKS_32')`,'handwritten conflict branch loaded');
+    const mergeStart=await count();await click(btn);await wait(`document.body.innerText.includes('积木与手写源码有冲突')`,'source gate');await resumed();assert.equal(await count(),mergeStart);
+    assert(await c.evaluate(`!!${sel('.ck-source-sync-review')} && ${sel(main)}.textContent.includes('CK_MODE_BLOCKS_32')`));
+    await click('.ck-source-sync-summary button');await wait(`!!${sel('.ck-source-sync-options')}`,'merge alternatives');
+    assert(await c.evaluate(`${sel('.ck-source-sync-apply')}.disabled`));
+    const alternatives=await c.evaluate(`Array.from(document.querySelectorAll('.ck-source-sync-options label pre'),e=>e.textContent)`);
+    assert.equal(alternatives.length,2);assert(alternatives[0].includes('CK_MODE_BLOCKS_32'),alternatives[0]);assert(alternatives[1].includes(markers.blocks),alternatives[1]);
+    report.exceptionChecks.push({case:'unresolved three-way merge',compileIPC:0,manualPreserved:true,alternatives});record();
+}
 try{
     const type=installFixture(cfg);c=await connectDesktop();
     await wait(`document.body.innerText.includes('我的工程')`,'desktop home');
-    await c.evaluate(`(()=>{const orig=window.fetch;window.__mfCalls=[];window.fetch=async function(url,options){const u=new URL(String(url),location.href);if(u.hostname!=='ipc.localhost'||u.pathname!=='/compile_sketch')return orig.apply(this,arguments);const row={args:JSON.parse(options.body)};window.__mfCalls.push(row);try{const res=await orig.apply(this,arguments);row.response=await res.clone().text();row.kind=res.headers.get('Tauri-Response');return res;}finally{row.done=true;}};window.__mfRestore=()=>{window.fetch=orig;delete window.__mfCalls;delete window.__mfRestore;};})()`);
+    if(process.env.CK_MF_FRONTEND_DIST){
+        const asset=await c.evaluate(`(async()=>{const src=document.querySelector('script[type=module][src]').src;const bytes=await (await fetch(src)).arrayBuffer();const sha=await crypto.subtle.digest('SHA-256',bytes);return {name:new URL(src).pathname.slice(1),sha256:Array.from(new Uint8Array(sha),n=>n.toString(16).padStart(2,'0')).join('')};})()`);
+        assert.equal(asset.sha256,digest(fs.readFileSync(path.join(process.env.CK_MF_FRONTEND_DIST,asset.name))));report.frontend=asset;record();
+    }
+    await c.evaluate(`(()=>{const orig=window.fetch;window.__mfCalls=[];window.__mfActivity=[];window.fetch=async function(url,options){const u=new URL(String(url),location.href);const command=u.pathname.slice(1);if(u.hostname==='ipc.localhost'&&['open_serial_monitor','close_serial_monitor','cancel_foreground_build'].includes(command)){const a={command,runId:JSON.parse(options.body||'{}').runId};window.__mfActivity.push(a);const res=await orig.apply(this,arguments);a.kind=res.headers.get('Tauri-Response');a.done=true;return res;}if(u.hostname!=='ipc.localhost'||u.pathname!=='/compile_sketch')return orig.apply(this,arguments);const row={args:JSON.parse(options.body)};window.__mfCalls.push(row);try{const res=await orig.apply(this,arguments);row.response=await res.clone().text();row.kind=res.headers.get('Tauri-Response');return res;}finally{row.done=true;}};window.__mfRestore=()=>{window.fetch=orig;delete window.__mfActivity;delete window.__mfCalls;delete window.__mfRestore;};})()`);
     for(const fqbn of ['arduino:avr:nano:cpu=atmega328','esp32:esp32:esp32s3']){
         const p=makeProject(out,fqbn,type);await openProject(p);
         const cold=await build(p,'blocks','first',101);
@@ -98,6 +156,7 @@ try{
         for(let i=0;i<80&&!read(p.entry).code?.includes(markers.source);i++)await delay(100);
         assert(read(p.entry).code?.includes(markers.source));
     }
+    await exceptionPaths(type);
     report.status='PASS';delete report.current;
 }catch(e){report.status='FAIL';report.error=String(e.stack);console.error(e);process.exitCode=1;}
 finally{record();try{await c?.evaluate('window.__mfRestore?.()');}finally{c?.close();}console.log('REPORT',out);}

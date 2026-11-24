@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
 const source = await readFile(new URL('./Workspace.tsx', import.meta.url), 'utf8');
-const start = source.indexOf('const handleCompileAndUpload = async');
+const start = source.indexOf('const beginBuild =');
 const end = source.indexOf('const handleCompileIssueAction', start);
 assert.ok(start >= 0 && end > start);
 const handler = source.slice(start, end);
@@ -17,16 +17,9 @@ test('compile UI initializes before automatic checkpoint persistence starts', ()
 });
 
 test('ordinary compile persists after its hot path while upload waits before backend work', () => {
-    const uploadSchedule = handler.indexOf("mode: 'upload'");
-    const uploadAwait = handler.indexOf('await checkpointCompletion', uploadSchedule);
-    const backendInvoke = handler.indexOf("invoke('compile_sketch'", uploadAwait);
-    const compileSchedule = handler.indexOf("mode: 'compile'", backendInvoke);
-    assert.ok(uploadSchedule >= 0 && uploadAwait > uploadSchedule);
-    assert.ok(backendInvoke > uploadAwait);
-    assert.ok(compileSchedule > backendInvoke);
-    const compileOnlyBranch = handler.lastIndexOf('if (!isUpload)', compileSchedule);
-    assert.ok(compileOnlyBranch > backendInvoke && compileOnlyBranch < compileSchedule);
-    assert.match(handler, /const checkpointInput = createWorkspaceCheckpointInput\([\s\S]{0,100}before_upload[\s\S]{0,100}before_compile/);
+    assert.match(handler, /beforeUpload: isUpload \? async \(\) => \{\s*await run\.checkpoint\('upload'\)/);
+    assert.match(handler, /afterCompile: isUpload \? undefined : \(\) => \{ void run\.checkpoint\('compile'\)/);
+    assert.match(source, /const checkpointInput = createWorkspaceCheckpointInput\([\s\S]{0,100}before_upload[\s\S]{0,100}before_compile/);
 });
 
 test('checkpoint failures remain visible without replacing compiler output', () => {

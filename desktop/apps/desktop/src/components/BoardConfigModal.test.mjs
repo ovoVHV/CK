@@ -22,10 +22,12 @@ test('unsupported saved board options hard-block builds and have an explicit rep
     assert.doesNotMatch(modalSource, /编译将使用此板卡的默认值/);
 });
 
+const reports = await readFile(new URL('../services/foreground_build_reports.ts', import.meta.url), 'utf8');
+
 test('late resource results are gated by the operation target identity', () => {
     assert.match(workspaceSource, /resourceTargetIdentity: CompileResourceTargetIdentity/);
-    assert.match(workspaceSource, /isSameCompileResourceTarget\(resourceTargetIdentity, currentTargetIdentity\)/);
-    assert.match(workspaceSource, /saveCompileResourceSnapshot\(resourceTargetIdentity\.projectPath, nextSnapshot\)/);
+    assert.match(reports, /isSameCompileResourceTarget\(resourceTargetIdentity, currentTargetIdentity\)/);
+    assert.match(reports, /saveCompileResourceSnapshot\(resourceTargetIdentity\.projectPath, nextSnapshot\)/);
 });
 
 test('board settings show the complete effective FQBN without truncating configuration options', () => {

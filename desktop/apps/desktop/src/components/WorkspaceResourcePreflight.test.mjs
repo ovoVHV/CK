@@ -13,11 +13,11 @@ test('resource preflight is scheduled for every committed Blockly content event'
 test('edit and compile preflight reuse the existing evaluator without changing build input', () => {
     assert.match(source, /evaluateResourcePreflight\(\{[\s\S]*phase: 'edit'/);
     assert.match(source, /evaluateResourcePreflight\(\{[\s\S]*phase: 'compile'/);
-    const compileInvocation = source.indexOf("invoke('compile_sketch'");
+    const compileInvocation = source.indexOf('await compileProject(input.request)');
     assert.ok(compileInvocation > 0, 'compile invocation should remain present');
     const preflightBeforeCompile = source.lastIndexOf("phase: 'compile'", compileInvocation);
     assert.ok(preflightBeforeCompile > 0, 'compile preflight should run before compile invocation');
-    const compileSlice = source.slice(compileInvocation, compileInvocation + 1200);
+    const compileSlice = source.slice(compileInvocation, source.indexOf(';', compileInvocation));
     assert.doesNotMatch(compileSlice, /resourcePreflight|resourceAnalysis|autoAssign|setPin/i);
 });
 
