@@ -18,6 +18,7 @@ import {DiscoveryPool} from './native/discovery-pool.mjs';
 import {RequestLibraryPch} from './native/library-pch.mjs';
 import {nonInteractiveStdio} from './process-stdio.mjs';
 import {platformRecipeHash} from './targets.mjs';
+import {bootIdentity} from './native/session-boot.mjs';
 import {sketchSnapshot,mirrorMembers} from './sketch-files.mjs';
 export class NeedsOfficial extends Error{}
 export const artifactNames=['sketch.ino.elf','sketch.ino.bin','sketch.ino.partitions.bin','sketch.ino.merged.bin','flash_args','boot_app0.bin','sketch.ino.bootloader.bin','sdkconfig','build.options.json','partitions.csv'];
@@ -30,7 +31,8 @@ export function properties(front){return Object.fromEntries(front.builder_result
 // A missing list is an empty selection; malformed present lists remain errors.
 export function officialLibraries(front){const selected=front.builder_result.used_libraries??[];if(!Array.isArray(selected))throw Error('Invalid official used_libraries list');return selected;}
 export function initialSketch(c,snapshot=sketchSnapshot(c.sketchDir)){const code=fs.readFileSync(source(c),'utf8').replace(/^\uFEFF/,'').replaceAll('\r\n','\n');if(snapshot.other.length)throw new NeedsOfficial('Additional sketch inputs require official discovery');mirrorMembers(c,snapshot);const raw=(/^\s*#\s*include\s*[<"]Arduino\.h[>"]/m.test(code)?'':'#include <Arduino.h>\n')+'#line 1 '+JSON.stringify(source(c))+'\n'+code+'\n';const file=path.join(c.workspace,'build/sketch/sketch.ino.cpp');writeChanged(file,raw);return file;}
-export function prepare(c,p){
+export function prepare(c,p,{before,prior}={}){
+ let bootResult=null;
  const unsupported=reason=>{throw Object.assign(Error(reason),{code:'NOT_QUALIFIED',fallbackSafe:true});};
  const q=propertyScope(p);if(!q.qualified)unsupported(q.reason);const build=path.join(c.workspace,'build'),platform=p['runtime.platform.path'],variant=p['build.variant.path'],sdk=p['compiler.sdk.path'];
  // Reject unsupported recipes before doing discovery twice: an official
@@ -39,11 +41,27 @@ export function prepare(c,p){
  for(const name of ['boards.local.txt','platform.local.txt'])if(fs.existsSync(path.join(platform,name)))unsupported('local platform override requires qualification');
  fs.mkdirSync(build,{recursive:true});
  if(p['build.arch'].toLowerCase()==='esp32'){
- const partitions=[path.join(c.sketchDir,'partitions.csv'),path.join(variant,'partitions.csv'),path.join(platform,'tools/partitions',p['build.partitions']+'.csv')].find(fs.existsSync);fs.copyFileSync(partitions,path.join(build,'partitions.csv'));
- const boot=[path.join(c.sketchDir,'bootloader.bin'),path.join(variant,'bootloader.bin')].find(fs.existsSync);if(boot)fs.copyFileSync(boot,path.join(build,'sketch.ino.bootloader.bin'));else{const hook=p['recipe.hooks.prebuild.4.pattern'],match=hook.match(/"([^"\r\n]+esptool\.exe)" ([\s\S]*?)\s*\) \)$/);if(!match)throw new NeedsOfficial('bootloader hook differs');run(recipe({'boot': '"'+match[1]+'" '+match[2]},'boot'),{cwd:c.sysroot});}
- fs.writeFileSync(path.join(build,'build_opt.h'),'');fs.writeFileSync(path.join(build,'file_opts'),'');fs.copyFileSync(path.join(sdk,'sdkconfig'),path.join(build,'sdkconfig'));
+ const partitions=[path.join(c.sketchDir,'partitions.csv'),path.join(variant,'partitions.csv'),path.join(platform,'tools/partitions',p['build.partitions']+'.csv')].find(fs.existsSync);writeChanged(path.join(build,'partitions.csv'),fs.readFileSync(partitions));
+ const variantBoot=p['build.custom_bootloader'];
+ if(!/^[\w-]+$/.test(variantBoot??''))throw new NeedsOfficial('Unqualified variant bootloader name');
+ const output=path.join(build,'sketch.ino.bootloader.bin');
+ const boot=[path.join(c.sketchDir,'bootloader.bin'),path.join(variant,variantBoot+'.bin')].find(fs.existsSync);
+ if(boot)fs.copyFileSync(boot,output);
+ else{
+  const hook=p['recipe.hooks.prebuild.4.pattern'],match=hook.match(/"([^"\r\n]+esptool\.exe)" ([\s\S]*?)\s*\) \)$/);
+  if(!match)throw new NeedsOfficial('bootloader hook differs');
+  const argv=recipe({boot:'"'+match[1]+'" '+match[2]},'boot'),key=bootIdentity(argv,c,output,before);
+  if(key&&prior?.key===key&&sha(prior.bytes)===prior.sha256){
+   writeChanged(output,prior.bytes);bootResult={...prior,reused:true};
+  }else{
+   run(argv,{cwd:c.sysroot});
+   if(key){const bytes=fs.readFileSync(output);bootResult={key,bytes,sha256:sha(bytes),reused:false};}
+  }
  }
- const opts={'additionalFiles':'','compiler.optimization_flags':p['compiler.optimization_flags']??'',customBuildProperties:(c.buildProperties??[]).join(','),fqbn:c.fqbn,hardwareFolders:[platform,p['build.core.platform.path']].join(','),otherLibrariesFolders:[...(c.collections??[]),c.userLibraries].join(','),sketchLocation:path.resolve(c.sketchDir)};fs.writeFileSync(path.join(build,'build.options.json'),JSON.stringify(opts,null,2));
+ writeChanged(path.join(build,'build_opt.h'),'');writeChanged(path.join(build,'file_opts'),'');writeChanged(path.join(build,'sdkconfig'),fs.readFileSync(path.join(sdk,'sdkconfig')));
+ }
+ const opts={'additionalFiles':'','compiler.optimization_flags':p['compiler.optimization_flags']??'',customBuildProperties:(c.buildProperties??[]).join(','),fqbn:c.fqbn,hardwareFolders:[platform,p['build.core.platform.path']].join(','),otherLibrariesFolders:[...(c.collections??[]),c.userLibraries].join(','),sketchLocation:path.resolve(c.sketchDir)};writeChanged(path.join(build,'build.options.json'),JSON.stringify(opts,null,2));
+ return bootResult;
 }
 function includeArgs(dirs){return dirs.map(d=>'"-I'+d+'"').join(' ');}
 function compileEntry(c,p,file,base,out,dirs){
@@ -53,8 +71,8 @@ function compileEntry(c,p,file,base,out,dirs){
 }
 function preprocArgs(p,file,dirs){const row={...p,'recipe.preproc':p['recipe.cpp.o.pattern'].replace(p['compiler.cpp.flags'],p['compiler.cpp.flags']+' -w -x c++ -E -CC')};return recipe(row,'recipe.preproc',{includes:includeArgs(dirs),source_file:file,object_file:'nul'}).filter(a=>a!=='-MMD');}
 function searchDirectories(args,cwd){const expanded=responses(args.slice(1),cwd).expanded;const dirs=[];let prefix='';for(let i=0;i<expanded.length;i++){const a=expanded[i];if(a==='-iprefix')prefix=expanded[++i];else if(['-I','-isystem','-iquote','-idirafter'].includes(a))dirs.push(expanded[++i]);else if(['-iwithprefix','-iwithprefixbefore'].includes(a))dirs.push(path.join(prefix,expanded[++i]));else if(a.startsWith('-I'))dirs.push(a.slice(2));}return dirs;}
-export async function discover(c,p,index,{onSketchReady,deferCore=false}={}){const started=performance.now(),snapshot=sketchSnapshot(c.sketchDir),selected=[],includes=[p['build.core.path'],p['build.variant.path']],queue=[{file:initialSketch(c,snapshot),extra:null},...snapshot.units.map(name=>({file:path.join(c.workspace,'build/sketch',name),extra:null,projectUnit:true}))],seen=new Set(queue.map(x=>x.file)),probes=[],decisions=[],compiledObjects=new Map(),pool=new DiscoveryPool(c.jobs??8);let pos=0,sketchPreprocess=null;const captureFile=path.join(c.workspace,'graph','frontend','discovery-sketch.cpp');fs.mkdirSync(path.dirname(captureFile),{recursive:true});
- const result={selected,includes,probes,decisions,indexSha256:index.sha256,timings:{}};
+export async function discover(c,p,index,{onSketchReady,deferCore=false}={}){const limit=c.jobs??8,workers=p['build.arch'].toLowerCase()==='esp32'&&c.features?.coldScheduling!==false?Math.min(limit,os.availableParallelism()):limit,started=performance.now(),snapshot=sketchSnapshot(c.sketchDir),selected=[],includes=[p['build.core.path'],p['build.variant.path']],queue=[{file:initialSketch(c,snapshot),extra:null},...snapshot.units.map(name=>({file:path.join(c.workspace,'build/sketch',name),extra:null,projectUnit:true}))],seen=new Set(queue.map(x=>x.file)),probes=[],decisions=[],compiledObjects=new Map(),pool=new DiscoveryPool(workers);let pos=0,sketchPreprocess=null;const captureFile=path.join(c.workspace,'graph','frontend','discovery-sketch.cpp');fs.mkdirSync(path.dirname(captureFile),{recursive:true});
+ const result={selected,includes,probes,decisions,indexSha256:index.sha256,timings:{workers}};
  Object.defineProperty(result,'sketchPreprocess',{enumerable:false,writable:true,value:null});
  Object.defineProperty(result,'compiledObjects',{enumerable:false,writable:true,value:compiledObjects});
  const coreJobs=[],sketchJobs=[];
@@ -102,12 +120,13 @@ export async function discover(c,p,index,{onSketchReady,deferCore=false}={}){con
  // A compiler-observed header/PCH group makes this a worthwhile candidate,
  // never a selection decision. Jobs use immutable arguments, issue content
  // proofs immediately on exit and drain before any include-order change.
- if(earlyLibrary&&pos===0&&plans?.size&&sourceHeaders.every(header=>[c.sketchDir,...includes].some(dir=>fs.existsSync(path.resolve(dir,header))))){for(const unit of queue.filter(u=>u.library&&['.cpp','.cc','.cxx'].includes(path.extname(u.file)))){
+ const avrEarly=p['build.arch'].toLowerCase()==='avr'&&workers>=4;
+ if(earlyLibrary&&pos===0&&(plans?.size||avrEarly)&&sourceHeaders.every(header=>[c.sketchDir,...includes].some(dir=>fs.existsSync(path.resolve(dir,header))))){for(const unit of queue.filter(u=>u.library&&(['.cpp','.cc','.cxx'].includes(path.extname(u.file))||avrEarly&&path.extname(u.file)==='.c'))){
   const entry=compileEntry(c,p,unit.file,unit.base,unit.out,[...includes,...(unit.extra?[unit.extra]:[])]),rsp=path.join(c.workspace,'graph','normal-file-options.rsp');writeChanged(rsp,'');
   const args=entry.arguments.map(a=>a.startsWith('@')&&path.basename(a.slice(1))==='file_opts'?'@'+rsp:a),identity=compileIdentity(args,c.sysroot);if(earlyResults.has(identity))continue;
   const attempt={unit:unit.file,identity,includeOrder:version,consumed:false};result.speculativeCompiles.push(attempt);
-  const plan=plans.get(identity),pending=(async()=>{
-   const produced=plan?await libraryPch.compile(plan,args,c.sysroot,1):null,actual=produced?.actual??args,r=produced?.result??await pool.run(1,()=>runCompiler(args,c.sysroot));
+  const plan=plans?.get(identity),pending=(async()=>{
+   const produced=plan?await libraryPch.compile(plan,args,c.sysroot,1):null,actual=produced?.actual??args,r=produced?.result??await pool.run(avrEarly?0:1,()=>runCompiler(args,c.sysroot));
    Object.assign(attempt,{pid:r.pid,startedUnixMs:r.startedUnixMs,elapsedMs:r.elapsedMs,exitCode:r.code});
    const output=args[args.indexOf('-o')+1],record=r.code===0?observeDiscoveryCompile({argv:args,actualArgv:actual,pchGrant:produced?.grant,cwd:c.sysroot,source:unit.file,output,depfile:output.replace(/\.o$/,'.d'),identity}):null;
    return {result:r,actual,grant:produced?.grant??null,record,attempt};
@@ -136,6 +155,29 @@ export async function discover(c,p,index,{onSketchReady,deferCore=false}={}){con
   const executed=libraryResult?.actual??(eager?args:canonical),r=libraryResult?.result??await pool.run(0,()=>runCompiler(executed,c.sysroot));
   if(eager&&r.code===0){const object=args[output+1],record=libraryResult?.attempt?libraryResult.record:observeDiscoveryCompile({argv:args,actualArgv:executed,pchGrant:libraryResult?.grant,cwd:c.sysroot,source:unit.file,output:object,depfile:object.replace(/\.o$/,'.d'),identity});if(record)compiledObjects.set(object,record);}
   if(capture&&r.code===0){const bytes=fs.readFileSync(captureFile);sketchPreprocess={identity:preprocessIdentity(canonical,c.sysroot,fs.readFileSync(unit.file)),bytes,sha256:sha(bytes),includeOrder:version};}
+  // Keep Arduino's C++ discovery probe for C library units. Once it has
+  // succeeded, the actual C recipe can use an available slot before the
+  // scheduler's compile barrier. Only the final argv and .d closure admit it.
+  if(optimized&&r.code===0&&unit.library&&path.extname(unit.file)==='.c'&&c.discoveryCompileReference!==true){
+   const entry=compileEntry(c,p,unit.file,unit.base,unit.out,dirs),rsp=path.join(c.workspace,'graph','normal-file-options.rsp');writeChanged(rsp,'');
+   const argv=entry.arguments.map(a=>a.startsWith('@')&&path.basename(a.slice(1))==='file_opts'?'@'+rsp:a);
+   const id=compileIdentity(argv,c.sysroot);
+   if(earlyResults.has(id)){
+    const early=await earlyResults.get(id);early.attempt.consumed=true;
+    probes.push({unit:unit.file,kind:'compile',role:'c-library',argv,...early.result});
+    if(early.record)compiledObjects.set(early.record.output,early.record);
+   }else{
+    const object=argv[argv.indexOf('-o')+1],depfile=object.replace(/\.o$/,'.d');
+    // Restarted discovery can change -I while a prior result is pending.
+    // Finish this generation before permitting any other writer to its output.
+    const result=await pool.run(0,()=>runCompiler(argv,c.sysroot));
+    probes.push({unit:unit.file,kind:'compile',role:'c-library',argv,...result});
+    if(result.code===0){
+     const observed=observeDiscoveryCompile({argv,cwd:c.sysroot,source:unit.file,output:object,depfile,identity:id});
+     if(observed)compiledObjects.set(object,observed);
+    }
+   }
+  }
   const positives=eager?(r.code===0?readNativeDependencies(args[output+1].replace(/\.o$/,'.d'),c.sysroot,args[output+1]).map(f=>path.resolve(c.sysroot,f)):[]):compilerIncludes(r.stderrBytes,c.sysroot);
   const probe={unit:unit.file,kind:eager?'compile':'preprocess',argv:executed,...r,explicitSearchOrder:searchDirectories(args,c.sysroot),positiveIncludes:[...new Set(positives)],positiveObservation:eager?'compiler-MMD-plus-complete-system-asset-proof':'compiler-H',missingHeader:null};probes.push(probe);return probe;
  }));const failed=completed.find(r=>r.status==='rejected');if(failed)throw failed.reason;const results=completed.map(r=>r.value);if(earlyLibrary&&results.some(r=>r.code!==0))await Promise.allSettled(earlyJobs);let restart=false;

@@ -1,0 +1,83 @@
+{
+  "version": "9.1.0-alpha.56",
+  "installerSha256": "7106a7c3bbfa2b691c7a5d6d33bf60ee6cf94220837b870260cfa547284ad3ca",
+  "metric": "Local Windows desktop button to completion, not upload. Core 1.8.6 (AVR) or 3.3.6 (ESP32), default menus. All measured samples retained.",
+  "smoke": {
+    "uno": {
+      "cold": 4048.8,
+      "edit": 1678.8,
+      "repeat": 877.9
+    },
+    "esp32c5": {
+      "cold": 54287.4,
+      "edit": 19605.9,
+      "repeat": 3508.3
+    },
+    "esp32s2": {
+      "cold": 56572.1,
+      "edit": 22159.4,
+      "repeat": 3346.2
+    }
+  },
+  "unsuccessfulChecks": [
+    {
+      "board": "esp32s2",
+      "scenario": "edit",
+      "cause": "E volume full during elf2image",
+      "priorColdMs": 73450.4,
+      "status": "failed; no export; rerun in a fresh work directory on C"
+    }
+  ],
+  "s2Followup": {
+    "coldMs": 49019.2,
+    "repeatMs": 3026.6,
+    "editMs": [
+      17322.2,
+      17022.6,
+      16626.8,
+      17330,
+      17251.1,
+      17569.7,
+      16813.2,
+      16459.9,
+      16714.7,
+      16411.1,
+      16474.4,
+      16456.5,
+      16441.6,
+      16552.8,
+      16514.2,
+      16321.7,
+      17199.5,
+      16282.8,
+      15939.6,
+      16352.4,
+      16514.8,
+      16501.7,
+      16450.2,
+      16451.2,
+      16679.9,
+      16820.6,
+      16698.1,
+      16285.1,
+      16618.3,
+      16523.7
+    ],
+    "p95Ms": 17330,
+    "countWithin20s": 30,
+    "status": "PASS"
+  },
+  "upgradeSimulation": {
+    "files": 688,
+    "hashes": true,
+    "packageIdentity": true,
+    "overlay": "55 -> 56",
+    "projectPreserved": true,
+    "dataLocationPreserved": true,
+    "interactiveInstallerExecuted": false
+  },
+  "signature": {
+    "updateManifest": "Ed25519",
+    "windowsAuthenticode": "NotSigned"
+  }
+}

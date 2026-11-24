@@ -17,10 +17,11 @@ function dependencyWords(text){
  }
  if(token)result.push(token);if(!result.length)throw Error('Empty dependency list');return result;
 }
-export function decodeDependencies(bytes,{cwd,output,encoding=windowsToolEncoding(),exists=fs.existsSync}={}){
+export function decodeDependencies(bytes,{cwd,output,encoding,exists=fs.existsSync}={}){
  // ASCII is identical in all supported encodings; avoid filesystem probes on
  // the common path. For non-ASCII, bind the decoding to the actual -o target.
  if(!bytes.some(b=>b>=128))return parseNativeDependencies(bytes.toString('ascii'));
+ encoding??=windowsToolEncoding();
  const candidates=[];
  for(const {text} of toolTextCandidates(bytes,encoding))try{
   const flat=text.replace(/\\\r?\n/g,' '),colon=flat.search(/:\s/);

@@ -6,7 +6,7 @@ export function beneath(root, candidate, allowRoot=false) {
 }
 export function rejectReparse(file) {
   for(let p=path.resolve(file);;p=path.dirname(p)) {
-    if(fs.existsSync(p) && fs.lstatSync(p).isSymbolicLink()) throw Error('Reparse path rejected: '+p);
+    if(fs.lstatSync(p,{throwIfNoEntry:false})?.isSymbolicLink()) throw Error('Reparse path rejected: '+p);
     if(path.dirname(p)===p)break;
   }
 }

@@ -3,8 +3,8 @@ import {reportActivity} from './build-activity.mjs';
 import {withBuildDiagnostics,currentWarningCount,buildResourceEvidence} from './build-resource-evidence.mjs';
 import {ENGINE_VERSION,CACHE_SCHEMA,artifactsFor} from './version.mjs';
 import {targetAssetRoots,propertiesCovered} from './targets.mjs';
-import {validateAssets,validateSummary,verifyRepeat} from './asset-engine.mjs';
-import {avrRepeatValidation} from './avr-repeat-validation.mjs';
+import {validateAssets,validateSummary,verifyRepeat,outputSummary} from './asset-engine.mjs';
+import {buildValidation} from './avr-repeat-validation.mjs';
 import {NativeScheduler} from './scheduler.mjs';
 import {avrProperties} from './avr-properties.mjs';
 import {esp32Properties} from './esp32-properties.mjs';
@@ -32,19 +32,18 @@ function ruleKey(rule){return sha(JSON.stringify([rule.kind,rule.argv,rule.direc
 function restoreDerived(c,plan){const repairs=[];function set(file,bytes){if(writeChanged(file,bytes))repairs.push({file,reason:'reconstructed-from-qualified-recipe-or-validated-asset'});}
  set(path.join(plan.graph,'core-file-options.rsp'),'-DARDUINO_CORE_BUILD\n');set(path.join(plan.graph,'normal-file-options.rsp'),'');set(path.join(plan.build,'build_opt.h'),'');set(path.join(plan.build,'file_opts'),'');set(path.join(plan.build,'compile_commands.json'),JSON.stringify(plan.db,null,2)+'\n');
  for(const r of plan.rules.filter(r=>r.kind==='pch'))set(r.inputs[0],fs.readFileSync(path.join(plan.props['build.core.path'],'Arduino.h')));return repairs;}
-function saveTree(dir){const rows=[];function visit(d){if(!fs.existsSync(d))return;for(const e of fs.readdirSync(d,{withFileTypes:true})){const p=path.join(d,e.name);if(e.isDirectory())visit(p);else{const s=fs.statSync(p);rows.push({file:p,bytes:fs.readFileSync(p),atime:s.atime,mtime:s.mtime});}}}visit(dir);return rows;}
 export class BuildSession {
- #scheduler;#state=null;id=randomUUID();
+ #scheduler;#state=null;#graphs=new Map();id=randomUUID();
  constructor({historyBytes=128*1024*1024}={}){this.#scheduler=new NativeScheduler({historyBytes});}
- reset(){this.#scheduler.reset();this.#state=null;this.id=randomUUID();}
+ reset(){this.#scheduler.reset();this.#graphs.clear();this.#state=null;this.id=randomUUID();}
  async build(c,options={}){return withBuildDiagnostics(()=>this.buildObserved(c,options));}
  async buildObserved(c,{label='run',mode='auto',frontendReplay=true,linkHistory=true,objectRestore=true,noOpFastPath=true}={}){
  const at=performance.now(),sourceFile=path.join(c.sketchDir,'sketch.ino'),source=norm(fs.readFileSync(sourceFile,'utf8')),receipt={label,startedUnixMs:Date.now(),sessionId:this.id,success:false,phases:{},steps:[],productAuthorized:false,continuousNamespaceProof:false,diskGraphAuthority:false,mode};
- const validation=avrRepeatValidation(c,this.#state?.source===source && noOpFastPath && c.features.noOpFastPath && mode!=='official');
+ const validation=buildValidation(c,this.#state?.source===source && noOpFastPath && c.features.noOpFastPath && mode!=='official');
  if(validation!==c.validation)c={...c,validation};
  const activity=message=>reportActivity(c,message);
  receipt.executionJobs=c.jobs??8;activity('资产校验：开始完整输入内容验证');
- let state=this.#state,p,d,front,plan,template,fullFrontend=false,frontendReady=false,provisionalIncludes=null;
+ let state=this.#state,p,d,front,plan,template,bootResult=null,fullFrontend=false,frontendReady=false,provisionalIncludes=null;
  const sameContext=state?.context===context(c),members=sketchSnapshot(c.sketchDir),names=JSON.stringify(members.names);
  const sameMembers=state?.memberIdentity===members.identity&&!members.other.length;
  const inputs=roots(c);
@@ -70,8 +69,13 @@ export class BuildSession {
  receipt.sourceEligibility={eligible:!!directives,reason:sourceContractError??'literal-includes-and-supported-syntax'};
  const unchanged=()=>{const now=sketchSnapshot(c.sketchDir);return now.identity===members.identity&&JSON.stringify(now.other)===JSON.stringify(members.other)&&norm(fs.readFileSync(sourceFile,'utf8'))===source;};
  receipt.projectFiles=members.files.map(({name,digest})=>({name,sha256:digest}));
- const graphAllowed=mode!=='official'&&sameContext&&sameAssets&&directives&&directives===state.directives&&sameMembers&&!state.official;
- receipt.graphReuse={hit:!!graphAllowed,reason:graphAllowed?'live-session-input-proof':!state?'no-live-authority':!sameContext?'build-context-changed':!sameAssets?'asset-or-namespace-changed':!directives?'source-contract-not-supported':'source-discovery-contract-changed'};
+ const keepGraphs=mode!=='official'&&objectRestore&&linkHistory&&frontendReplay&&c.features.sessionHistory&&c.historyBytes!==0;
+ if(!keepGraphs||!sameContext||!sameAssets||!sameMembers||state?.official)this.#graphs.clear();
+ const graphKey=keepGraphs&&directives&&!members.other.length?sha(JSON.stringify([context(c),before.sha256,members.identity,names,source])):null;
+ const activeGraph=mode!=='official'&&sameContext&&sameAssets&&directives&&directives===state.directives&&sameMembers&&!state.official;
+ const historic=!activeGraph&&graphKey&&sameContext&&sameAssets&&sameMembers&&!state.official?this.#graphs.get(graphKey):null;
+ const graphAllowed=activeGraph||!!historic;
+ receipt.graphReuse={hit:!!graphAllowed,reason:historic?'live-session-exact-graph-history':activeGraph?'live-session-input-proof':!state?'no-live-authority':!sameContext?'build-context-changed':!sameAssets?'asset-or-namespace-changed':!directives?'source-contract-not-supported':'source-discovery-contract-changed'};
  try{
   if(c.features.noOpFastPath&&noOpFastPath&&mode!=='official'&&sameContext&&sameAssets&&sameMembers&&state.source===source){
    activity('相同源码：正在验证已有构建输出');
@@ -90,7 +94,7 @@ export class BuildSession {
    }
    if(bundle)throw Error('Output changed after full repeat verification');
   }
-  if(graphAllowed){activity('依赖发现：复用已验证的会话发现图');mirrorMembers(c,members);p=state.p;d=state.d;front=state.front;plan=state.plan;}
+  if(graphAllowed){if(historic)state=historic;activity('依赖发现：复用已验证的会话发现图');mirrorMembers(c,members);p=state.p;d=state.d;front=state.front;plan=state.plan;}
   else {
    const q=requestScope(c);let useOfficial=mode==='official'||!c.features.independentDiscovery||!q.qualified||!directives;
    if(useOfficial)receipt.officialReason=mode==='official'?'explicit-official-request':!c.features.independentDiscovery?'independent-discovery-disabled':!q.qualified?q.reason:sourceContractError;
@@ -99,7 +103,8 @@ export class BuildSession {
     const expanded=(esp32?c.features.esp32Properties!==false&&!c.esp32PropertiesReference:c.features.avrProperties!==false&&!c.avrPropertiesReference)?(esp32?esp32Properties(c):avrProperties(c)):{hit:false,reason:'reference-or-feature-disabled'};
     if(expanded.hit)p=expanded.properties;else{const r=run([...baseArgs(c),'--show-properties=expanded','--json',c.sketchDir],{cwd:c.sysroot});const info=JSON.parse(r.stdout);if(info.compiler_out||info.builder_result.used_libraries?.length)throw Error('Property bootstrap performed discovery');p=properties(info);}
     receipt.propertyExpansion={native:expanded.hit,reason:expanded.reason,coreVersion:path.basename(p['runtime.platform.path'])};receipt.phases.propertiesMs=performance.now()-t;
-    const prepAt=performance.now(),retained=state?saveTree(path.join(c.workspace,'build')).filter(x=>!/[.]o$|[.]gch$|[.]a$|[.]bin$|[.]elf$/.test(x.file)):[];prepare(c,p);for(const x of retained)if(fs.existsSync(x.file)&&fs.readFileSync(x.file).equals(x.bytes))fs.utimesSync(x.file,x.atime,x.mtime);receipt.phases.prepareMs=performance.now()-prepAt;
+    const prepAt=performance.now();bootResult=prepare(c,p,{before,prior:sameAssets&&sameContext&&sameMembers&&!state?.official?state?.bootResult:null});receipt.phases.prepareMs=performance.now()-prepAt;
+    if(bootResult)receipt.bootloaderPreparation={reused:bootResult.reused,sha256:bootResult.sha256};
     const indexAt=performance.now(),index=buildIndex([{dir:path.join(p['runtime.platform.path'],'libraries'),location:'platform'},{dir:c.userLibraries,location:'user'},...(c.collections??[]).map(dir=>({dir,location:'user'})),...(c.explicitLibraries??[]).map(dir=>({dir,location:'unmanaged',single:true}))]);if(index.diagnostics.length)throw new NeedsOfficial('Index diagnostics');receipt.phases.indexMs=performance.now()-indexAt;
     const rediscover=state&&sameAssets&&sameContext&&state.memberNames===names&&!sameMembers;
     const deferCore=!!((c.deferCoreOnRediscovery??c.features?.deferCoreOnRediscovery)!==false&&state&&!state.official&&sameContext&&sameAssets&&sameMembers&&state.memberNames===names);
@@ -150,14 +155,24 @@ export class BuildSession {
   const objects=path.join(c.evidence,label,'objects');if(c.captureEvidence)fs.mkdirSync(objects,{recursive:true});receipt.objects=plan.rules.filter(r=>r.kind==='compile').map(r=>{const proof=c.receiptOptimize?scheduled.records.find(x=>x.output===r.output).proof:statProof(r.output);const dest=sha(r.output)+'.o';if(c.captureEvidence){if(c.receiptOptimize)fs.writeFileSync(path.join(objects,dest),scheduled.bytesFor(r.output));else fs.copyFileSync(r.output,path.join(objects,dest));}return {...proof,stored:dest};});
   receipt.pch=plan.rules.filter(r=>r.kind==='pch').map(r=>({output:c.receiptOptimize?scheduled.records.find(x=>x.output===r.output).proof:statProof(r.output),command:ruleKey(r),argv:r.argv,expanded:responses(r.argv.slice(1),r.directory).expanded,dependencies:c.receiptOptimize?scheduled.records.find(x=>x.output===r.output).inputs:ruleInputs(r),assetIdentity:before.sha256,context:context(c)}));
   receipt.generatedSha256=sha(fs.readFileSync(generated));fs.copyFileSync(generated,path.join(c.evidence,label+'.ino.cpp'));receipt.compileDatabase=plan.db;receipt.selectedLibraries=d.selected.map(l=>({name:l.name,source_dir:l.source_dir,install_dir:l.install_dir,version:l.version??null}));
-  activity('资产复核：再次完整验证输入内容');const after=(c.validationReference?validateAssets:validateSummary)(roots(c),c.validation??{mode:'node'});receipt.phases.postValidationMs=after.elapsedMs;receipt.postAssetProof={...after,rows:undefined};if(before.sha256!==after.sha256||!unchanged())throw Error('Input changed during build');
   const ruleProof=scheduled.records;
   const auxiliary=(p['build.arch'].toLowerCase()==='avr'?['build.options.json']:['partitions.csv','sketch.ino.bootloader.bin','sdkconfig','build.options.json']).map(n=>{const file=path.join(plan.build,n);return {file,bytes:fs.readFileSync(file)};});
-  const outputAt=performance.now(),outputIdentity=c.features.noOpFastPath?observeNoOpTree(plan,c.validation).sha256:null;
-  receipt.phases.noOpAuthorityCaptureMs=performance.now()-outputAt;
+  activity('资产复核：再次完整验证输入内容');
+  // All writers have finished. Read disjoint output and input trees; drain
+  // both checks on failure before releasing or reusing this workspace.
+  const [outCheck,inputCheck]=await Promise.allSettled([
+   c.features.noOpFastPath?outputSummary([plan.build,plan.graph],c.validation):null,
+   Promise.resolve().then(()=>(c.validationReference?validateAssets:validateSummary)(roots(c),c.validation??{mode:'node'}))
+  ]);
+  if(inputCheck.status==='rejected')throw inputCheck.reason;if(outCheck.status==='rejected')throw outCheck.reason;
+  const after=inputCheck.value,outputIdentity=outCheck.value?.sha256??null;
+  receipt.phases.noOpAuthorityCaptureMs=outCheck.value?.nativeElapsedMs??0;
+  receipt.phases.postValidationMs=after.elapsedMs;receipt.postAssetProof={...after,rows:undefined};if(before.sha256!==after.sha256||!unchanged())throw Error('Input changed during build');
+  if(graphAllowed)bootResult=state.bootResult;
+  if(bootResult&&receipt.artifacts.find(a=>a.name==='sketch.ino.bootloader.bin')?.sha256!==bootResult.sha256)throw Error('Bootloader differs from the verified conversion');
   activity('固件验证：输入及产物验证完成，准备宿主交付');
   scheduled.commit();
-  this.#state={context:context(c),assetSha256:before.sha256,namespace:before.namespaceSha256,fixedAssets:sha(JSON.stringify(before.rows.filter(r=>!r[0].toLowerCase().startsWith(path.resolve(c.userLibraries).toLowerCase()+path.sep)))),source,directives,p,d,front,plan:qualifiedPlan,template,rules:ruleProof,auxiliary};
+  this.#state={context:context(c),assetSha256:before.sha256,namespace:before.namespaceSha256,fixedAssets,source,directives,p,d,front,plan:qualifiedPlan,template,rules:ruleProof,auxiliary,bootResult};
   receipt.success=true;receipt.wallMs=performance.now()-at;receipt.officialFrontendInvoked=fullFrontend;receipt.frontendMode=receipt.frontend.replayed?'session-prototype-replay':fullFrontend?'official':'compiler-and-ctags';receipt.compilerInvoked=receipt.steps.some(x=>x.kind==='COMPILE');receipt.ninjaInvocations=scheduled.invocations;receipt.sourceSha256=sha(source);receipt.fqbn=c.fqbn;
   const unusedSpeculative=!graphAllowed&&!fullFrontend?(d.speculativeCompiles??[]).filter(p=>!p.consumed&&Number.isInteger(p.pid)):[];
   const discoveryCompiles=!graphAllowed&&!fullFrontend?d.probes.filter(p=>p.kind==='compile').length+unusedSpeculative.length:0;
@@ -165,6 +180,13 @@ export class BuildSession {
   receipt.counts={LibraryPchGCC:graphAllowed?0:d.libraryPch?.length??0,DiscoveryGCC:receipt.graphReuse.hit?0:null,DiscoveryCompileGCC:discoveryCompiles,PrototypeGCC:receipt.frontend.replayed||receipt.prototypePreprocessReused?0:1,CTags:receipt.frontend.replayed?0:1,CompileGCC:receipt.steps.filter(x=>x.kind==='COMPILE').length+discoveryCompiles+(receipt.coldPipeline?.compiled??0),PipelinedSketchGCC:receipt.coldPipeline?.compiled??0,SchedulerCompileGCC:receipt.steps.filter(x=>x.kind==='COMPILE').length,ObjectProducedDuringDiscovery:scheduled.decisions.filter(x=>x.decision==='UseDiscoveryObject').length,PchGCC:receipt.steps.filter(x=>x.kind==='PCH').length+(!graphAllowed?(d.libraryPch?.length??0):0),Linker:receipt.steps.filter(x=>x.kind==='LINK').length,ImageGenerator:receipt.steps.filter(x=>x.kind==='IMAGE').length,CacheRestored:scheduled.decisions.filter(x=>x.decision==='Restore').length,ObjectRestored:scheduled.decisions.filter(x=>x.task==='compile'&&x.decision==='Restore').length,ObjectRetained:scheduled.decisions.filter(x=>x.task==='compile'&&x.decision==='Reuse').length,PchRestored:scheduled.decisions.filter(x=>x.task==='pch'&&x.decision==='Restore').length,LinkRestored:scheduled.decisions.filter(x=>x.task==='link'&&x.decision==='Restore').length,ImageRestored:scheduled.decisions.filter(x=>x.task==='image'&&x.decision==='Restore').length,RestoredFileWrites:scheduled.decisions.reduce((n,x)=>n+(x.actualWrites??0),0)};if(!fullFrontend)receipt.counts.DiscoveryGCC=receipt.graphReuse.hit?0:d.probes.filter(p=>p.kind!=='compile').length;
   receipt.compilerInvoked=receipt.compilerInvoked||discoveryCompiles>0||(receipt.coldPipeline?.compiled??0)>0;
   Object.assign(this.#state,{outputIdentity,lastReceipt:receipt,memberIdentity:members.identity,memberNames:names,official:fullFrontend});
+  if(graphKey&&!fullFrontend&&template){
+   // Never retain probe logs, compiled objects or the previous output-tree
+   // grant here. Restoration still runs the ordinary content-checking scheduler.
+   this.#graphs.delete(graphKey);
+   this.#graphs.set(graphKey,{p,d:{selected:d.selected},front,plan:qualifiedPlan,template,auxiliary,bootResult});
+   if(this.#graphs.size>4)this.#graphs.delete(this.#graphs.keys().next().value);
+  }
   write(path.join(c.evidence,label+'.receipt.json'),receipt);return receipt;
  }catch(e){
   this.reset();receipt.error=String(e.stack);receipt.wallMs=performance.now()-at;

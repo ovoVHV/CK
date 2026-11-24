@@ -20,7 +20,42 @@ fn identity(f:&File)->Identity{unsafe{let h=f.as_raw_handle();let mut b:FILE_BAS
 fn walk(p:&Path,rows:&mut Vec<Value>,files:&mut Vec<(usize,PathBuf,u64)>){visit(p,fs::symlink_metadata(p).unwrap(),rows,files);}
 fn visit(p:&Path,m:fs::Metadata,rows:&mut Vec<Value>,files:&mut Vec<(usize,PathBuf,u64)>){assert_eq!(m.file_attributes()&FILE_ATTRIBUTE_REPARSE_POINT,0,"Reparse input {}",p.display());if m.is_dir(){rows.push(json!([p,"directory"]));let mut entries:Vec<_>=fs::read_dir(p).unwrap().map(|x|x.unwrap()).collect();entries.sort_by_cached_key(|x|x.file_name().to_string_lossy().encode_utf16().collect::<Vec<_>>());for e in entries{let m=e.metadata().unwrap();if m.is_dir(){walk(&e.path(),rows,files);}else{visit(&e.path(),m,rows,files);}}}else{assert!(m.is_file());let i=rows.len();rows.push(json!([p,"file",m.len(),null]));files.push((i,p.to_path_buf(),m.len()));}}
 
-fn scan(config:&Value)->Value{let mode=config["mode"].as_str().unwrap_or("rust").to_owned();let workers=config["workers"].as_u64().unwrap_or(1) as usize;assert!((1..=8).contains(&workers));let buffer=config["bufferBytes"].as_u64().unwrap_or(1048576) as usize;let start=Instant::now();let roots:Vec<PathBuf>=config["roots"].as_array().unwrap().iter().map(|v|PathBuf::from(v.as_str().unwrap())).collect();let mut rows=Vec::new();let mut files=Vec::new();for p in &roots{for a in p.ancestors(){assert_eq!(fs::symlink_metadata(a).unwrap().file_attributes()&FILE_ATTRIBUTE_REPARSE_POINT,0,"Reparse ancestor");}walk(p,&mut rows,&mut files);}let enumeration=start.elapsed().as_secs_f64()*1000.0;
+type Files=Vec<(usize,PathBuf,u64)>;
+// Expand shallow directory boundaries first. Independent subtrees can then
+// walk concurrently; join their results in the original depth-first order.
+enum Piece{Boundary(PathBuf),File(PathBuf,u64),Subtree(PathBuf)}
+fn split(p:PathBuf,m:fs::Metadata,depth:u8,pieces:&mut Vec<Piece>){
+ assert_eq!(m.file_attributes()&FILE_ATTRIBUTE_REPARSE_POINT,0,"Reparse input {}",p.display());
+ if !m.is_dir(){assert!(m.is_file());pieces.push(Piece::File(p,m.len()));return;}
+ if depth==0{pieces.push(Piece::Subtree(p));return;}
+ let mut entries:Vec<_>=fs::read_dir(&p).unwrap().map(Result::unwrap).collect();
+ entries.sort_by_cached_key(|e|e.file_name().to_string_lossy().encode_utf16().collect::<Vec<_>>());
+ pieces.push(Piece::Boundary(p));
+ for e in entries{let p=e.path();let mut m=e.metadata().unwrap();if m.is_dir(){m=fs::symlink_metadata(&p).unwrap();}
+  split(p,m,depth-1,pieces);}
+}
+fn enumerate(roots:&[PathBuf],workers:usize)->(Vec<Value>,Files){
+ let mut pieces=Vec::new();
+ for p in roots{for a in p.ancestors(){assert_eq!(fs::symlink_metadata(a).unwrap().file_attributes()&FILE_ATTRIBUTE_REPARSE_POINT,0,"Reparse ancestor");}
+  split(p.clone(),fs::symlink_metadata(p).unwrap(),3,&mut pieces);}
+ let subtrees:Vec<_>=pieces.iter().filter_map(|p|if let Piece::Subtree(d)=p{Some(d)}else{None}).collect();
+ let cursor=AtomicUsize::new(0);
+ let mut chunks=std::thread::scope(|s|{
+  let mut joins=Vec::new();
+  for _ in 0..workers.min(subtrees.len()){joins.push(s.spawn(||{let mut out=Vec::new();loop{
+   let i=cursor.fetch_add(1,Ordering::Relaxed);let Some(dir)=subtrees.get(i) else{break};
+   let(mut rows,mut files)=(Vec::new(),Vec::new());walk(dir,&mut rows,&mut files);out.push((i,rows,files));
+  }out}));}
+  joins.into_iter().flat_map(|j|j.join().unwrap()).collect::<Vec<_>>()
+ });
+ chunks.sort_by_key(|x|x.0);let mut chunks=chunks.into_iter();let(mut rows,mut files)=(Vec::new(),Vec::new());
+ for piece in pieces{match piece{
+  Piece::Boundary(p)=>rows.push(json!([p,"directory"])),
+  Piece::File(p,n)=>{files.push((rows.len(),p.clone(),n));rows.push(json!([p,"file",n,null]));},
+  Piece::Subtree(_)=>{let(_,mut r,f)=chunks.next().unwrap();let offset=rows.len();rows.append(&mut r);files.extend(f.into_iter().map(|(i,p,n)|(i+offset,p,n)));}
+ }}(rows,files)
+}
+fn scan(config:&Value)->Value{let mode=config["mode"].as_str().unwrap_or("rust").to_owned();let workers=config["workers"].as_u64().unwrap_or(1) as usize;assert!((1..=8).contains(&workers));let buffer=config["bufferBytes"].as_u64().unwrap_or(1048576) as usize;let start=Instant::now();let roots:Vec<PathBuf>=config["roots"].as_array().unwrap().iter().map(|v|PathBuf::from(v.as_str().unwrap())).collect();let(mut rows,mut files)=enumerate(&roots,workers);let enumeration=start.elapsed().as_secs_f64()*1000.0;
  if config["sizeGrouped"].as_bool().unwrap_or(false){files.sort_by_key(|x|std::cmp::Reverse(x.2));}
 
  let open_workers=config["openWorkers"].as_u64().unwrap_or(0) as usize;assert!(open_workers<=16);
@@ -30,15 +65,15 @@ fn scan(config:&Value)->Value{let mode=config["mode"].as_str().unwrap_or("rust")
  let (sender,receiver)=std::sync::mpsc::sync_channel::<Opened>(workers*2);
  let receiver=Arc::new(Mutex::new(receiver));let mut openers=Vec::new();
  for _ in 0..open_workers{let files=files.clone();let cursor=cursor.clone();let sender=sender.clone();openers.push(std::thread::spawn(move||{
-  loop{let n=cursor.fetch_add(1,Ordering::Relaxed);if n>=files.len(){break;}let (row,p,_)=&files[n];
-   let opened=open_file(*row,p);if sender.send(opened).is_err(){break;}
+  loop{let n=cursor.fetch_add(1,Ordering::Relaxed);if n>=files.len(){break;}let (row,p,sz)=&files[n];
+   let opened=open_file(*row,p,*sz);if sender.send(opened).is_err(){break;}
   }
  }));}drop(sender);
  let mut joins=Vec::new();for _ in 0..workers{let files=files.clone();let cursor=cursor.clone();let receiver=receiver.clone();let mode=mode.clone();joins.push(std::thread::spawn(move||{
   let mut buf=vec![0u8;buffer];let cng=if mode=="cng"{Some(Cng::new())}else{None};let mut measures=[0f64;5];let mut slow_opens:Vec<(f64,String)>=Vec::new();let mut results=Vec::new();
   loop{
    let opened=if open_workers>0{let next=receiver.lock().unwrap().recv();match next{Ok(v)=>v,Err(_)=>break}}
-    else{let n=cursor.fetch_add(1,Ordering::Relaxed);if n>=files.len(){break;}let (row,p,_)=&files[n];open_file(*row,p)};
+    else{let n=cursor.fetch_add(1,Ordering::Relaxed);if n>=files.len(){break;}let (row,p,sz)=&files[n];open_file(*row,p,*sz)};
    let Opened{row,path:p,mut file,before,open_ms,identity_ms}=opened;
    measures[0]+=open_ms;measures[1]+=identity_ms;
    if open_ms>=10.0{slow_opens.push((open_ms,p.to_string_lossy().into_owned()));slow_opens.sort_by(|a,b|b.0.total_cmp(&a.0));slow_opens.truncate(10);}
@@ -70,7 +105,10 @@ fn compact_scan(config:&Value)->Value{
 }
 fn main(){
  let args:Vec<_>=std::env::args().collect();
- if args.get(1).map(String::as_str)==Some("--summary-v1"){
+ if args.get(1).map(String::as_str)==Some("--rows-v1"){
+  let config:Value=serde_json::from_reader(std::io::stdin().lock()).unwrap();
+  serde_json::to_writer(std::io::BufWriter::new(std::io::stdout().lock()),&scan(&config)).unwrap();
+ }else if args.get(1).map(String::as_str)==Some("--summary-v1"){
   let config:Value=serde_json::from_reader(std::io::stdin().lock()).unwrap();
   serde_json::to_writer(std::io::stdout().lock(),&compact_scan(&config)).unwrap();
  }else if args.get(1).map(String::as_str)==Some("--verify-repeat-v1"){
@@ -93,8 +131,9 @@ fn main(){
  }
 }
 struct Opened{row:usize,path:PathBuf,file:File,before:Identity,open_ms:f64,identity_ms:f64}
-fn open_file(row:usize,p:&Path)->Opened{
- let t=Instant::now();let file=OpenOptions::new().read(true).custom_flags(FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_SEQUENTIAL_SCAN).open(p).unwrap();let open_ms=t.elapsed().as_secs_f64()*1000.0;
+fn open_file(row:usize,p:&Path,size:u64)->Opened{
+ let hint=if size>=1024*1024 {FILE_FLAG_RANDOM_ACCESS}else{FILE_FLAG_SEQUENTIAL_SCAN};
+ let t=Instant::now();let file=OpenOptions::new().read(true).custom_flags(FILE_FLAG_OPEN_REPARSE_POINT|hint).open(p).unwrap();let open_ms=t.elapsed().as_secs_f64()*1000.0;
  let t=Instant::now();let before=identity(&file);let identity_ms=t.elapsed().as_secs_f64()*1000.0;
  Opened{row,path:p.to_path_buf(),file,before,open_ms,identity_ms}
 }

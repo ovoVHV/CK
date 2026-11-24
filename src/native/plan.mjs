@@ -240,7 +240,7 @@ export function createPlan(config, frontend) {
   const merged = within(build, output(merge));
   const nativeMergeBin = config.nativeImageReference?null:qualifyNativeMergeRecipe({ expanded:config.features?.nativeImageRecipes===true,fqbn: config.fqbn, argv: merge, build, sysroot: config.sysroot, platform });
   rules.push({ name: 'merge', kind: 'image', argv: merge, directory: cwd, output: merged,
-    inputs: merge.filter(x => /\.bin$/i.test(x) && path.resolve(x) !== merged), nativeMergeBin });
+    inputs: merge.filter(x => /\.bin$/i.test(x)).map(x => path.resolve(cwd, x)).filter(x => x !== merged), nativeMergeBin });
   const flash = props['recipe.hooks.objcopy.postobjcopy.4.pattern'];
   if (!flash?.startsWith('cmd /c echo ')) throw new Error('Unqualified flash argument hook');
   rules.push({ name: 'flash-arguments', kind: 'metadata', directory: cwd,
