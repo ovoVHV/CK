@@ -1,6 +1,6 @@
 [package]
 name = "appsdesktop"
-version = "9.1.0-alpha.56"
+version = "9.1.0-alpha.57"
 description = "CK graphical programming desktop for embedded hardware"
 authors = ["CK"]
 edition = "2021"

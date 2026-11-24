@@ -21,11 +21,12 @@ if(!/^9\.1\.0-alpha\.\d+$/.test(version)||!/^[a-f0-9]{64}$/i.test(release.sha256
 const download=`https://ckswitch.site/ck-updates/releases/${version}/CK-V${version}-Setup-x64.exe`;
 const size=((release.size??release.bytes)/1024/1024).toFixed(1);
 const button=(text,url,style='')=>`<a class="button ${style}" href="${url}">${text}<span class="arrow" aria-hidden="true">↗</span></a>`;
+const peripheralZips=[['舵机','ck_position_servo-1.1.0.zip'],['SSD1306 OLED','ck_oled_ssd1306-1.0.0.zip'],['DHT22','ck_dht22-1.1.0.zip']];
 const libraryBase='https://ckswitch.site/ck-updates/releases/9.1.0-alpha.53/';
 const libraryDownloads=`<section class="wrap article" id="libraries"><h2>积木库与制库工具箱</h2><p>使用积木时，在 CK「库管理器 → 导入」选择单个库 ZIP；制作新库时，下载并解压作者工具箱。</p><ul>${[
  ['按钮消抖','ck_button_latch-1.0.0.zip'],['非阻塞定时器','ck_beat_clock-1.0.0.zip'],
  ['滑动平均','ck_sample_mean-1.0.0.zip'],['作者工具箱：源码、样板与报错示例','CK-Library-Author-Kit-1.0.0.zip']
-].map(([label,file])=>`<li><a class="text-link" download href="${libraryBase}${file}">${label}（ZIP）↓</a></li>`).join('')}</ul></section>`;
+].map(([label,file])=>`<li><a class="text-link" download href="${libraryBase}${file}">${label}（ZIP）↓</a></li>`).join('')}</ul><h3>离线外设样板库</h3><p>任选一个 ZIP 导入。已在 Uno 和 ESP32-S3 验证桌面编译与报错定位，实物效果待验证。</p><ul>${peripheralZips.map(([label,file])=>`<li><a class="text-link" download href="/downloads/libraries/${file}">${label}（ZIP）↓</a></li>`).join('')}</ul></section>`;
 const icon=n=>`<svg class="feature-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">${[
  '<rect x="4" y="4" width="10" height="10"/><rect x="18" y="4" width="10" height="10"/><rect x="4" y="18" width="10" height="10"/><path d="M23 18v10m-5-5h10"/>',
  '<path d="m12 7-8 9 8 9m8-18 8 9-8 9M18 4l-4 24"/>',
@@ -66,6 +67,8 @@ fs.cpSync(path.join(publicRoot,'blockly/media'),path.join(assets,'blockly'),{rec
 fs.copyFileSync(path.join(repo,'desktop/apps/desktop/src-tauri/icons/icon.ico'),path.join(out,'favicon.ico'));
 fs.copyFileSync(path.join(root,'style.css'),path.join(assets,'site.css'));
 stageDrivers(out);
+fs.mkdirSync(path.join(out,'downloads/libraries'),{recursive:true});
+for(const [,file] of peripheralZips)fs.copyFileSync(path.join(repo,'library-kit/peripherals/import',file),path.join(out,'downloads/libraries',file));
 fs.cpSync(path.join(root,'driver-guide-media'),path.join(assets,'driver-guide'),{recursive:true});
 fs.appendFileSync(path.join(assets,'site.css'),'\n'+fs.readFileSync(path.join(root,'drivers.css'),'utf8'));
 fs.appendFileSync(path.join(assets,'site.css'),'\n'+fs.readFileSync(path.join(root,'product.css'),'utf8'));
