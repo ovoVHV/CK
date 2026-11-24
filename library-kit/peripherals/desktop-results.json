@@ -1,0 +1,268 @@
+{
+  "status": "PASS",
+  "engine": "9.1.0-alpha.56",
+  "upload": false,
+  "runs": [
+    {
+      "id": "ck_dht22",
+      "zipSHA256": "a12cbba9d165e0f0c8b6e2fd5171caccd2ec46829f33f4dbfaa902f227e79513",
+      "board": "arduino:avr:uno",
+      "checks": [
+        "demo compiled",
+        "negative: compiler error, red outline, warning icon, locate button",
+        "repair: warning cleared and build succeeded"
+      ],
+      "firmwareSHA256": "d6e4336d81433f8010f81c35542c90acd83c4c89426a65e0b2fd9334a29e4112",
+      "core": "1.8.8",
+      "backend": "ck-build-engine-v9",
+      "artifacts": [
+        "sketch.ino.elf",
+        "sketch.ino.hex",
+        "sketch.ino.eep",
+        "build.options.json"
+      ],
+      "error": {
+        "code": "CK_DHT22_CHANNEL",
+        "id": "ck_dht22-config",
+        "warning": "编译错误 (setup · 行 5)\n编译器已经确认这个源码位置存在错误，但 CK 暂未把该英文诊断归入已知类型；原始信息保留在下方。",
+        "stroke": "rgb(220, 38, 38)",
+        "locate": true
+      },
+      "selectedLibraries": [
+        {
+          "name": "CKDht22",
+          "version": "1.1.0",
+          "origin": "package"
+        },
+        {
+          "name": "DHT sensor library",
+          "version": "1.4.6",
+          "origin": "package"
+        },
+        {
+          "name": "Adafruit Unified Sensor",
+          "version": "1.1.15",
+          "origin": "package"
+        }
+      ],
+      "receiptRequestId": "8f74f6f71aa65de72dd21e25152ad22977dbdb6e5840c354fec16fbc9628ceab"
+    },
+    {
+      "id": "ck_dht22",
+      "zipSHA256": "a12cbba9d165e0f0c8b6e2fd5171caccd2ec46829f33f4dbfaa902f227e79513",
+      "board": "esp32:esp32:esp32s3",
+      "checks": [
+        "demo compiled",
+        "negative: compiler error, red outline, warning icon, locate button",
+        "repair: warning cleared and build succeeded"
+      ],
+      "firmwareSHA256": "064711450792185e16e2a1fd671afc66d3f8d42818f1ac5205141edb2c688a1a",
+      "core": "3.3.6",
+      "backend": "ck-build-engine-v9",
+      "artifacts": [
+        "sketch.ino.elf",
+        "sketch.ino.bin",
+        "sketch.ino.partitions.bin",
+        "sketch.ino.merged.bin",
+        "flash_args",
+        "boot_app0.bin",
+        "sketch.ino.bootloader.bin",
+        "sdkconfig",
+        "build.options.json",
+        "partitions.csv"
+      ],
+      "error": {
+        "code": "CK_DHT22_CHANNEL",
+        "id": "ck_dht22-config",
+        "warning": "编译错误 (setup · 行 5)\n编译器已经确认这个源码位置存在错误，但 CK 暂未把该英文诊断归入已知类型；原始信息保留在下方。",
+        "stroke": "rgb(220, 38, 38)",
+        "locate": true
+      },
+      "selectedLibraries": [
+        {
+          "name": "CKDht22",
+          "version": "1.1.0",
+          "origin": "package"
+        },
+        {
+          "name": "DHT sensor library",
+          "version": "1.4.6",
+          "origin": "package"
+        },
+        {
+          "name": "Adafruit Unified Sensor",
+          "version": "1.1.15",
+          "origin": "package"
+        }
+      ],
+      "receiptRequestId": "3a3c4370ae5c1079853211700703a87050541f550da02592aaece79d039a2437"
+    },
+    {
+      "id": "ck_oled_ssd1306",
+      "zipSHA256": "ba778f4c9ff3763e485b06bd6147d9bed3f3f593414f9d8523e2511c666609cc",
+      "board": "arduino:avr:uno",
+      "checks": [
+        "demo compiled",
+        "negative: compiler error, red outline, warning icon, locate button",
+        "repair: warning cleared and build succeeded"
+      ],
+      "firmwareSHA256": "edecd7c599f247a11d602d18a95418aabb524c6148e86f0b3f64834e71b9dc3e",
+      "core": "1.8.8",
+      "backend": "ck-build-engine-v9",
+      "artifacts": [
+        "sketch.ino.elf",
+        "sketch.ino.hex",
+        "sketch.ino.eep",
+        "build.options.json"
+      ],
+      "error": {
+        "code": "CK_OLED_ADDRESS",
+        "id": "ck_oled_ssd1306-config",
+        "warning": "编译错误 (setup · 行 5)\n编译器已经确认这个源码位置存在错误，但 CK 暂未把该英文诊断归入已知类型；原始信息保留在下方。",
+        "stroke": "rgb(220, 38, 38)",
+        "locate": true
+      },
+      "selectedLibraries": [
+        {
+          "name": "CKOled128x64",
+          "version": "1.0.0",
+          "origin": "package"
+        },
+        {
+          "name": "Wire",
+          "version": "1.0",
+          "origin": "core"
+        }
+      ],
+      "receiptRequestId": "7ac7126a04bf98214874c56643b5e1d65f32ba7470f95e9be374bdb09c049e68"
+    },
+    {
+      "id": "ck_oled_ssd1306",
+      "zipSHA256": "ba778f4c9ff3763e485b06bd6147d9bed3f3f593414f9d8523e2511c666609cc",
+      "board": "esp32:esp32:esp32s3",
+      "checks": [
+        "demo compiled",
+        "negative: compiler error, red outline, warning icon, locate button",
+        "repair: warning cleared and build succeeded"
+      ],
+      "firmwareSHA256": "b06f77156865181852f6b8e5a404ea0def41e27ebdb3fe8341379877a6106057",
+      "core": "3.3.6",
+      "backend": "ck-build-engine-v9",
+      "artifacts": [
+        "sketch.ino.elf",
+        "sketch.ino.bin",
+        "sketch.ino.partitions.bin",
+        "sketch.ino.merged.bin",
+        "flash_args",
+        "boot_app0.bin",
+        "sketch.ino.bootloader.bin",
+        "sdkconfig",
+        "build.options.json",
+        "partitions.csv"
+      ],
+      "error": {
+        "code": "CK_OLED_ADDRESS",
+        "id": "ck_oled_ssd1306-config",
+        "warning": "编译错误 (setup · 行 5)\n编译器已经确认这个源码位置存在错误，但 CK 暂未把该英文诊断归入已知类型；原始信息保留在下方。",
+        "stroke": "rgb(220, 38, 38)",
+        "locate": true
+      },
+      "selectedLibraries": [
+        {
+          "name": "CKOled128x64",
+          "version": "1.0.0",
+          "origin": "package"
+        },
+        {
+          "name": "Wire",
+          "version": "3.3.6",
+          "origin": "core"
+        }
+      ],
+      "receiptRequestId": "ae4a6e5bd9866bf119a3c3ba1bc73a6dc9b025225102ebdfdb8728b81d21e785"
+    },
+    {
+      "id": "ck_position_servo",
+      "zipSHA256": "98af49e92345a17ff7142c5252794a009c24018ab445baa150b1fb6facac4c9f",
+      "board": "arduino:avr:uno",
+      "checks": [
+        "demo compiled",
+        "negative: compiler error, red outline, warning icon, locate button",
+        "repair: warning cleared and build succeeded"
+      ],
+      "firmwareSHA256": "2cd91a8ed466b0995e27cf7445e2f18ca18908d6101b672fdb2bb9a3ed6ca09b",
+      "core": "1.8.8",
+      "backend": "ck-build-engine-v9",
+      "artifacts": [
+        "sketch.ino.elf",
+        "sketch.ino.hex",
+        "sketch.ino.eep",
+        "build.options.json"
+      ],
+      "error": {
+        "code": "CK_POSITION_SERVO_CHANNEL",
+        "id": "ck_position_servo-config",
+        "warning": "编译错误 (setup · 行 5)\n编译器已经确认这个源码位置存在错误，但 CK 暂未把该英文诊断归入已知类型；原始信息保留在下方。",
+        "stroke": "rgb(220, 38, 38)",
+        "locate": true
+      },
+      "selectedLibraries": [
+        {
+          "name": "CKPositionServo",
+          "version": "1.1.0",
+          "origin": "package"
+        },
+        {
+          "name": "Servo",
+          "version": "1.2.2",
+          "origin": "package"
+        }
+      ],
+      "receiptRequestId": "12bbbcae60b1cbe375dc8aba8166d0a933a9fba45eb04cd81782894377676e0d"
+    },
+    {
+      "id": "ck_position_servo",
+      "zipSHA256": "98af49e92345a17ff7142c5252794a009c24018ab445baa150b1fb6facac4c9f",
+      "board": "esp32:esp32:esp32s3",
+      "checks": [
+        "demo compiled",
+        "negative: compiler error, red outline, warning icon, locate button",
+        "repair: warning cleared and build succeeded"
+      ],
+      "firmwareSHA256": "e4db00dd30d255053a1a8a931fdd0d699d0a2fee201c55224bb07f314b239f35",
+      "core": "3.3.6",
+      "backend": "ck-build-engine-v9",
+      "artifacts": [
+        "sketch.ino.elf",
+        "sketch.ino.bin",
+        "sketch.ino.partitions.bin",
+        "sketch.ino.merged.bin",
+        "flash_args",
+        "boot_app0.bin",
+        "sketch.ino.bootloader.bin",
+        "sdkconfig",
+        "build.options.json",
+        "partitions.csv"
+      ],
+      "error": {
+        "code": "CK_POSITION_SERVO_CHANNEL",
+        "id": "ck_position_servo-config",
+        "warning": "编译错误 (setup · 行 5)\n编译器已经确认这个源码位置存在错误，但 CK 暂未把该英文诊断归入已知类型；原始信息保留在下方。",
+        "stroke": "rgb(220, 38, 38)",
+        "locate": true
+      },
+      "selectedLibraries": [
+        {
+          "name": "CKPositionServo",
+          "version": "1.1.0",
+          "origin": "package"
+        }
+      ],
+      "receiptRequestId": "e30be3625c6642acb2469a38563586c106326558615a851d020e39ee6f367886"
+    }
+  ],
+  "date": "2026-11-25",
+  "physicalHardware": "not tested",
+  "desktopExeSha256": "dac3ab83cc87b6663fc9d70c0399680662daa77db60a32a9a8d33f64cdc62948",
+  "elevated": false
+}

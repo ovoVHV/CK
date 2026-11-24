@@ -44,18 +44,29 @@ try {
     const suite=[];
     for(const id of packages){
         const p=path.join(root,'packages',id),lib=read(path.join(p,'library.json'));
-        const x=read(path.join(p,'examples/expected.json')), archive=path.join(root,`${id}-${lib.version}.zip`);
-        const installed=path.join(config.paths.sysroot,'libraries',x.board.replaceAll(':','_'),id);
-        if(fs.existsSync(installed)){
-            // Never replace an existing user's library, even if its version happens to match.
-            const compare=dir=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
-                const f=path.join(dir,entry.name);
-                if(entry.isDirectory())compare(f);else assert(fs.readFileSync(f).equals(fs.readFileSync(path.join(installed,path.relative(p,f)))),'Existing package differs: '+f);
-            }};compare(p);
+        const expected=read(path.join(p,'examples/expected.json')), archive=path.join(root,`${id}-${lib.version}.zip`);
+        for (const board of expected.boards ?? [expected.board]) {
+            function exampleFor(filename) {
+                if(board===expected.board)return filename;
+                const dir=path.join(p,'examples'),prefix=path.basename(filename,'.ck')+'-';
+                const matches=fs.readdirSync(dir).filter(f=>f.startsWith(prefix)&&f.endsWith('.ck')&&read(path.join(dir,f)).board===board);
+                assert.equal(matches.length,1,`Expected one ${filename} variant for ${board}`);
+                return matches[0];
+            }
+            const x={...expected,board,positive:exampleFor(expected.positive),negative:exampleFor(expected.negative)};
+            for(const name of [x.positive,x.negative])assert.equal(read(path.join(p,'examples',name)).board,board);
+            const installed=path.join(config.paths.sysroot,'libraries',x.board.replaceAll(':','_'),id);
+            if(fs.existsSync(installed)){
+                // Never replace an existing user's library, even if its version happens to match.
+                const compare=dir=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
+                    const f=path.join(dir,entry.name);
+                    if(entry.isDirectory())compare(f);else assert(fs.readFileSync(f).equals(fs.readFileSync(path.join(installed,path.relative(p,f)))),'Existing package differs: '+f);
+                }};compare(p);
+            }
+            await c.evaluate(`window.__TAURI_INTERNALS__.invoke('import_library',${JSON.stringify({path:archive,board:x.board,boardPackageId:x.board})})`);
+            assert.equal(read(path.join(installed,'library.json')).id,id);
+            suite.push({id,lib,p,x,archive});
         }
-        await c.evaluate(`window.__TAURI_INTERNALS__.invoke('import_library',${JSON.stringify({path:archive,board:x.board,boardPackageId:x.board})})`);
-        assert.equal(read(path.join(installed,'library.json')).id,id);
-        suite.push({id,lib,p,x,archive});
     }
     await c.evaluate(`(()=>{window.__kitBuilds=[];const original=window.fetch.bind(window);window.fetch=async(url,options)=>{
         const u=new URL(String(url),location.href);
@@ -67,19 +78,23 @@ try {
         const row={id,zipSHA256:createHash('sha256').update(fs.readFileSync(archive)).digest('hex'),board:x.board,checks:[]};
         report.runs.push(row);save();
         for(const [name,source,value] of [['demo',x.positive,x.repair],['invalid',x.negative,x.invalid]]){
-            const file=path.join(out,`${id}-${name}.ck`);
+            const key=`${id}-${x.board.split(':')[2]}`;
+            const file=path.join(out,`${key}-${name}.ck`);
             fs.copyFileSync(path.join(p,'examples',source),file);
             await open(file,x.blockId,value,x.input);
             const r=await compile(id+' '+name);
             assert.equal(r.board,x.board);
             assert(r.code.includes('#include <'+lib.includes[0]+'>'));
-            fs.writeFileSync(path.join(out,`${id}-${name}.ino`),r.code);
+            fs.writeFileSync(path.join(out,`${key}-${name}.ino`),r.code);
             if(name==='demo'){
                 assert.equal(r.kind,'ok',r.body.slice(-2200));
                 const result=JSON.parse(JSON.parse(r.body));
                 const receipt=read(path.join(result.path,'native-graph-host-receipt.json'));
                 assert.equal(receipt.backend,'ck-build-engine-v9');
-                assert(receipt.worker.artifacts.length>0);
+                assert.equal(receipt.worker.fqbn,x.board);
+                const firmware=receipt.worker.artifacts.find(a=>a.name===('sketch.ino.'+(x.board.startsWith('arduino:avr:')?'hex':'bin')));assert(firmware);
+                const hash=createHash('sha256').update(fs.readFileSync(path.join(result.path,firmware.name))).digest('hex');assert.equal(hash,firmware.sha256);
+                row.firmwareSHA256=hash;row.core=receipt.worker.propertyExpansion?.coreVersion;
                 row.checks.push('demo compiled');row.backend=receipt.backend;
                 row.artifacts=receipt.worker.artifacts.map(a=>a.name);
             } else {
@@ -97,7 +112,7 @@ try {
                 await wait(`!${selector}?.classList.contains('ck-block-compile-error')`,'clear stale warning');
                 const fixed=await compile(id+' repaired');assert.equal(fixed.kind,'ok',fixed.body.slice(-2000));
                 const cpp=code=>code.replace(/ *\/\* @ck(?:-source-(?:begin|end))?:v1:[0-9a-f]+ \*\//g,'');
-                assert.equal(cpp(fixed.code),cpp(fs.readFileSync(path.join(out,`${id}-demo.ino`),'utf8')));
+                assert.equal(cpp(fixed.code),cpp(fs.readFileSync(path.join(out,`${key}-demo.ino`),'utf8')));
                 row.checks.push('repair: warning cleared and build succeeded');
             }
             save();console.log(id,name,'OK');
