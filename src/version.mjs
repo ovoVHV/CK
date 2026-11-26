@@ -1,4 +1,4 @@
-export const ENGINE_VERSION = '1.0.59';
+export const ENGINE_VERSION = '1.0.60';
 export const PROTOCOL_VERSION = 1;
 export const CACHE_SCHEMA = 1;
 export const THREAT_MODEL = 'T1-session';

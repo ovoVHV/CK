@@ -1,5 +1,5 @@
 ﻿import { useState, memo, useEffect, useCallback, useRef, useMemo } from 'react';
-import { ArrowLeft, Check, ChevronDown, CircuitBoard, Loader2, Upload, Trash2, Package, DownloadCloud, Search, Link, RefreshCw, ShieldCheck, AlertTriangle, CircleDot } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, CircuitBoard, Loader2, Upload, Trash2, Package, DownloadCloud, Search, Link, RefreshCw, ShieldCheck, AlertTriangle, CircleDot, LayoutGrid, Building2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { CoreManagerModal } from './CoreManagerModal';
 import { BrandLogo } from './BrandLogo';
@@ -30,7 +30,9 @@ import {
 } from '../services/ck_forge_core_support';
 import {
     boardCategoryId,
-    compareBoardCategoryIds,
+    boardCatalogCategories,
+    type CatalogCategory,
+    type CatalogCategoryId,
     coreInstallPhaseForEventType,
     shouldAppendCoreInstallPhaseLog,
     type BoardCategoryId,
@@ -68,6 +70,23 @@ const BOARD_CATEGORY_LABEL_KEYS: Record<BoardCategoryId, string> = {
 };
 
 type UiTranslator = (...args: any[]) => string;
+
+function CatalogIcon({ category }: { category: CatalogCategory }) {
+    const [failed, setFailed] = useState<string>();
+    const builtin = category.id === 'arduino' ? 'arduino' : category.id === 'esp32' ? 'espressif' : undefined;
+    let url = builtin ? `/brand/vendors/${builtin}.svg` : undefined;
+    if (!url && category.logoPath) {
+        try { url = convertFileSrc(category.logoPath); } catch { /* Browser without a native bridge */ }
+    }
+    if (url && url !== failed) {
+        return <span className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-white">
+            <img src={url} alt="" className="size-5 object-contain" onError={() => setFailed(url)} />
+        </span>;
+    }
+    const Icon = category.id === 'all' ? LayoutGrid : category.id === 'custom' ? Package :
+        category.id.startsWith('vendor:') ? Building2 : CircuitBoard;
+    return <span className="inline-flex size-6 shrink-0 items-center justify-center"><Icon size={17} aria-hidden="true" /></span>;
+}
 
 const appendBoundedInstallLog = (previous: string[], value: unknown): string[] => {
     const line = String(value ?? '').slice(-MAX_INSTALL_LOG_LINE_CHARACTERS);
@@ -823,7 +842,7 @@ export default function BoardSelector({ onBack, onCreated }: BoardSelectorProps)
 
     // Search & Filter State
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategoryId, setActiveCategoryId] = useState<BoardCategoryId>('all');
+    const [selectedCategoryId, setActiveCategoryId] = useState<CatalogCategoryId>('all');
     const [onlyDeviceVerified, setOnlyDeviceVerified] = useState(false);
     const [onlyEnvironmentUsable, setOnlyEnvironmentUsable] = useState(false);
     const [onlyRecommendedCore, setOnlyRecommendedCore] = useState(false);
@@ -838,14 +857,8 @@ export default function BoardSelector({ onBack, onCreated }: BoardSelectorProps)
     const [installingCloudBoardKey, setInstallingCloudBoardKey] = useState<string | null>(null);
     const [qualificationByBoard, setQualificationByBoard] = useState<Record<string, BoardQualificationState>>({});
 
-    // Derived Categories
-    // Derived Categories
-    // Let's make it dynamic + defaults
-    const dynamicCategoryIds: BoardCategoryId[] = [
-        'all',
-        ...Array.from(new Set(availableBoards.map(board => boardCategoryId(board))))
-            .sort(compareBoardCategoryIds),
-    ];
+    const categories = useMemo(() => boardCatalogCategories(availableBoards), [availableBoards]);
+    const activeCategoryId = categories.some(c => c.id === selectedCategoryId) ? selectedCategoryId : 'all';
 
     // Filter Logic
     const filteredBoards = useMemo(() => availableBoards.filter(b => {
@@ -1688,21 +1701,29 @@ export default function BoardSelector({ onBack, onCreated }: BoardSelectorProps)
                     </div>
 
                     {/* Category Filter */}
-                    <div className="h-10 flex items-end gap-1 mb-2 border-b border-[#dce3ec] overflow-x-auto dark:border-slate-800">
-                        {dynamicCategoryIds.map(categoryId => (
+                    <div className="flex items-stretch gap-1 mb-2 border-b border-[#dce3ec] overflow-x-auto dark:border-slate-800">
+                        {categories.map(category => {
+                            const categoryId = category.id;
+                            const label = category.name || t(BOARD_CATEGORY_LABEL_KEYS[categoryId as BoardCategoryId] as any);
+                            return (
                             <button
                                 key={categoryId}
+                                type="button"
+                                aria-pressed={activeCategoryId === categoryId}
+                                title={label}
                                 onClick={() => setActiveCategoryId(categoryId)}
                                 className={`
-                                    h-10 px-4 text-xs font-bold transition-colors border-b-2 shrink-0
+                                    inline-flex h-10 max-w-52 items-center gap-2 px-3 text-xs font-bold transition-colors border-b-2 shrink-0 focus-visible:outline-offset-[-3px]
                                     ${activeCategoryId === categoryId
                                         ? 'text-[var(--accent)] border-brand-600 bg-brand-50 dark:bg-brand-950/45 dark:text-brand-300'
                                         : 'text-slate-500 border-transparent hover:text-slate-900 hover:bg-white dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100'}
                                 `}
                             >
-                                {t(BOARD_CATEGORY_LABEL_KEYS[categoryId] as any)}
+                                <CatalogIcon category={category} />
+                                <span className="truncate">{label}</span>
                             </button>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     <div className="mb-4 flex min-h-8 flex-wrap items-center gap-2 rounded-md border border-[#dce3ec] bg-white px-2.5 py-1.5 dark:border-slate-800 dark:bg-slate-900">

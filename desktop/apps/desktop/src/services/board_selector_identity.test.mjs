@@ -33,6 +33,21 @@ test('board categories use stable ids while labels remain presentation-only', ()
     assert.doesNotMatch(source, /leftLabel\s*[<>]|rightLabel\s*[<>]/);
 });
 
+test('manufacturer filters group boards across cores and choose a stable packaged logo', () => {
+    const boards = [
+        { id: 'b', fqbn: 'esp32:esp32:s3', is_custom: true, catalog_vendor: 'ACME', vendor_logo_path: 'b/logo.svg' },
+        { id: 'a', fqbn: 'arduino:avr:uno', is_custom: true, catalog_vendor: 'Acme' },
+        { id: 'c', is_custom: true, catalog_vendor: 'Acme', vendor_logo_path: 'c/logo.png' },
+        { id: 'legacy', is_custom: true, author: 'Single author' },
+        { id: 'uno', fqbn: 'arduino:avr:uno' },
+    ];
+    const groups = identity.boardCatalogCategories(boards);
+    assert.deepEqual(groups, identity.boardCatalogCategories(boards.reverse()));
+    assert.deepEqual(groups.map(c => c.id), ['all', 'custom', 'arduino', 'vendor:acme']);
+    assert.deepEqual(groups.at(-1), { id: 'vendor:acme', name: 'Acme', logoPath: 'b/logo.svg' });
+    assert.equal(boards.filter(b => identity.boardCategoryId(b) === 'vendor:acme').length, 3);
+});
+
 test('core install state and deduplication use stable structured phases', () => {
     assert.equal(identity.coreInstallPhaseForEventType('download_progress'), 'downloading');
     assert.equal(identity.coreInstallPhaseForEventType('install_progress'), 'installing');

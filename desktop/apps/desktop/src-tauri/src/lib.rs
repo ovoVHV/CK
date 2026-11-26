@@ -55,6 +55,8 @@ pub struct BoardDefinition {
     pub name: String,
     pub version: String,
     pub vendor: String,
+    pub author: Option<String>,
+    pub vendor_logo_path: Option<String>,
     pub fqbn_base: String,
     pub pins: Vec<serde_json::Value>,
     pub icon: String,
@@ -16521,11 +16523,18 @@ fn inspect_board_core_contract(
     }
 }
 
+mod board_vendor_logo;
+
 fn inspect_board_icon(
     root: &std::path::Path,
     json: &serde_json::Value,
     report: &mut package_quality::PackageQualityReport,
 ) {
+    if let Some(value) = json.get("vendor_logo") {
+        if value.as_str().and_then(|logo| board_vendor_logo::resolve(root, logo)).is_none() {
+            report.warn("invalid-vendor-logo", "The optional vendor logo is unavailable. Use a local PNG, SVG, WebP or JPEG inside the board package (up to 256 KiB).");
+        }
+    }
     let Some(icon) = json
         .get("icon")
         .and_then(serde_json::Value::as_str)

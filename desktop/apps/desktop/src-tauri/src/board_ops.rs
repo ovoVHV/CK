@@ -42,7 +42,6 @@ pub async fn get_custom_boards_v2(app: AppHandle) -> Result<Vec<BoardDefinition>
                                 let version = json["version"].as_str().unwrap_or("").to_string();
                                 let vendor = json["vendor"]
                                     .as_str()
-                                    .or_else(|| json["author"].as_str())
                                     .unwrap_or("")
                                     .to_string();
                                 let desc = json["description"].as_str().unwrap_or("").to_string();
@@ -208,6 +207,10 @@ pub async fn get_custom_boards_v2(app: AppHandle) -> Result<Vec<BoardDefinition>
                                         name,
                                         version,
                                         vendor,
+                                        author: json["author"].as_str().map(str::to_owned),
+                                        vendor_logo_path: json["vendor_logo"].as_str()
+                                            .and_then(|logo| crate::board_vendor_logo::resolve(&path, logo))
+                                            .map(|logo| logo.to_string_lossy().into_owned()),
                                         fqbn_base: base_fqbn.to_string(),
                                         pins,
                                         icon,

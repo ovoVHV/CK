@@ -29,6 +29,7 @@
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9_-]*$"
     },
     "icon": { "$ref": "#/$defs/relativePath" },
+    "vendor_logo": { "$ref": "#/$defs/relativePath", "description": "Optional manufacturer logo for the board catalog, relative to board.json. Bundle a PNG, SVG, WebP or JPEG up to 256 KiB." },
     "extends": { "$ref": "#/$defs/relativePath" },
     "arduino_core": { "$ref": "#/$defs/arduinoCore" },
     "capabilities": { "$ref": "#/$defs/capabilityMap" },

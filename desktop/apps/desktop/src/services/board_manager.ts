@@ -218,6 +218,8 @@ export const normalizeUserBoard = (rawBoard: unknown): BoardPackage => {
         name: textValue(b.name, manifest.name) || '未命名开发板',
         version: textValue(b.version, manifest.version),
         vendor: vendor || undefined,
+        catalog_vendor: textValue(b.vendor, manifest.vendor) || undefined,
+        vendor_logo_path: textValue(b.vendor_logo_path) || undefined,
         author: author || undefined,
         fqbn: fqbnBase,
         fqbn_base: fqbnBase,

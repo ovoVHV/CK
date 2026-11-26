@@ -194,6 +194,9 @@ export interface BoardPackage {
     name: string;
     version: string;
     vendor?: string;
+    /** Manufacturer explicitly declared in board.json (not its author). */
+    catalog_vendor?: string;
+    vendor_logo_path?: string;
     fqbn: string;
     /** Arduino CLI target without menu options. */
     fqbn_base: string;

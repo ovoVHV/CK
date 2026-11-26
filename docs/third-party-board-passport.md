@@ -9,6 +9,22 @@
 - [`schemas/ck-board.schema.json`](schemas/ck-board.schema.json)
 - [`schemas/ck-board-lock.schema.json`](schemas/ck-board-lock.schema.json)
 
+## 新建工程里的厂商图标
+
+在 `board.json` 中声明厂商名，将 Logo 随板卡包分发。以下是清单片段：
+
+```json
+{
+  "vendor": "示例硬件",
+  "vendor_logo": "assets/vendor-logo.svg",
+  "icon": "assets/board.png"
+}
+```
+
+`vendor_logo` 用在「新建工程 → 选择目标板」的分类栏；`icon` 仍是单块开发板卡片上的照片。两条路径都可以相对于 `board.json` 填写。厂商 Logo 支持 PNG、SVG、WebP、JPEG，最大 256 KiB。建议使用透明背景的紧凑标志，Logo 旁边会显示完整厂商名。无需提供网址，安装后可离线显示。
+
+同厂商的板卡使用相同的 `vendor` 名称，会共用一个分类。没有 Logo 时显示通用图标；没有声明 `vendor` 的旧包仍在「自定义」，不会把 `author` 当成厂商。
+
 ## 精确引脚目录
 
 `pins` 仍以旧版 `label`/`value` 为最小兼容格式。板厂不需要等待 CK 为每块自制板手工写规则，但要让精确引脚风险图可用，应为每个引脚补充机器可读事实：

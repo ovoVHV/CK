@@ -22,6 +22,7 @@ Arduino board cores, GCC, GNU ld, upload tools and libraries are separate depend
 - avr8js 0.21.1: MIT; see `licenses/avr8js-MIT.txt`.
 - CodeMirror 6 source editor, Lezer parsers and supporting packages: MIT; exact versions are pinned in the desktop lockfile, with notices in `licenses/CodeMirror-MIT.txt`.
 - Blockly media and other checked-in assets retain their copyright notices. Examples and test libraries with a `LICENSE` retain that license.
+- Arduino and Espressif catalog icons: [Simple Icons 13.0.0](https://github.com/simple-icons/simple-icons/tree/13.0.0), CC0-1.0. Brand names and marks belong to their respective owners and identify the board families.
 - Offline peripheral references ship complete upstream source archives: Arduino Servo 1.2.2 (LGPL-2.1-or-later), Adafruit DHT sensor library 1.4.6 (MIT), and Adafruit Unified Sensor 1.1.15 (Apache-2.0). See [sources and notices](library-kit/peripherals/README.md); their licenses remain inside each archive and importable package.
 - USB driver archives are not part of this source publication. The website catalog records upstream sources and checksums; CP210x and FTDI remain vendor-direct downloads.
 
