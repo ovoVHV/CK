@@ -6,7 +6,7 @@ export async function verifyRelease(envelope, cryptoApi=globalThis.crypto) {
     const key=await cryptoApi.subtle.importKey('raw',fromHex(channel.publicKey),{name:'Ed25519'},false,['verify']);
     if(!await cryptoApi.subtle.verify('Ed25519',key,fromHex(envelope.signature),new TextEncoder().encode(envelope.payload)))throw Error('Release signature mismatch');
     const release=JSON.parse(envelope.payload);
-    if(release.schema!==1||release.app!=='ck-build-engine-v91'||release.channel!=='preview'||release.target!=='windows-x86_64'||!/^9\.1\.0-alpha\.\d+$/.test(release.version))throw Error('Unsupported release');
+    if(release.schema!==1||release.app!=='ck-build-engine-v91'||release.channel!==channel.channel||release.target!=='windows-x86_64'||!/^1\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(release.version))throw Error('Unsupported release');
     const expected=`${channel.downloadPrefix}${release.version}/CK-V${release.version}-Setup-x64.exe`;
     if(release.url!==expected||!Number.isSafeInteger(release.size)||release.size<=0||release.size>512*1024*1024||!/^[a-f0-9]{64}$/.test(release.sha256))throw Error('Invalid release artifact');
     if(typeof release.notes!=='string'||release.notes.length>32768)throw Error('Invalid release notes');
@@ -15,7 +15,7 @@ export async function verifyRelease(envelope, cryptoApi=globalThis.crypto) {
 
 export async function refreshRelease() {
     try {
-        const response=await fetch('/ck-updates/preview/windows-x86_64/latest.json',{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(10000)});
+        const response=await fetch(channel.endpoint,{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(10000)});
         if(!response.ok)throw Error('Manifest unavailable');
         const release=await verifyRelease(await response.json());
         for(const el of document.querySelectorAll('[data-release-version]'))el.textContent=release.version;

@@ -81,7 +81,7 @@ export function generateSketch(config, plan, preprocessing=null) {
   const argv = entry.arguments.slice(1).filter(arg => arg !== '-MMD').map((arg, index, all) => all[index - 1] === '-o' ? preprocessed :
     arg.startsWith('@') && path.basename(arg.slice(1)) === 'file_opts' ? '@' + path.join(plan.graph, 'normal-file-options.rsp') : arg);
   argv.unshift('-E', '-CC', '-dD', '-x', 'c++');
-  let candidate, macroNames,preprocessReused=false;
+  let candidate, macroNames,preprocessedText,preprocessReused=false;
   try {
     if(reusablePreprocess(preprocessing,[entry.arguments[0],...argv],entry.directory,raw)){
       fs.writeFileSync(preprocessed,preprocessing.bytes);preprocessReused=true;
@@ -93,7 +93,7 @@ export function generateSketch(config, plan, preprocessing=null) {
     // Ctags sees only sketch-origin preprocessed tokens, not the entire C++ SDK.
     // Preserve line markers so prototypes retain the original diagnostic lines.
     let active = false; const filtered = [];
-    const preprocessedText = readPreprocessed(preprocessed,entry.directory);
+    preprocessedText = readPreprocessed(preprocessed,entry.directory);
     macroNames = [...new Set([...preprocessedText.matchAll(/^#define\s+([A-Za-z_]\w*)/gm)].map(match => match[1]))];
     for (const text of preprocessedText.split(/\r?\n/)) {
       const marker = text.match(/^#(?:line)?\s+(\d+)\s+("(?:\\.|[^"\\])*")/);
@@ -137,7 +137,7 @@ export function generateSketch(config, plan, preprocessing=null) {
     // preserves Ninja timestamps for unchanged source and for rejected paths.
     if (original !== null) { fs.writeFileSync(generated, original); fs.utimesSync(generated, originalStat.atime, originalStat.mtime); }
   }
-  return { generated, code: candidate, sourceHash: sha(code), directivesHash: sourceContract(code),preprocessReused,
+  return { generated, code: candidate, sourceHash: sha(code), directivesHash: sourceContract(code),preprocessReused,preprocessedText,
     literalTemplate: { source: code, generated: candidate, macroNames } };
 }
 

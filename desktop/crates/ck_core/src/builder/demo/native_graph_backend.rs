@@ -8,7 +8,7 @@ mod contract;
 use contract::{validate_receipt, validate_manifest, allows_fqbn, artifact_names};
 #[path = "v9_loopback.rs"]
 mod loopback;
-const HOST_ENGINE_VERSION: &str = "9.1.0-alpha.57";
+const HOST_ENGINE_VERSION: &str = "1.0.59";
 
 tokio::task_local! { static PROJECT_ID: Option<String>; }
 pub(super) fn current_project() -> Option<String> { PROJECT_ID.try_with(Clone::clone).ok().flatten() }
@@ -69,7 +69,7 @@ where F: Fn(f32, String), L: Fn(String) {
         log(format!("[V9] 当前使用兼容编译：{}。\n", config.disabled_reason.as_deref().unwrap_or("启动时 V9 未启用；若刚安装 Core，请完全退出 CK 后重新打开，无需卸载")));
         return Ok(None);
     }
-    anyhow::ensure!(config.protocol_version == 1 && config.engine_version == "9.1.0-alpha.57", "V9 host configuration version mismatch");
+    anyhow::ensure!(config.protocol_version == 1 && config.engine_version == "1.0.59", "V9 host configuration version mismatch");
     if !allows_fqbn(&config.allowed_fqbns, fqbn) {
         log(format!("[V9] 当前使用兼容编译：目标 {fqbn} 不在启用的平台范围内。\n"));
         return Ok(None);
@@ -207,7 +207,7 @@ where F: Fn(f32, String), L: Fn(String) {
     current_build_cancellation_checkpoint()?;
     anyhow::ensure!(receipt["requestId"] == request_id && receipt["sourceSha256"] == source_hash && receipt["fqbn"] == fqbn,
         "V9 response identity mismatch");
-    anyhow::ensure!(receipt["protocolVersion"] == 1 && receipt["engineVersion"] == "9.1.0-alpha.57", "V9 response version mismatch");
+    anyhow::ensure!(receipt["protocolVersion"] == 1 && receipt["engineVersion"] == "1.0.59", "V9 response version mismatch");
     if receipt["success"] != true && receipt["error"]["fallbackSafe"] == true
         && matches!(receipt["error"]["code"].as_str(), Some("ENGINE_UNAVAILABLE" | "NOT_QUALIFIED")) {
         log(format!("[V9] Safe fallback to v6: {}\n", receipt["error"]["message"]));
@@ -282,7 +282,7 @@ mod tests {
     use super::*;
     #[test]
     fn receipt_binds_actual_request_and_rejects_failed_or_stale_outputs() {
-        let receipt = json!({"requestId":"r","sourceSha256":"s","fqbn":"b","success":true,"protocolVersion":1,"engineVersion":"9.1.0-alpha.57"});
+        let receipt = json!({"requestId":"r","sourceSha256":"s","fqbn":"b","success":true,"protocolVersion":1,"engineVersion":"1.0.59"});
         assert!(validate_receipt(&receipt,"r","s","b").is_ok());
         for key in ["requestId","sourceSha256","fqbn"] {
             let mut changed = receipt.clone(); changed[key] = json!("stale");

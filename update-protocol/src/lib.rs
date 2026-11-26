@@ -49,6 +49,7 @@ pub fn verify_manifest(bytes: &[u8], policy: &Channel) -> Result<Manifest, Strin
     let version = semver::Version::parse(&manifest.version).map_err(|_| "更新版本号无效")?;
     if manifest.schema != 1 || manifest.app != APP_ID || manifest.target != "windows-x86_64"
         || manifest.channel != policy.channel || !version.build.is_empty()
+        || (policy.channel == "v1" && (version.major != 1 || !version.pre.is_empty()))
         || manifest.size == 0 || manifest.size > MAX_INSTALLER_BYTES
         || manifest.sha256.len() != 64 || hex::decode(&manifest.sha256).map_or(true, |b| b.len() != 32)
         || manifest.notes.len() > 24 * 1024 {
@@ -125,6 +126,19 @@ mod tests {
         let tampered = String::from_utf8(b.clone()).unwrap().replace("中文说明", "changed");
         assert!(verify_manifest(tampered.as_bytes(), &p).is_err());
         p.public_key = "00".repeat(32); assert!(verify_manifest(&b, &p).is_err());
+    }
+    #[test] fn v1_channel_rejects_legacy_even_with_valid_signature() {
+        let (mut p, mut m, k) = fixture();
+        p.channel = "v1".into();
+        assert!(verify_manifest(&signed(&m, &k), &p).is_err());
+        m.channel = "v1".into();
+        assert!(verify_manifest(&signed(&m, &k), &p).is_err());
+        m.version = "1.0.59".into();
+        m.url = format!("{}{}/CK-V{}-Setup-x64.exe", p.download_prefix, m.version, m.version);
+        let stable = verify_manifest(&signed(&m, &k), &p).unwrap();
+        assert!(!is_newer(&stable, "9.1.0-alpha.58").unwrap());
+        assert!(!is_newer(&stable, "1.0.59").unwrap());
+        assert!(is_newer(&stable, "1.0.58").unwrap());
     }
     #[test] fn signed_wrong_product_target_channel_and_url_fail() {
         let (p, m, k) = fixture();

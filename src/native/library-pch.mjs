@@ -34,6 +34,14 @@ export function acceptsLibraryPchGrant(grant,canonical,actual,cwd){
  const g=grants.get(grant);return !!g&&g.canonical===identity(canonical,cwd)&&g.actual===identity(actual,cwd);
 }
 
+// Consume only the post-compiler header hashes from this live invocation.
+// The scheduler independently rechecks every input before admitting its object.
+export function takeLibraryPchInputProofs(grant,canonical,actual,cwd){
+ const g=grants.get(grant);
+ if(!g||!acceptsLibraryPchGrant(grant,canonical,actual,cwd))return null;
+ grants.delete(grant);return g.inputs;
+}
+
 // Only a repeated, unconditional first include with its own include guard is
 // eligible. The wrapper includes the ORIGINAL header by absolute path; source
 // and header search directories never move. No PCH is restored from disk.
@@ -66,9 +74,14 @@ export class RequestLibraryPch {
   const r=await this.run(args,this.c.sysroot),row={header:group.header,units:group.entries.length,compileMs:r.elapsedMs,exitCode:r.code,accepted:false};this.rows.push(row);
   if(r.code!==0){row.reason='header-build-failed';return null;}
   const deps=[...new Set(readNativeDependencies(depfile,this.c.sysroot,gch).map(f=>path.resolve(this.c.sysroot,f)))].filter(f=>f!==wrapper);
-  for(const file of deps)if(/\b(?:__BASE_FILE__|__INCLUDE_LEVEL__)\b/.test(fs.readFileSync(file,'utf8'))){row.reason='source-context-sensitive-header';return null;}
+  const headerProofs=[];
+  for(const file of deps){
+   const bytes=fs.readFileSync(file);
+   if(/\b(?:__BASE_FILE__|__INCLUDE_LEVEL__)\b/.test(bytes.toString('utf8'))){row.reason='source-context-sensitive-header';return null;}
+   headerProofs.push({file,sha256:sha(bytes)});
+  }
   row.accepted=true;row.dependencies=deps.length;
-  return {wrapper,gch,deps,proofs:[wrapper,gch,...deps].map(proof),row};
+  return {wrapper,gch,deps,proofs:[proof(wrapper),proof(gch),...headerProofs],row};
  }
  async compile(plan,args,cwd,priority=0){
   const p=await plan;if(!p)return {result:await this.pool.run(priority,()=>this.run(args,cwd)),actual:args,grant:null};
@@ -84,7 +97,7 @@ export class RequestLibraryPch {
   // closure into the ordinary dependency file before observing this object.
   // The disposable wrapper has no content beyond the original absolute include.
   fs.writeFileSync(depfile,nativeDependencyTarget(output)+': '+dependencies.map(nativeDependencyTarget).join(' \\\n ' )+'\n');
-  const grant={};grants.set(grant,{canonical:identity(args,cwd),actual:identity(actual,cwd)});
+  const grant={};grants.set(grant,{canonical:identity(args,cwd),actual:identity(actual,cwd),inputs:new Map(p.proofs.slice(2).map(x=>[x.file,x.sha256]))});
   p.row.compiled=(p.row.compiled??0)+1;return {result,actual,grant};
  }
  async close(){await Promise.allSettled(this.groups.values());for(const file of this.files){checkedBuildPath(this.c,file);if(fs.existsSync(file))fs.unlinkSync(file);}const dir=checkedBuildPath(this.c,path.join(this.c.workspace,'build','.pch'));if(fs.existsSync(dir)&&fs.readdirSync(dir).length===0)fs.rmdirSync(dir);}

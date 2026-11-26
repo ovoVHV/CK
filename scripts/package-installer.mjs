@@ -89,6 +89,7 @@ fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(pat
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/alpha.55-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/alpha.56-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/alpha.57-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
+fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,`docs/${ENGINE_VERSION}-release-notes.txt`),'utf8').replace(/\r?\n/g,'\r\n'));
 const files=[];function scan(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const f=path.join(dir,e.name);if(f===path.join(stage,'files.sha256.json'))continue;if(e.isDirectory())scan(f);else files.push({path:path.relative(stage,f),bytes:fs.statSync(f).size,sha256:hash(f)});}}scan(stage);
 fs.writeFileSync(path.join(stage,'files.sha256.json'),JSON.stringify(files,null,2));files.push({path:'files.sha256.json'});
 const escape=s=>s.replaceAll('$','$$').replaceAll('"','$\\"');
@@ -98,7 +99,7 @@ const nsi=`Unicode True
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 ${storageIncludes}
-Name "CK V9.1 测试版 ${ENGINE_VERSION}"
+Name "CK LAB V${ENGINE_VERSION}"
 OutFile "${escape(path.join(out,installerName))}"
 InstallDir "$LOCALAPPDATA\\Programs\\CKBuildEngineV91Alpha"
 InstallDirRegKey HKCU "Software\\CKBuildEngineV91Alpha" "InstallDir"
@@ -107,9 +108,10 @@ Icon "${escape(path.join(root,'desktop/apps/desktop/src-tauri/icons/icon.ico'))}
 !define MUI_ICON "${escape(path.join(root,'desktop/apps/desktop/src-tauri/icons/icon.ico'))}"
 !define MUI_UNICON "${escape(path.join(root,'desktop/apps/desktop/src-tauri/icons/icon.ico'))}"
 SetCompressor /SOLID lzma
-VIProductVersion "9.1.0.0"
-VIAddVersionKey "ProductName" "CK Build Engine V9.1 Alpha"
-VIAddVersionKey "FileDescription" "Current-user test installer"
+VIProductVersion "${ENGINE_VERSION}.0"
+VIAddVersionKey "ProductVersion" "${ENGINE_VERSION}"
+VIAddVersionKey "ProductName" "CK LAB"
+VIAddVersionKey "FileDescription" "CK LAB current-user installer"
 VIAddVersionKey "FileVersion" "${ENGINE_VERSION}"
 VIAddVersionKey "LegalCopyright" "CK"
 !define MUI_ABORTWARNING
@@ -149,7 +151,7 @@ Section "CK V9.1"
 ${storageInstall}
   WriteUninstaller "$INSTDIR\\Uninstall.exe"
   WriteRegStr HKCU "Software\\CKBuildEngineV91Alpha" "InstallDir" "$INSTDIR"
-  WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha" "DisplayName" "CK V9.1 测试版"
+  WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha" "DisplayName" "CK LAB"
   WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha" "DisplayVersion" "${ENGINE_VERSION}"
   WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha" "DisplayIcon" "$INSTDIR\\CK-V9.1.exe,0"
   WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha" "UninstallString" '"$INSTDIR\\Uninstall.exe"'

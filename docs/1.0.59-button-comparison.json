@@ -1,0 +1,196 @@
+{
+  "baseline": "9.1.0-alpha.58",
+  "candidate": "1.0.59",
+  "rounds": 1,
+  "boundary": "Desktop button click to overlay gone and button enabled; fresh CK workspaces, OS file cache uncontrolled",
+  "boards": [
+    {
+      "target": "arduino:avr:uno",
+      "comparisons": [
+        {
+          "round": 1,
+          "desktopSha256": [
+            "e16e5991d47a6749e441a00b8b0be890286b87f9841591dd792ad5b6002b8f6c",
+            "876b30214e19fbb24db5001e3fa266104b94c43d7425e34c0b24794f4e606b72"
+          ],
+          "imageHashesIdenticalAcrossSeparateBuildPaths": true
+        }
+      ],
+      "scenarios": {
+        "cold": {
+          "baseline": {
+            "timesMsByRound": [
+              [
+                8108.5
+              ]
+            ],
+            "n": 1,
+            "medianMs": 8109
+          },
+          "candidate": {
+            "timesMsByRound": [
+              [
+                5101.1
+              ]
+            ],
+            "n": 1,
+            "medianMs": 5101
+          },
+          "medianDeltaMs": -3008,
+          "pairedRoundMedianDeltasMs": [
+            -3007
+          ]
+        },
+        "repeat": {
+          "baseline": {
+            "timesMsByRound": [
+              [
+                1043.3
+              ]
+            ],
+            "n": 1,
+            "medianMs": 1043
+          },
+          "candidate": {
+            "timesMsByRound": [
+              [
+                1083.5
+              ]
+            ],
+            "n": 1,
+            "medianMs": 1084
+          },
+          "medianDeltaMs": 41,
+          "pairedRoundMedianDeltasMs": [
+            40
+          ]
+        },
+        "edit": {
+          "baseline": {
+            "timesMsByRound": [
+              [
+                2436
+              ]
+            ],
+            "n": 1,
+            "medianMs": 2436,
+            "distinctSources": 1,
+            "over20s": 0,
+            "p95Ms": null
+          },
+          "candidate": {
+            "timesMsByRound": [
+              [
+                2562.3
+              ]
+            ],
+            "n": 1,
+            "medianMs": 2562,
+            "distinctSources": 1,
+            "over20s": 0,
+            "p95Ms": null
+          },
+          "medianDeltaMs": 126,
+          "pairedRoundMedianDeltasMs": [
+            126
+          ]
+        }
+      },
+      "candidateEditP95Status": "INSUFFICIENT_SAMPLES"
+    },
+    {
+      "target": "esp32:esp32:esp32s3",
+      "comparisons": [
+        {
+          "round": 1,
+          "desktopSha256": [
+            "e16e5991d47a6749e441a00b8b0be890286b87f9841591dd792ad5b6002b8f6c",
+            "876b30214e19fbb24db5001e3fa266104b94c43d7425e34c0b24794f4e606b72"
+          ],
+          "imageHashesIdenticalAcrossSeparateBuildPaths": false
+        }
+      ],
+      "scenarios": {
+        "cold": {
+          "baseline": {
+            "timesMsByRound": [
+              [
+                56996.3
+              ]
+            ],
+            "n": 1,
+            "medianMs": 56996
+          },
+          "candidate": {
+            "timesMsByRound": [
+              [
+                57690.3
+              ]
+            ],
+            "n": 1,
+            "medianMs": 57690
+          },
+          "medianDeltaMs": 694,
+          "pairedRoundMedianDeltasMs": [
+            694
+          ]
+        },
+        "repeat": {
+          "baseline": {
+            "timesMsByRound": [
+              [
+                3984.3
+              ]
+            ],
+            "n": 1,
+            "medianMs": 3984
+          },
+          "candidate": {
+            "timesMsByRound": [
+              [
+                3017.4
+              ]
+            ],
+            "n": 1,
+            "medianMs": 3017
+          },
+          "medianDeltaMs": -967,
+          "pairedRoundMedianDeltasMs": [
+            -967
+          ]
+        },
+        "edit": {
+          "baseline": {
+            "timesMsByRound": [
+              [
+                21462
+              ]
+            ],
+            "n": 1,
+            "medianMs": 21462,
+            "distinctSources": 1,
+            "over20s": 1,
+            "p95Ms": null
+          },
+          "candidate": {
+            "timesMsByRound": [
+              [
+                17972.8
+              ]
+            ],
+            "n": 1,
+            "medianMs": 17973,
+            "distinctSources": 1,
+            "over20s": 0,
+            "p95Ms": null
+          },
+          "medianDeltaMs": -3489,
+          "pairedRoundMedianDeltasMs": [
+            -3489
+          ]
+        }
+      },
+      "candidateEditP95Status": "INSUFFICIENT_SAMPLES"
+    }
+  ]
+}

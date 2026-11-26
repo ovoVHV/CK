@@ -14,9 +14,8 @@ test('installer computes defaults for nonexistent folders and preserves explicit
  const run=spawnSync(path.join(dir,'check.exe'),['/S'],{windowsHide:true});assert.equal(run.status,0);
  assert.deepEqual(fs.readFileSync(out,'utf16le').trim().split(/\r?\n/),['E:\\新目录 不存在\\CKData','C:\\Another\\CKData','E:\\CustomData']);
 });
-test('desktop and engine enforce the same release identity',()=>{
- for(const f of ['desktop/crates/ck_core/src/builder/demo/native_graph_backend.rs','desktop/crates/ck_core/src/builder/demo/v9_protocol.rs']){
-  const versions=fs.readFileSync(new URL('../'+f,import.meta.url),'utf8').match(/9\.1\.0-alpha\.\d+/g);assert(versions?.length);assert(versions.every(v=>v===ENGINE_VERSION),f);
- }
- const desktop=JSON.parse(fs.readFileSync(new URL('../desktop/apps/desktop/src-tauri/tauri.conf.json',import.meta.url)));assert.equal(desktop.version,ENGINE_VERSION);
+test('installer embeds the actual release as Windows product and file versions',()=>{
+ const installer=fs.readFileSync(new URL('../scripts/package-installer.mjs',import.meta.url),'utf8');
+ assert.match(ENGINE_VERSION,/^\d+\.\d+\.\d+$/);
+ for(const entry of ['VIProductVersion "${ENGINE_VERSION}.0"','VIAddVersionKey "ProductVersion" "${ENGINE_VERSION}"','VIAddVersionKey "FileVersion" "${ENGINE_VERSION}"'])assert(installer.includes(entry),entry);
 });

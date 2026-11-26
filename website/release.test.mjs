@@ -4,8 +4,9 @@ import fs from 'node:fs';
 import {webcrypto} from 'node:crypto';
 import {verifyRelease} from './release.js';
 const envelope=JSON.parse(fs.readFileSync(new URL('./fixtures/release-envelope.json',import.meta.url),'utf8'));
-test('current signed release resolves to its own immutable installer',async()=>{
- const release=await verifyRelease(envelope,webcrypto);
+test('signed legacy releases are isolated from the v1 download channel',async()=>{
+ await assert.rejects(()=>verifyRelease(envelope,webcrypto),/Unsupported release/);
+ const release=await verifyRelease(JSON.parse(fs.readFileSync(new URL('./published-release.json',import.meta.url),'utf8')),webcrypto);
  assert(release.url.endsWith(`CK-V${release.version}-Setup-x64.exe`));
 });
 test('changed release content is rejected before download URL is used',async()=>{

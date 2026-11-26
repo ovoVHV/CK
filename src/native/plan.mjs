@@ -253,7 +253,13 @@ export function createPlan(config, frontend) {
 export function emitGraph(plan) {
   const runner = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../execute-command.mjs');
   const esc = text => slash(text).replaceAll('$', '$$');
-  const p = file => esc(file).replaceAll(':', '$:').replaceAll(' ', '$ ');
+  // Ninja runs in plan.build. Keep its stat operands below the legacy Windows
+  // path limit when the same file has a shorter relative spelling.
+  const p = file => {
+    const rel = process.platform === 'win32' && path.isAbsolute(file) && Buffer.byteLength(file, 'utf8') >= 240
+      ? path.relative(plan.build, file) : '';
+    return esc(rel && rel.length < file.length ? rel : file).replaceAll(':', '$:').replaceAll(' ', '$ ');
+  };
   const lines = ['ninja_required_version = 1.10', 'rule compile', '  command = $command', '  depfile = $depfile', '  deps = gcc', '  description = $label',
     'rule pch', '  command = $command', '  depfile = $depfile', '  deps = gcc', '  description = $label',
     'rule step', '  command = $command', '  description = $label'];

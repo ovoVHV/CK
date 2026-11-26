@@ -6,9 +6,9 @@
 
 CK 面向 Arduino 兼容硬件，把 Blockly 编辑、AI 编程、原生增量编译、上传、串口调试、库管理和工程恢复放在同一个 Windows 桌面应用中。
 
-当前源码版本：**9.1.0-alpha.57**，预览版。原作者与维护者：**CKYAN（[@ovoVHV](https://github.com/ovoVHV)）**。
+当前源码版本：**V1.0.59**。原作者与维护者：**CKYAN（[@ovoVHV](https://github.com/ovoVHV)）**。
 
-[本版更新](docs/alpha.57-release-notes.txt)：多文件工程可在积木和源码两种模式下直接编译未保存的头文件改动，修复取消编译后的界面恢复。新增[舵机、SSD1306 OLED 和 DHT22 三个离线样板库](library-kit/peripherals/)，附可直接导入的 ZIP、正确用例和报错定位示例。
+[本版更新](docs/1.0.59-release-notes.txt)：保留 .57 的增量编译、多文件编译和[离线外设库](library-kit/peripherals/)，合入 .58 的 Windows 深目录修复。使用 9.1.0-alpha 系列的用户请先退出 CK，手动将新版安装到原目录一次，无需卸载或重装核心包。
 
 [下载安装包](https://ckswitch.site/download/) · [作者声明与署名方式](AUTHORS.md) · [源码构建](docs/BUILDING.md) · [AI 使用说明](docs/ai-assistant-guide.md) · [问题反馈](https://github.com/ovoVHV/CK/issues)
 

@@ -17,7 +17,6 @@ const e=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','
 const current=process.env.CK_LAB_RELEASE_ENVELOPE||path.join(root,'published-release.json');
 const release=await verifyRelease(JSON.parse(fs.readFileSync(current,'utf8')));
 const version=release.version;
-if(!/^9\.1\.0-alpha\.\d+$/.test(version)||!/^[a-f0-9]{64}$/i.test(release.sha256))throw Error('Invalid verified release record');
 const download=`https://ckswitch.site/ck-updates/releases/${version}/CK-V${version}-Setup-x64.exe`;
 const size=((release.size??release.bytes)/1024/1024).toFixed(1);
 const button=(text,url,style='')=>`<a class="button ${style}" href="${url}">${text}<span class="arrow" aria-hidden="true">↗</span></a>`;

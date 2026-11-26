@@ -10,9 +10,10 @@ export function avrRepeatValidation(c, sameSource, cpuCount = os.availableParall
  return {...v,workers:8,bufferBytes:262144};
 }
 
-// Both full input passes run outside native compile batches. Bound reader
-// count by the host and the project's job budget, including on cache misses.
-export function buildValidation(c,sameSource,cpuCount=os.availableParallelism()){
+// A fresh session has no verified working set. Keep the configured full-scan
+// profile for its first build and reserve the warm I/O profile for later builds.
+export function buildValidation(c,sameSource,hasSession,cpuCount=os.availableParallelism()){
+ if(!hasSession)return c.validation;
  const v=c.validation,avr=c.fqbn?.startsWith('arduino:avr:'),esp=c.fqbn?.startsWith('esp32:esp32:');
  if((avr||esp)&&v?.mode==='rust'&&!c.validationReference&&!c.assetOpenReference
   &&c.features?.[avr?'avrRepeatValidation':'esp32RepeatValidation']!==false

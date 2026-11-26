@@ -95,7 +95,8 @@ try{
   // root short; diagnostic evidence stays under the full product/session path.
   // Only the V9 namespace varies per launch, never the compatibility cache root.
   const tempRoot=unicodeCheck?path.resolve(process.env.CK_PATH_TEST_TEMP||path.join(process.env.LOCALAPPDATA,'CKV91','中文 临时')):(storage?.temp||path.join(process.env.LOCALAPPDATA,'CKV91','tmp'));fs.mkdirSync(tempRoot,{recursive:true});
-  const workspaceNamespace=sessionName;
+  const workspaceParent=path.join(tempRoot,'CK_Builds/v9');fs.mkdirSync(workspaceParent,{recursive:true});
+  const workspaceNamespace=path.basename(fs.mkdtempSync(path.join(workspaceParent,'s')));
   let buildUser=user,configPath=yamlPath;
   if(qualify&&!unicodeCheck&&!args.includes('--configuration-check')&&!args.includes('--avr-performance-check')&&!args.includes('--avr-workflow-check')&&!args.includes('--wifi-check')&&!args.includes('--wifi-wait-check')&&!args.includes('--cold-discovery-check')&&!args.includes('--button-cold-check')){
    // A private fixture copies WiFi so both computers exercise the same

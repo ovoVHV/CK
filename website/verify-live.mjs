@@ -3,6 +3,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {verifyRelease} from './release.js';
+import channel from '../update-protocol/channel.json' with {type:'json'};
 const origin='https://ckswitch.site';
 const rows=[];
 for(const page of ['/','/features/','/performance/','/guide/','/examples/','/drivers/','/drivers/install/','/download/','/about/','/licenses/']){
@@ -21,7 +22,7 @@ for(const file of files){
  assert.equal(bytes.length,file.bytes,file.path);
  assert.equal(createHash('sha256').update(bytes).digest('hex'),file.sha256,file.path);
 }
-const release=await verifyRelease(await(await fetch(origin+'/ck-updates/preview/windows-x86_64/latest.json',{signal:AbortSignal.timeout(20000)})).json());
+const release=await verifyRelease(await(await fetch(channel.endpoint,{signal:AbortSignal.timeout(20000)})).json());
 const range=await fetch(release.url,{headers:{Range:'bytes=0-1023'},signal:AbortSignal.timeout(20000)});
 assert.equal(range.status,206);assert.equal((await range.arrayBuffer()).byteLength,1024);
 const redirect=await fetch('http://ckswitch.site/',{redirect:'manual',signal:AbortSignal.timeout(20000)});assert([301,308].includes(redirect.status));assert.equal(redirect.headers.get('location'),origin+'/');

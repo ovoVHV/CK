@@ -30,7 +30,8 @@ try {
  $env:TEMP=$taskTemp;$env:TMP=$taskTemp
  $env:CK_V91_DATA_ROOT=$taskConfig.paths.sysroot
  $taskListener=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$taskListener.Start();$taskPort=$taskListener.LocalEndpoint.Port;$taskListener.Stop()
- $taskSession=Join-Path $taskTemp ('launch-'+[Guid]::NewGuid().ToString('N'));New-Item -ItemType Directory -Path $taskSession -Force | Out-Null
+ $taskSession=& $taskNode -e 'const fs=require("node:fs"),path=require("node:path");process.stdout.write(fs.mkdtempSync(path.join(process.argv[1],"s")))' $taskTemp
+ if($LASTEXITCODE -ne 0 -or !$taskSession){throw 'Could not allocate a new build directory'}
  # A new desktop session never clears or writes an old session's workspace,
  # even if its predecessor crashed before process-tree drain was observed.
  $env:TEMP=$taskSession;$env:TMP=$taskSession

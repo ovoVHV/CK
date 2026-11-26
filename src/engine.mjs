@@ -1,4 +1,3 @@
-import {readPreprocessed} from './native/tool-text.mjs';
 import {reportActivity} from './build-activity.mjs';
 import {withBuildDiagnostics,currentWarningCount,buildResourceEvidence} from './build-resource-evidence.mjs';
 import {ENGINE_VERSION,CACHE_SCHEMA,artifactsFor} from './version.mjs';
@@ -39,7 +38,7 @@ export class BuildSession {
  async build(c,options={}){return withBuildDiagnostics(()=>this.buildObserved(c,options));}
  async buildObserved(c,{label='run',mode='auto',frontendReplay=true,linkHistory=true,objectRestore=true,noOpFastPath=true}={}){
  const at=performance.now(),sourceFile=path.join(c.sketchDir,'sketch.ino'),source=norm(fs.readFileSync(sourceFile,'utf8')),receipt={label,startedUnixMs:Date.now(),sessionId:this.id,success:false,phases:{},steps:[],productAuthorized:false,continuousNamespaceProof:false,diskGraphAuthority:false,mode};
- const validation=buildValidation(c,this.#state?.source===source && noOpFastPath && c.features.noOpFastPath && mode!=='official');
+ const validation=buildValidation(c,this.#state?.source===source && noOpFastPath && c.features.noOpFastPath && mode!=='official',!!this.#state);
  if(validation!==c.validation)c={...c,validation};
  const activity=message=>reportActivity(c,message);
  receipt.executionJobs=c.jobs??8;activity('资产校验：开始完整输入内容验证');
@@ -62,7 +61,7 @@ export class BuildSession {
   activity('原型处理：正在运行 Sketch 前端');
   receipt.derivedRepairs=restoreDerived(c,plan);const ft=performance.now(),g=generateSketch(c,plan,discovered.sketchPreprocess);discovered.sketchPreprocess=null;
   receipt.frontend={replayed:false,reason:'real-frontend-required'};receipt.prototypePreprocessReused=g.preprocessReused;receipt.generatedWritten=writeChanged(g.generated,g.code);
-  template=captureTemplate(source,g.code,readPreprocessed(path.join(plan.graph,'frontend/sketch_merged.cpp'),c.sysroot));receipt.phases.prototypeMs=performance.now()-ft;frontendReady=true;
+  template=captureTemplate(source,g.code,g.preprocessedText);receipt.phases.prototypeMs=performance.now()-ft;frontendReady=true;
  };
  const sameAssets=state?.assetSha256===before.sha256;
  let directives,sourceContractError;try{directives=sourceContract(source);}catch(e){sourceContractError=String(e.message);}
@@ -133,7 +132,7 @@ export class BuildSession {
   // Keep the actual command and the diagnostic context in session identity.
   if(c.pchDiagnostics){plan=structuredClone(plan);const sketch=plan.rules.find(r=>r.kind==='compile'&&r.inputs[0]===path.join(plan.build,'sketch/sketch.ino.cpp'));if(!sketch.argv.includes('-H'))sketch.argv.push('-H');receipt.pchDiagnostics=true;}
   receipt.derivedRepairs=restoreDerived(c,plan);const ft=performance.now();let generated=path.join(plan.build,'sketch/sketch.ino.cpp');
-  if(!fullFrontend&&!frontendReady){activity('原型处理：检查可复用转换并生成 CPP');const replay=frontendReplay&&graphAllowed?replayTemplate(state.template,source):{hit:false,reason:'real-frontend-required'};receipt.frontend={replayed:replay.hit,reason:replay.reason};if(replay.hit){receipt.generatedWritten=writeChanged(generated,replay.code);template=replay.template??{...state.template,source,generated:replay.code,contract:bodyContract(source)};}else{const g=generateSketch(c,plan,graphAllowed?null:d.sketchPreprocess);if(d.sketchPreprocess)d.sketchPreprocess=null;receipt.prototypePreprocessReused=g.preprocessReused;receipt.generatedWritten=writeChanged(g.generated,g.code);template=captureTemplate(source,g.code,readPreprocessed(path.join(plan.graph,'frontend/sketch_merged.cpp'),c.sysroot));}receipt.phases.prototypeMs=performance.now()-ft;}else if(fullFrontend)receipt.frontend={replayed:false,reason:'official-transform'};
+  if(!fullFrontend&&!frontendReady){activity('原型处理：检查可复用转换并生成 CPP');const replay=frontendReplay&&graphAllowed?replayTemplate(state.template,source):{hit:false,reason:'real-frontend-required'};receipt.frontend={replayed:replay.hit,reason:replay.reason};if(replay.hit){receipt.generatedWritten=writeChanged(generated,replay.code);template=replay.template??{...state.template,source,generated:replay.code,contract:bodyContract(source)};}else{const g=generateSketch(c,plan,graphAllowed?null:d.sketchPreprocess);if(d.sketchPreprocess)d.sketchPreprocess=null;receipt.prototypePreprocessReused=g.preprocessReused;receipt.generatedWritten=writeChanged(g.generated,g.code);template=captureTemplate(source,g.code,g.preprocessedText);}receipt.phases.prototypeMs=performance.now()-ft;}else if(fullFrontend)receipt.frontend={replayed:false,reason:'official-transform'};
   if(d.sketchPreprocess)d.sketchPreprocess=null;
   if(template)write(path.join(c.evidence,label+'.prototype-template.json'),template);if(!fullFrontend&&!receipt.frontend.replayed)fs.copyFileSync(path.join(plan.graph,'frontend/sketch_merged.cpp'),path.join(c.evidence,label+'.preprocessed.cpp'));
   writeChanged(path.join(plan.build,'file_opts'),'');
