@@ -7,7 +7,8 @@ const hash=v=>createHash('sha256').update(v).digest('hex');
 function masked(code){let result='',i=0;while(i<code.length){const tail=code.slice(i),m=tail.match(/^(?:\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*')/);if(m){result+=m[0].replace(/[^\n]/g,' ');i+=m[0].length;}else {result+=code[i];i++;}}return result;}
 export function bodyContract(source){
  try{
-  const directives=sourceContract(source);if(source.includes('R"'))return {qualified:false,reason:'raw-string'};
+  // sourceContract already rejects raw-string openers outside comments and literals.
+  const directives=sourceContract(source);
   const mask=masked(source),lines=mask.split('\n');let seenCode=false;
   for(const line of lines){if(!line.trim())continue;if(/^\s*#/.test(line)){if(seenCode)return {qualified:false,reason:'include-after-code'};}else seenCode=true;}
   const starts=[...mask.matchAll(/^\s*void\s+(setup|loop)\s*\(\s*\)\s*\{/gm)];

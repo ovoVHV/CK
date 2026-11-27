@@ -65,7 +65,7 @@ export class BuildSession {
  };
  const sameAssets=state?.assetSha256===before.sha256;
  let directives,sourceContractError;try{directives=sourceContract(source);}catch(e){sourceContractError=String(e.message);}
- receipt.sourceEligibility={eligible:!!directives,reason:sourceContractError??'literal-includes-and-supported-syntax'};
+ receipt.sourceEligibility={eligible:!!directives,reason:sourceContractError??'supported-sketch-directives-and-syntax'};
  const unchanged=()=>{const now=sketchSnapshot(c.sketchDir);return now.identity===members.identity&&JSON.stringify(now.other)===JSON.stringify(members.other)&&norm(fs.readFileSync(sourceFile,'utf8'))===source;};
  receipt.projectFiles=members.files.map(({name,digest})=>({name,sha256:digest}));
  const keepGraphs=mode!=='official'&&objectRestore&&linkHistory&&frontendReplay&&c.features.sessionHistory&&c.historyBytes!==0;

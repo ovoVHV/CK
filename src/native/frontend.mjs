@@ -13,6 +13,16 @@ import {observeCommandDiagnostics} from '../build-resource-evidence.mjs';
 import {sketchSnapshot} from '../sketch-files.mjs';
 
 export class NeedsOfficialFrontend extends Error {}
+const literalInclude = /^\s*#\s*include\s*(?:<[^>\r\n]+>|"[^"\r\n]+")\s*$/;
+// Only ordinary, object-like constants in the sketch preamble. The complete
+// directive (including its value and position among includes) keys discovery.
+const integerDefine = /^\s*#\s*define\s+([A-Z][A-Z0-9_]*)\s+[+-]?(?:0[xX][\da-fA-F]+|0[bB][01]+|0[0-7]*|[1-9]\d*)(?:[uU](?:ll|LL|[lL])?|(?:ll|LL|[lL])[uU]?)?\s*$/;
+const directiveNames = new Set('include define undef if ifdef ifndef elif else endif line error warning pragma include_next import'.split(' '));
+function rejectDirective(line, number, detail) {
+  const word = line.match(/^\s*#\s*([a-z_]+)/i)?.[1];
+  const kind = directiveNames.has(word) ? '#' + word : 'preprocessor directive';
+  throw new NeedsOfficialFrontend(`${kind} at line ${number}: ${detail}`);
+}
 export function contractText(code) {
   let commentsMasked = '', syntax = '';
   const spaces = text => text.replace(/[^\r\n]/g, ' ');
@@ -53,11 +63,22 @@ export function contractText(code) {
 export function sourceContract(code) {
   // Restrict this adapter to a single ordinary generated sketch. Unsupported
   // syntax continues through the official frontend, never a guessed prototype.
-  if (/\?\?|%:|\\\r?\n/.test(code)) throw new NeedsOfficialFrontend('Complex sketch syntax');
+  // GCC also splices a backslash followed by horizontal whitespace and LF.
+  if (/\?\?|%:|\\[^\S\r\n]*\r?\n|\r(?!\n)/.test(code)) throw new NeedsOfficialFrontend('Complex sketch syntax');
   const { commentsMasked, syntax } = contractText(code);
+  const directives = [], names = new Set(); let seenCode = false, number = 0;
+  for (const line of commentsMasked.split(/\r?\n/)) {
+    number++;
+    if (!/^\s*#/.test(line)) { if (line.trim()) seenCode = true; continue; }
+    if (!literalInclude.test(line)) {
+      const name = line.match(integerDefine)?.[1];
+      if (!name || seenCode || name.includes('__') || names.has(name))
+        rejectDirective(line, number, 'outside the literal include / integer constant preamble');
+      names.add(name);
+    }
+    directives.push(line.trimEnd());
+  }
   if (/\b(namespace|class|struct|union|template|typedef|extern)\b|_Pragma/.test(syntax)) throw new NeedsOfficialFrontend('Complex sketch syntax');
-  const directives = commentsMasked.split(/\r?\n/).filter(line => /^\s*#/.test(line)).map(line => line.trimEnd());
-  if (directives.some(line => !/^\s*#\s*include\s*(?:<[^>\r\n]+>|"[^"\r\n]+")\s*$/.test(line))) throw new NeedsOfficialFrontend('Nonliteral include or other preprocessing directive');
   return sha(directives.join('\n'));
 }
 export function literalSketchIncludes(code){sourceContract(code);const {commentsMasked}=contractText(code);return [...commentsMasked.matchAll(/^\s*#\s*include\s*[<"]([^>"\r\n]+)[>"]/gm)].map(m=>m[1]);}

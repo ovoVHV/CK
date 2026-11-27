@@ -25,6 +25,22 @@ test('observed transform mismatch does not authorize line-changing synthesis',()
  const bad=captureTemplate(source,generated.replace('void loop();','void wrong();'),macros);assert.equal(bad.ordinary,null);
  assert.equal(replayTemplate(bad,source.replace('void loop() {\n','void loop() {\n  delay(1);\n')).hit,false);
 });
+test('a standalone wait edit in an unchanged comparison loop preserves the observed transform',()=>{
+ const a=source.replace('void setup()', 'int pos = 0;\nvoid setup()').replace('void loop() {\n','void loop() {\n  for (pos=0; pos<10; ++pos) {\n    delay(15);\n  }\n');
+ const g=generated.replace('#line 3','int pos = 0;\n#line 4').replace('void loop() {\n','void loop() {\n  for (pos=0; pos<10; ++pos) {\n    delay(15);\n  }\n');
+ const b=a.replace('delay(15)','delay(201)'), t=captureTemplate(a,g,macros), r=replayTemplate(t,b);
+ assert(r.hit,r.reason);assert.equal(r.code,g.replace('delay(15)','delay(201)'));assert.equal(replayTemplate(r.template,a).code,g);
+ for(const next of [b.replace('pos<10','pos<11'),b.replace('delay(201)','delay(201+2)'),b.replace('WiFi.h','Other.h')])assert.equal(replayTemplate(t,next).hit,false);
+ for(const extra of ['#define delay unsigned','#define delay(x) WRAP(x)'])assert.equal(replayTemplate(captureTemplate(a,g,macros+extra),b).hit,false);
+});
+test('unchanged preamble constants permit observed replay; edited constants require fresh discovery',()=>{
+ const def='#define SENSOR_PIN 13';
+ const a=source.replace('#include <WiFi.h>',def),g=generated.replace('#include <WiFi.h>',def);
+ const t=captureTemplate(a,g,macros+'\n'+def);assert(t.ordinary);
+ const b=a.replace('void loop() {\n','void loop() {\n  delay(SENSOR_PIN);\n');
+ assert.equal(replayTemplate(t,b).code,g.replace('void loop() {\n','void loop() {\n  delay(SENSOR_PIN);\n'));
+ assert.equal(replayTemplate(t,b.replace('PIN 13','PIN 12')).hit,false);
+});
 test('actual Blockly add-wait input changes comment numbering and body line count',()=>{
  const a=fs.readFileSync(new URL('blockly-wifi-A.ino',import.meta.url),'utf8'),b=fs.readFileSync(new URL('blockly-wifi-wait.ino',import.meta.url),'utf8');
  assert(a.includes('@ck-source-begin:'));assert(b.includes('while (WiFi.status() != WL_CONNECTED)'));assert.notEqual(a.split('\n').length,b.split('\n').length);

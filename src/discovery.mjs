@@ -135,8 +135,13 @@ export async function discover(c,p,index,{onSketchReady,deferCore=false}={}){con
  }}
  const completed=await Promise.allSettled(batch.map(async unit=>{
   const dirs=[...includes,...(unit.extra?[unit.extra]:[])];
-  const eager=unit.library&&['.cpp','.cc','.cxx'].includes(path.extname(unit.file))&&c.discoveryCompileReference!==true;
-  const entry=eager?compileEntry(c,p,unit.file,unit.base,unit.out,dirs):null;
+  // A cold project C++ unit can discover its headers while producing its
+  // final object, just like a library unit. Rediscovery leaves existing
+  // objects for the scheduler. Only the final command and depfile can admit it.
+  const projectCompile=unit.projectUnit&&optimized&&!deferCore;
+  const eager=(unit.library||projectCompile)&&['.cpp','.cc','.cxx'].includes(path.extname(unit.file))&&c.discoveryCompileReference!==true;
+  const sketchRoot=path.join(c.workspace,'build','sketch');
+  const entry=eager?compileEntry(c,p,unit.file,unit.base??sketchRoot,unit.out??sketchRoot,dirs):null;
   let args=entry?entry.arguments:preprocArgs(p,unit.file,dirs);
   if(unit.projectUnit&&['.c','.S'].includes(path.extname(unit.file))){
    const row=compileEntry(c,p,unit.file,path.dirname(unit.file),path.dirname(unit.file),dirs);

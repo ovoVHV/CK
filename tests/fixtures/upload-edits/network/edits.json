@@ -1,0 +1,4 @@
+[
+  {"name":"edit","from":"CK_EDIT_WIFI_BEFORE","to":"CK_EDIT_WIFI_AFTER","compiled":["sketch.ino.cpp.o"],"reuse":true,"replay":true,"expectMarker":"CK_EDIT_WIFI_AFTER","absentMarker":"CK_EDIT_WIFI_BEFORE"},
+  {"name":"same","expectMarker":"CK_EDIT_WIFI_AFTER","absentMarker":"CK_EDIT_WIFI_BEFORE"}
+]
