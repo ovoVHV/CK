@@ -10,6 +10,14 @@ import type { PackageQualityReport } from '../types/packageQuality';
 import { boardPackageKey } from '../services/board_identity';
 import { installCloudLibraryQueue, type CloudLibraryInstallResult } from '../services/cloud_library_install';
 import {
+    loadInitialCloudRegistryState,
+    persistCloudRegistryState,
+    reconcileCloudRegistrySubmit,
+    resolveCloudProviderSwitch,
+    type CloudRegistryProvider,
+    type CloudRegistrySavedUrls,
+} from '../services/cloud_registry_source';
+import {
     filterLibrariesByCategory,
     libraryCatalogCategories,
     libraryHasBrandVisual,
@@ -66,7 +74,7 @@ interface LibraryManagerModalProps {
 
 type TabType = 'installed' | 'discover' | 'import';
 type DiscoverKind = 'blocks' | 'arduino';
-type CloudProvider = 'auto' | 'github' | 'gitee';
+type CloudProvider = CloudRegistryProvider;
 
 interface RegistryLibrary {
     id?: string;
@@ -106,8 +114,6 @@ interface ActiveLibraryOperation {
     startedAt: number;
 }
 
-const DEFAULT_GITHUB = '';
-const DEFAULT_GITEE = 'https://gitee.com/manong1234/makerlib.git';
 const n = (value: unknown) => String(value || '').trim();
 const k = (value: unknown) => n(value).toLowerCase();
 const nk = (value: unknown) => k(value).replace(/[^a-z0-9]+/g, '');
@@ -235,6 +241,7 @@ function LibraryCategoryTabIcon({ category }: { category: LibraryCatalogCategory
                 <img
                     src={url}
                     alt=""
+                    referrerPolicy="no-referrer"
                     className="size-4 object-contain"
                     onError={() => setFailedUrl(url)}
                 />
@@ -326,6 +333,7 @@ function LibraryBrandThumbnail({ lib }: { lib: LibraryCatalogIdentityInput }) {
                 <img
                     src={src}
                     alt={lib.name || ''}
+                    referrerPolicy="no-referrer"
                     className="max-h-full max-w-full object-contain"
                     onError={() => setFailedSrc(src)}
                 />
@@ -413,6 +421,8 @@ export const LibraryManagerModal = ({
     const [arduinoOpStatus, setArduinoOpStatus] = useState('');
 
     const cloudAutoLoadKeyRef = useRef('');
+    const cloudRegistryReqIdRef = useRef(0);
+    const savedProviderUrlsRef = useRef<CloudRegistrySavedUrls>({});
     const cloudInstallLockRef = useRef(false);
     const arduinoSearchReqIdRef = useRef(0);
     const arduinoInstalledReqIdRef = useRef(0);
@@ -614,28 +624,81 @@ export const LibraryManagerModal = ({
         }
     };
 
-    const fetchRegistry = async () => {
-        if (!n(registryUrl)) {
+    const fetchRegistry = async (
+        overrideUrl?: string,
+        overrideProvider?: CloudProvider,
+        options?: { clearBeforeFetch?: boolean },
+    ) => {
+        const targetUrl = n(overrideUrl ?? registryUrl);
+        const targetProvider = overrideProvider ?? provider;
+        if (!targetUrl) {
             showToast(t('manager.errors.enterRepository'), 'error');
             return;
         }
 
+        const reqId = ++cloudRegistryReqIdRef.current;
+        if (options?.clearBeforeFetch) {
+            setRegistryLibs([]);
+            setSelectedCloudLibs([]);
+            setCloudCategoryId('all');
+        }
         setRegistryLoading(true);
         try {
-            const raw = await invoke<string>('fetch_custom_registry', { url: registryUrl, provider });
+            const raw = await invoke<string>('fetch_custom_registry', { url: targetUrl, provider: targetProvider });
+            if (reqId !== cloudRegistryReqIdRef.current) return;
             const parsed = JSON.parse(String(raw || '{}'));
             setRegistryLibs(Array.isArray(parsed?.libraries) ? parsed.libraries : []);
         } catch (error: any) {
+            if (reqId !== cloudRegistryReqIdRef.current) return;
             showToast(t('manager.errors.repositoryFailed', { error: String(error?.message || error) }), 'error');
         } finally {
+            if (reqId === cloudRegistryReqIdRef.current) {
+                setRegistryLoading(false);
+            }
+        }
+    };
+
+    const handleProviderChange = (nextProvider: CloudProvider) => {
+        const switched = resolveCloudProviderSwitch(
+            nextProvider,
+            provider,
+            registryUrl,
+            savedProviderUrlsRef.current,
+        );
+        savedProviderUrlsRef.current = switched.savedUrls;
+        setProvider(switched.provider);
+        setRegistryUrl(switched.url);
+        persistCloudRegistryState(localStorage, switched.provider, switched.url, switched.savedUrls);
+        if (n(switched.url)) {
+            cloudAutoLoadKeyRef.current = `${switched.provider}|${n(switched.url)}`;
+            void fetchRegistry(switched.url, switched.provider, { clearBeforeFetch: true });
+        } else {
+            cloudAutoLoadKeyRef.current = '';
+            setRegistryLibs([]);
+            setSelectedCloudLibs([]);
+            setCloudCategoryId('all');
             setRegistryLoading(false);
         }
     };
 
     const saveAndFetchRegistry = () => {
-        localStorage.setItem('ck_custom_registry_provider', provider);
-        localStorage.setItem('ck_custom_registry_url', registryUrl);
-        void fetchRegistry();
+        const reconciled = reconcileCloudRegistrySubmit(provider, registryUrl);
+        if (reconciled.provider !== provider) {
+            setProvider(reconciled.provider);
+        }
+        if (reconciled.url !== registryUrl) {
+            setRegistryUrl(reconciled.url);
+        }
+        const switched = resolveCloudProviderSwitch(
+            reconciled.provider,
+            reconciled.provider,
+            reconciled.url,
+            savedProviderUrlsRef.current,
+        );
+        savedProviderUrlsRef.current = switched.savedUrls;
+        persistCloudRegistryState(localStorage, reconciled.provider, reconciled.url, savedProviderUrlsRef.current);
+        cloudAutoLoadKeyRef.current = `${reconciled.provider}|${n(reconciled.url)}`;
+        void fetchRegistry(reconciled.url, reconciled.provider, { clearBeforeFetch: true });
     };
 
     const runCloudInstall = async (items: RegistryLibrary[]) => {
@@ -1148,18 +1211,18 @@ export const LibraryManagerModal = ({
     };
 
     useEffect(() => {
-        const providerValue = k(localStorage.getItem('ck_custom_registry_provider'));
-        const chosen: CloudProvider = providerValue === 'github' || providerValue === 'gitee' || providerValue === 'auto'
-            ? providerValue
-            : 'gitee';
-        setProvider(chosen);
-        const url = n(localStorage.getItem('ck_custom_registry_url'));
-        setRegistryUrl(url || (chosen === 'github' ? DEFAULT_GITHUB : DEFAULT_GITEE));
+        const initial = loadInitialCloudRegistryState(localStorage);
+        savedProviderUrlsRef.current = initial.savedUrls;
+        setProvider(initial.provider);
+        setRegistryUrl(initial.url);
+        persistCloudRegistryState(localStorage, initial.provider, initial.url, initial.savedUrls);
     }, []);
 
     useEffect(() => {
         if (!isOpen) {
             cloudAutoLoadKeyRef.current = '';
+            cloudRegistryReqIdRef.current += 1;
+            setRegistryLoading(false);
             arduinoSearchReqIdRef.current += 1;
             arduinoInstalledReqIdRef.current += 1;
             appliedInitialArduinoSearchRef.current = null;
@@ -1182,13 +1245,11 @@ export const LibraryManagerModal = ({
     useEffect(() => {
         if (!isOpen || tab !== 'discover' || discoverKind !== 'blocks') return;
         const url = n(registryUrl);
-        if (!url || registryLoading) return;
+        if (!url || cloudAutoLoadKeyRef.current) return;
 
-        const key = `${provider}|${url}`;
-        if (cloudAutoLoadKeyRef.current === key) return;
-        cloudAutoLoadKeyRef.current = key;
-        void fetchRegistry();
-    }, [discoverKind, isOpen, provider, registryLoading, registryUrl, tab]);
+        cloudAutoLoadKeyRef.current = `${provider}|${url}`;
+        void fetchRegistry(url, provider);
+    }, [discoverKind, isOpen, provider, registryUrl, tab]);
 
     useEffect(() => {
         if (!isOpen || !initialArduinoSearch) return;
@@ -1610,7 +1671,7 @@ export const LibraryManagerModal = ({
                                             {t('manager.batchInstall', { count: selectedCloudLibs.length })}
                                         </button>
                                     )}
-                                    <select value={provider} onChange={(event) => setProvider(event.target.value as CloudProvider)} className="h-10 px-3 rounded border">
+                                    <select value={provider} onChange={(event) => handleProviderChange(event.target.value as CloudProvider)} className="h-10 px-3 rounded border">
                                         <option value="auto">{t('manager.cloud.auto')}</option>
                                         <option value="gitee">Gitee</option>
                                         <option value="github">GitHub</option>
@@ -1618,6 +1679,11 @@ export const LibraryManagerModal = ({
                                     <input
                                         value={registryUrl}
                                         onChange={(event) => setRegistryUrl(event.target.value)}
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter' && !registryLoading && !cloudBusy) {
+                                                saveAndFetchRegistry();
+                                            }
+                                        }}
                                         className="flex-1 min-w-[240px] h-10 px-3 rounded border"
                                         placeholder={t('manager.cloud.repository')}
                                     />
