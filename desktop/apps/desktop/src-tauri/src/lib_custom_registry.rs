@@ -336,6 +336,57 @@ fn parse_architectures_from_library_json(json: &serde_json::Value) -> Vec<String
     architectures
 }
 
+fn encode_url_path_segments(rel_path: &str) -> String {
+    rel_path
+        .split('/')
+        .map(|segment| {
+            let mut encoded = String::with_capacity(segment.len());
+            for byte in segment.as_bytes() {
+                if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'~') {
+                    encoded.push(*byte as char);
+                } else {
+                    encoded.push_str(&format!("%{:02X}", byte));
+                }
+            }
+            encoded
+        })
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+fn extract_optional_manifest_str(json: &serde_json::Value, key: &str) -> Option<String> {
+    json.get(key)
+        .and_then(|v| v.as_str())
+        .map(str::trim)
+        .filter(|v| !v.is_empty())
+        .map(str::to_string)
+}
+
+/// Resolve a package-relative image path declared in a cloud repository's
+/// `library.json` against the exact blob set of that repository tree.
+/// Rejects remote URLs, parent traversal, non-image extensions, and missing blobs.
+fn resolve_repo_relative_image_url(
+    tree_blobs: &std::collections::HashSet<String>,
+    parent_dir: &str,
+    declared: Option<&str>,
+    raw_base_url: &str,
+) -> Option<String> {
+    let clean_rel = crate::board_vendor_logo::sanitize_relative_image_path(declared?)?;
+    let repo_rel = if parent_dir.is_empty() {
+        clean_rel.to_string()
+    } else {
+        format!("{}/{}", parent_dir, clean_rel)
+    };
+    if !tree_blobs.contains(&repo_rel) {
+        return None;
+    }
+    Some(format!(
+        "{}/{}",
+        raw_base_url.trim_end_matches('/'),
+        encode_url_path_segments(&repo_rel)
+    ))
+}
+
 // --- Commands ---
 
 #[tauri::command]
@@ -418,6 +469,20 @@ pub async fn fetch_custom_registry(
                         board_roots.sort();
                         board_roots.dedup();
                         has_board_package = !board_roots.is_empty();
+
+                        let tree_blobs: std::collections::HashSet<String> = tree_arr
+                            .iter()
+                            .filter_map(|node| {
+                                (node["type"].as_str() == Some("blob"))
+                                    .then(|| node["path"].as_str())
+                                    .flatten()
+                                    .map(|p| p.trim_matches('/').replace('\\', "/"))
+                            })
+                            .collect();
+                        let raw_base = format!(
+                            "https://gitee.com/{}/{}/raw/{}",
+                            owner, repo, default_branch
+                        );
 
                         let mut seen_manifest_paths = std::collections::HashSet::new();
                         for node in tree_arr {
@@ -503,6 +568,19 @@ pub async fn fetch_custom_registry(
                                 .unwrap_or("Library from source")
                                 .to_string();
                             let author = lib_json["author"].as_str().unwrap_or(owner).to_string();
+                            let vendor = extract_optional_manifest_str(&lib_json, "vendor");
+                            let icon_url = resolve_repo_relative_image_url(
+                                &tree_blobs,
+                                &parent,
+                                extract_optional_manifest_str(&lib_json, "icon").as_deref(),
+                                &raw_base,
+                            );
+                            let vendor_logo_url = resolve_repo_relative_image_url(
+                                &tree_blobs,
+                                &parent,
+                                extract_optional_manifest_str(&lib_json, "vendor_logo").as_deref(),
+                                &raw_base,
+                            );
                             let architectures = parse_architectures_from_library_json(&lib_json);
 
                             // Keep the repository locator; installation tries ZIP first,
@@ -521,9 +599,12 @@ pub async fn fetch_custom_registry(
                                 "name": name,
                                 "version": ver,
                                 "author": author,
+                                "vendor": vendor,
+                                "vendor_logo_url": vendor_logo_url,
+                                "icon_url": icon_url,
                                 "description": desc,
                                 "url": zip_url,
-                                "icon": "",
+                                "icon": icon_url.clone().unwrap_or_default(),
                                 "architectures": architectures
                             }));
                         }
@@ -671,6 +752,23 @@ pub async fn fetch_custom_registry(
                                                 board_roots.dedup();
                                                 let has_board_package = !board_roots.is_empty();
 
+                                                let tree_blobs: std::collections::HashSet<String> = tree_arr
+                                                    .iter()
+                                                    .filter_map(|node| {
+                                                        (node["type"].as_str() == Some("blob"))
+                                                            .then(|| node["path"].as_str())
+                                                            .flatten()
+                                                            .map(|p| {
+                                                                p.trim_matches('/')
+                                                                    .replace('\\', "/")
+                                                            })
+                                                    })
+                                                    .collect();
+                                                let raw_base = format!(
+                                                    "https://raw.githubusercontent.com/{}/{}/{}",
+                                                    owner, repo, default_branch
+                                                );
+
                                                 let mut seen_manifest_paths =
                                                     std::collections::HashSet::new();
                                                 for node in tree_arr {
@@ -771,6 +869,29 @@ pub async fn fetch_custom_registry(
                                                         .as_str()
                                                         .unwrap_or(owner)
                                                         .to_string();
+                                                    let vendor = extract_optional_manifest_str(
+                                                        &lib_json, "vendor",
+                                                    );
+                                                    let icon_url = resolve_repo_relative_image_url(
+                                                        &tree_blobs,
+                                                        &parent,
+                                                        extract_optional_manifest_str(
+                                                            &lib_json, "icon",
+                                                        )
+                                                        .as_deref(),
+                                                        &raw_base,
+                                                    );
+                                                    let vendor_logo_url =
+                                                        resolve_repo_relative_image_url(
+                                                            &tree_blobs,
+                                                            &parent,
+                                                            extract_optional_manifest_str(
+                                                                &lib_json,
+                                                                "vendor_logo",
+                                                            )
+                                                            .as_deref(),
+                                                            &raw_base,
+                                                        );
                                                     let architectures =
                                                         parse_architectures_from_library_json(
                                                             &lib_json,
@@ -792,9 +913,12 @@ pub async fn fetch_custom_registry(
                                                         "name": name,
                                                         "version": ver,
                                                         "author": author,
+                                                        "vendor": vendor,
+                                                        "vendor_logo_url": vendor_logo_url,
+                                                        "icon_url": icon_url,
                                                         "description": desc,
                                                         "url": zip_url,
-                                                        "icon": "",
+                                                        "icon": icon_url.clone().unwrap_or_default(),
                                                         "architectures": architectures
                                                     }));
                                                 }
@@ -1491,6 +1615,9 @@ pub struct LibraryManifest {
     pub version: String,
     pub author: Option<String>,
     pub maintainer: Option<String>,
+    pub vendor: Option<String>,
+    pub vendor_logo: Option<String>,
+    pub icon: Option<String>,
     pub sentence: Option<String>,
     pub paragraph: Option<String>,
     pub website: Option<String>,
@@ -1508,6 +1635,9 @@ pub struct LibraryInfo {
     pub folder_name: String,
     pub name: String,
     pub version: String,
+    pub vendor: Option<String>,
+    pub vendor_logo_path: Option<String>,
+    pub icon_path: Option<String>,
     pub path: String,     // Absolute path
     pub location: String, // "Bundled", "Board", "Arch", "Global"
     pub scope_detail: Option<String>,
@@ -3052,6 +3182,30 @@ pub(crate) fn inspect_library_package(
     }
 
     if let Some(json) = library_json.as_ref() {
+        if let Some(value) = json.get("vendor_logo") {
+            if value
+                .as_str()
+                .and_then(|logo| crate::board_vendor_logo::resolve(root, logo))
+                .is_none()
+            {
+                report.warn(
+                    "invalid-vendor-logo",
+                    "The optional vendor logo is unavailable. Use a local PNG, SVG, WebP or JPEG inside the library package (up to 256 KiB).",
+                );
+            }
+        }
+        if let Some(value) = json.get("icon") {
+            if value
+                .as_str()
+                .and_then(|icon| crate::board_vendor_logo::resolve(root, icon))
+                .is_none()
+            {
+                report.warn(
+                    "invalid-library-icon",
+                    "The optional library icon is unavailable. Use a local PNG, SVG, WebP or JPEG inside the library package (up to 256 KiB).",
+                );
+            }
+        }
         for field in ["name", "version"] {
             if json
                 .get(field)
@@ -5079,6 +5233,9 @@ fn read_library_manifest(root: &Path) -> Option<LibraryManifest> {
         version,
         author: manifest_person_text(json.get("author")),
         maintainer: manifest_person_text(json.get("maintainer")),
+        vendor: extract_optional_manifest_str(&json, "vendor"),
+        vendor_logo: extract_optional_manifest_str(&json, "vendor_logo"),
+        icon: extract_optional_manifest_str(&json, "icon"),
         sentence: json
             .get("sentence")
             .and_then(|v| v.as_str())
@@ -5523,6 +5680,18 @@ pub async fn get_all_libraries(
                             }
                         }
 
+                        let vendor = manifest.as_ref().and_then(|m| m.vendor.clone());
+                        let vendor_logo_path = manifest
+                            .as_ref()
+                            .and_then(|m| m.vendor_logo.as_deref())
+                            .and_then(|logo| crate::board_vendor_logo::resolve(&path, logo))
+                            .map(|resolved| resolved.to_string_lossy().to_string());
+                        let icon_path = manifest
+                            .as_ref()
+                            .and_then(|m| m.icon.as_deref())
+                            .and_then(|icon| crate::board_vendor_logo::resolve(&path, icon))
+                            .map(|resolved| resolved.to_string_lossy().to_string());
+
                         libs.push(LibraryInfo {
                             id,
                             entry_key,
@@ -5535,6 +5704,9 @@ pub async fn get_all_libraries(
                                 .as_ref()
                                 .map(|m| m.version.clone())
                                 .unwrap_or_else(|| "Unknown".to_string()),
+                            vendor,
+                            vendor_logo_path,
+                            icon_path,
                             path: path.to_string_lossy().to_string(),
                             location: location.to_string(),
                             scope_detail: scope_detail.clone(),
@@ -7077,5 +7249,74 @@ mod block_package_tests {
         }
         println!("{} real Gitee block packages passed; {} rejected", subdirs.len() - rejected.len(), rejected.len());
         assert!(rejected.is_empty(), "{}", rejected.join("\n"));
+    }
+
+    #[test]
+    fn library_manifest_reads_vendor_and_local_images_without_falling_back_to_author() {
+        let dir = tempfile::tempdir().unwrap();
+        let assets = dir.path().join("assets");
+        fs::create_dir_all(&assets).unwrap();
+        fs::write(assets.join("brand.png"), [0x89, 0x50, 0x4E, 0x47]).unwrap();
+        fs::write(assets.join("sensor.svg"), "<svg/>").unwrap();
+
+        fs::write(
+            dir.path().join("library.json"),
+            r#"{"id":"emakefun_rgb","name":"Emakefun RGB","version":"1.0.0","author":"Emakefun Team","vendor":"Emakefun","vendor_logo":"assets/brand.png","icon":"assets/sensor.svg"}"#,
+        )
+        .unwrap();
+        let branded = read_library_manifest(dir.path()).unwrap();
+        assert_eq!(branded.vendor.as_deref(), Some("Emakefun"));
+        assert_eq!(branded.vendor_logo.as_deref(), Some("assets/brand.png"));
+        assert_eq!(branded.icon.as_deref(), Some("assets/sensor.svg"));
+        assert!(crate::board_vendor_logo::resolve(dir.path(), branded.vendor_logo.as_deref().unwrap()).is_some());
+        assert!(crate::board_vendor_logo::resolve(dir.path(), branded.icon.as_deref().unwrap()).is_some());
+
+        let generic_dir = tempfile::tempdir().unwrap();
+        fs::write(
+            generic_dir.path().join("library.json"),
+            r#"{"id":"dht_generic","name":"DHT Universal","version":"1.0.0","author":"CK Project"}"#,
+        )
+        .unwrap();
+        let generic = read_library_manifest(generic_dir.path()).unwrap();
+        assert_eq!(generic.author.as_deref(), Some("CK Project"));
+        assert_eq!(generic.vendor, None);
+        assert_eq!(generic.vendor_logo, None);
+        assert_eq!(generic.icon, None);
+    }
+
+    #[test]
+    fn cloud_registry_image_url_only_accepts_existing_safe_repo_blobs() {
+        let blobs: std::collections::HashSet<String> = [
+            "emakefun_ble/library.json",
+            "emakefun_ble/assets/logo.png",
+            "emakefun_ble/assets/模块 图标.svg",
+        ]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+        let base = "https://raw.githubusercontent.com/owner/repo/main";
+
+        assert_eq!(
+            resolve_repo_relative_image_url(&blobs, "emakefun_ble", Some("assets/logo.png"), base),
+            Some("https://raw.githubusercontent.com/owner/repo/main/emakefun_ble/assets/logo.png".to_string())
+        );
+        assert_eq!(
+            resolve_repo_relative_image_url(&blobs, "emakefun_ble", Some("assets/模块 图标.svg"), base),
+            Some("https://raw.githubusercontent.com/owner/repo/main/emakefun_ble/assets/%E6%A8%A1%E5%9D%97%20%E5%9B%BE%E6%A0%87.svg".to_string())
+        );
+        for rejected in [
+            "https://evil.example/logo.png",
+            "../other/logo.png",
+            "assets/missing.png",
+            "library.json",
+            "assets/logo.png?x=1",
+        ] {
+            assert_eq!(
+                resolve_repo_relative_image_url(&blobs, "emakefun_ble", Some(rejected), base),
+                None,
+                "expected rejection for {}",
+                rejected
+            );
+        }
     }
 }

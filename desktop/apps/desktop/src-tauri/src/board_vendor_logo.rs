@@ -1,10 +1,11 @@
 use std::path::{Path, PathBuf};
 
-/// Only expose regular image files belonging to this package, including when
-/// its block assets are inherited from a different directory via `extends`.
-pub(super) fn resolve(root: &Path, declared: &str) -> Option<PathBuf> {
+/// Validate that a manifest-declared relative asset path refers only to a safe
+/// image file inside the package (PNG, SVG, WebP, or JPEG).
+pub(crate) fn sanitize_relative_image_path(declared: &str) -> Option<&str> {
     let name = declared.trim();
-    if name.contains([':', '\\', '%', '?', '#'])
+    if name.is_empty()
+        || name.contains([':', '\\', '%', '?', '#'])
         || name.chars().any(char::is_control)
         || name.split('/').any(|part| matches!(part, "" | "." | ".."))
     {
@@ -14,6 +15,13 @@ pub(super) fn resolve(root: &Path, declared: &str) -> Option<PathBuf> {
     if !matches!(ext.as_str(), "png" | "svg" | "webp" | "jpg" | "jpeg") {
         return None;
     }
+    Some(name)
+}
+
+/// Only expose regular image files belonging to this package, including when
+/// its block assets are inherited from a different directory via `extends`.
+pub(crate) fn resolve(root: &Path, declared: &str) -> Option<PathBuf> {
+    let name = sanitize_relative_image_path(declared)?;
     let file = root.join(name);
     let image = file.canonicalize().ok()?;
     if !image.starts_with(root.canonicalize().ok()?) {

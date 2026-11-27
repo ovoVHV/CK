@@ -6,6 +6,12 @@
     "closeAria": "Close library manager",
     "tabs": { "installed": "Installed", "discover": "Discover online", "import": "Import locally" },
     "kinds": { "blocks": "CK block libraries", "arduino": "Arduino source libraries" },
+    "catalog": {
+      "all": "All",
+      "general": "General",
+      "categoryFilterAria": "Filter block libraries by brand",
+      "emptyCategory": "No block libraries in this category"
+    },
     "installedBlocks": "Your installed CK block libraries",
     "bundledBlocks": "Block libraries provided by the board and system",
     "protected": "Protected",

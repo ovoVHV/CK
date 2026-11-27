@@ -6,6 +6,12 @@
     "closeAria": "关闭库管理器",
     "tabs": { "installed": "已安装", "discover": "在线获取", "import": "本地导入" },
     "kinds": { "blocks": "CK 积木库", "arduino": "Arduino 源码库" },
+    "catalog": {
+      "all": "全部",
+      "general": "通用库",
+      "categoryFilterAria": "按品牌分类筛选积木库",
+      "emptyCategory": "当前分类下暂无积木库"
+    },
     "installedBlocks": "你安装的 CK 积木库",
     "bundledBlocks": "板卡与系统提供的积木库",
     "protected": "受保护",

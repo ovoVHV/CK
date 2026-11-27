@@ -1,14 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, BookOpen, Box, CheckCircle2, ChevronDown, Clock3, Cloud, Copy, Database, DownloadCloud, HardDrive, Loader2, RefreshCw, Search, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
+import { AlertCircle, BookOpen, Box, Building2, CheckCircle2, ChevronDown, Clock3, Cloud, Copy, Database, DownloadCloud, HardDrive, LayoutGrid, Loader2, Package, RefreshCw, Search, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-dialog';
-import { invoke } from '@tauri-apps/api/core';
+import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { useHardware } from '../contexts/HardwareContext';
 import { useDialog } from '../contexts/DialogContext';
 import type { LibraryInfo } from '../types/library';
 import type { PackageQualityReport } from '../types/packageQuality';
 import { boardPackageKey } from '../services/board_identity';
 import { installCloudLibraryQueue, type CloudLibraryInstallResult } from '../services/cloud_library_install';
+import {
+    filterLibrariesByCategory,
+    libraryCatalogCategories,
+    libraryHasBrandVisual,
+    libraryRowImageSource,
+    libraryVendorName,
+    resolveActiveLibraryCategory,
+    type LibraryCatalogCategory,
+    type LibraryCatalogCategoryId,
+    type LibraryCatalogIdentityInput,
+    type LibraryImageRef,
+} from '../services/library_catalog_identity';
 import { PackageQualityReportPanel, PackageQualityStatusBadge } from './PackageQualityReportPanel';
 import { BlockPackagePassportBadge, BlockPackagePassportPanel } from './BlockPackagePassport';
 import {
@@ -61,6 +73,10 @@ interface RegistryLibrary {
     name: string;
     version: string;
     author?: string;
+    vendor?: string;
+    vendor_logo_url?: string;
+    icon_url?: string;
+    icon?: string;
     url: string;
     architectures?: string[] | string;
     architecture?: string;
@@ -194,6 +210,145 @@ const getArduinoVersions = (lib: any): string[] => {
     return out;
 };
 
+const resolveLibraryAssetSrc = (ref: LibraryImageRef | null): string => {
+    if (!ref) return '';
+    if (ref.kind === 'remote') return ref.value;
+    try {
+        return convertFileSrc(ref.value);
+    } catch {
+        return '';
+    }
+};
+
+function LibraryCategoryTabIcon({ category }: { category: LibraryCatalogCategory }) {
+    const [failedUrl, setFailedUrl] = useState<string | null>(null);
+    const ref: LibraryImageRef | null = category.logoPath
+        ? { kind: 'local', value: category.logoPath }
+        : category.logoUrl
+            ? { kind: 'remote', value: category.logoUrl }
+            : null;
+    const url = resolveLibraryAssetSrc(ref);
+
+    if (url && url !== failedUrl) {
+        return (
+            <span className="inline-flex size-5 shrink-0 items-center justify-center rounded bg-white p-0.5 ring-1 ring-slate-200/80 dark:ring-slate-700">
+                <img
+                    src={url}
+                    alt=""
+                    className="size-4 object-contain"
+                    onError={() => setFailedUrl(url)}
+                />
+            </span>
+        );
+    }
+
+    const Icon = category.id === 'all'
+        ? LayoutGrid
+        : category.id === 'general'
+            ? Package
+            : Building2;
+    return (
+        <span className="inline-flex size-5 shrink-0 items-center justify-center">
+            <Icon size={15} aria-hidden="true" />
+        </span>
+    );
+}
+
+function LibraryCategoryBar({
+    categories,
+    activeId,
+    onSelect,
+    t,
+}: {
+    categories: LibraryCatalogCategory[];
+    activeId: LibraryCatalogCategoryId;
+    onSelect: (id: LibraryCatalogCategoryId) => void;
+    t: (key: string, options?: Record<string, unknown>) => string;
+}) {
+    if (categories.length <= 1) return null;
+    return (
+        <div
+            className="flex items-stretch gap-1 border-b border-slate-200 overflow-x-auto dark:border-slate-800"
+            role="group"
+            aria-label={t('manager.catalog.categoryFilterAria')}
+            data-ck-role="library-category-bar"
+        >
+            {categories.map((category) => {
+                const label = category.id === 'all'
+                    ? t('manager.catalog.all')
+                    : category.id === 'general'
+                        ? t('manager.catalog.general')
+                        : (category.name || category.id.replace(/^vendor:/, ''));
+                const active = activeId === category.id;
+                return (
+                    <button
+                        key={category.id}
+                        type="button"
+                        aria-pressed={active}
+                        title={label}
+                        data-ck-category-id={category.id}
+                        onClick={() => onSelect(category.id)}
+                        className={`inline-flex h-9 max-w-52 shrink-0 items-center gap-1.5 border-b-2 px-3 text-xs font-bold transition-colors ${
+                            active
+                                ? 'border-brand-600 bg-brand-50 text-[var(--accent)] dark:bg-brand-950/45 dark:text-brand-300'
+                                : 'border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100'
+                        }`}
+                    >
+                        <LibraryCategoryTabIcon category={category} />
+                        <span className="truncate">{label}</span>
+                        <span
+                            className={`rounded-full px-1.5 py-0.5 text-[10px] font-mono leading-none ${
+                                active
+                                    ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-200'
+                                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                            }`}
+                        >
+                            {category.count}
+                        </span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+function LibraryBrandThumbnail({ lib }: { lib: LibraryCatalogIdentityInput }) {
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    if (!libraryHasBrandVisual(lib)) return null;
+    const src = resolveLibraryAssetSrc(libraryRowImageSource(lib));
+    const showImage = Boolean(src && src !== failedSrc);
+    return (
+        <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-800"
+            data-ck-role="library-brand-thumbnail"
+        >
+            {showImage ? (
+                <img
+                    src={src}
+                    alt={lib.name || ''}
+                    className="max-h-full max-w-full object-contain"
+                    onError={() => setFailedSrc(src)}
+                />
+            ) : (
+                <Building2 size={20} className="text-brand-600 dark:text-brand-300" aria-hidden="true" />
+            )}
+        </div>
+    );
+}
+
+function LibraryVendorBadge({ lib }: { lib: LibraryCatalogIdentityInput }) {
+    const vendor = libraryVendorName(lib);
+    if (!vendor) return null;
+    return (
+        <span
+            className="inline-flex items-center rounded border border-brand-200 bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold whitespace-nowrap text-brand-700 dark:border-brand-800 dark:bg-brand-950/45 dark:text-brand-300"
+            data-ck-role="library-vendor-badge"
+        >
+            {vendor}
+        </span>
+    );
+}
+
 export const LibraryManagerModal = ({
     isOpen,
     onClose,
@@ -222,6 +377,8 @@ export const LibraryManagerModal = ({
 
     const [tab, setTab] = useState<TabType>('installed');
     const [discoverKind, setDiscoverKind] = useState<DiscoverKind>('blocks');
+    const [installedCategoryId, setInstalledCategoryId] = useState<LibraryCatalogCategoryId>('all');
+    const [cloudCategoryId, setCloudCategoryId] = useState<LibraryCatalogCategoryId>('all');
     const [selectedLibs, setSelectedLibs] = useState<string[]>([]);
     const [deletingLib, setDeletingLib] = useState<string | null>(null);
     const [bulkDeletingLibs, setBulkDeletingLibs] = useState(false);
@@ -296,6 +453,23 @@ export const LibraryManagerModal = ({
         [availableLibraries],
     );
 
+    const installedCategories = useMemo(
+        () => libraryCatalogCategories(availableLibraries),
+        [availableLibraries],
+    );
+    const activeInstalledCategory = resolveActiveLibraryCategory(
+        installedCategories,
+        installedCategoryId,
+    );
+    const filteredUserLibraries = useMemo(
+        () => filterLibrariesByCategory(userLibraries, activeInstalledCategory),
+        [activeInstalledCategory, userLibraries],
+    );
+    const filteredProtectedLibraries = useMemo(
+        () => filterLibrariesByCategory(protectedLibraries, activeInstalledCategory),
+        [activeInstalledCategory, protectedLibraries],
+    );
+
     const installedLibKeys = useMemo(() => {
         const out = new Set<string>();
         for (const lib of availableLibraries) {
@@ -331,30 +505,39 @@ export const LibraryManagerModal = ({
         return out;
     }, [activeBoard, activeBoardPackageId, availableBoards]);
 
-    const visibleCloud = useMemo(() => {
-        const filtered = registryLibs.filter((lib) => {
+    const boardCompatibleCloud = useMemo(() => (
+        registryLibs.filter((lib) => {
             const tags = [
                 ...parseArch(lib.architectures),
                 ...parseArch(lib.architecture),
                 ...parseArch(lib.platforms),
                 ...parseArch(lib.platform),
             ];
-
-            let matched = false;
             if (tags.length === 0 || tags.includes('*') || tags.includes('all') || tags.includes('any')) {
-                matched = true;
-            } else {
-                matched = tags.some((item) => boardTags.some((tag) => item === tag || item.includes(tag) || tag.includes(item)));
+                return true;
             }
+            return tags.some((item) => boardTags.some((tag) => item === tag || item.includes(tag) || tag.includes(item)));
+        })
+    ), [boardTags, registryLibs]);
 
-            if (!matched) return false;
-            if (!cloudQuery) return true;
-            const query = k(cloudQuery);
-            return [lib.name, lib.author, lib.sentence, lib.description].some((value) => k(value).includes(query));
-        });
+    const cloudCategories = useMemo(
+        () => libraryCatalogCategories(boardCompatibleCloud),
+        [boardCompatibleCloud],
+    );
+    const activeCloudCategory = resolveActiveLibraryCategory(cloudCategories, cloudCategoryId);
+
+    const visibleCloud = useMemo(() => {
+        const inCategory = filterLibrariesByCategory(boardCompatibleCloud, activeCloudCategory);
+        const filtered = cloudQuery
+            ? inCategory.filter((lib) => {
+                const query = k(cloudQuery);
+                return [lib.name, lib.author, lib.vendor, lib.sentence, lib.description]
+                    .some((value) => k(value).includes(query));
+            })
+            : inCategory;
 
         return cloudQuery ? filtered.slice(0, 300) : filtered.slice(0, 100);
-    }, [boardTags, cloudQuery, registryLibs]);
+    }, [activeCloudCategory, boardCompatibleCloud, cloudQuery]);
 
     const installedArduinoNormalized = useMemo(() => {
         const out: Record<string, string> = {};
@@ -1053,7 +1236,7 @@ export const LibraryManagerModal = ({
 
     if (!isOpen) return null;
 
-    const allLibSelected = userLibraries.length > 0 && userLibraries.every((lib) => selectedLibs.includes(libraryEntryKey(lib)));
+    const allLibSelected = filteredUserLibraries.length > 0 && filteredUserLibraries.every((lib) => selectedLibs.includes(libraryEntryKey(lib)));
     const arduinoBusy = !!installingArduino || !!uninstallingArduino || !!activeLibraryOperation;
     const cloudBusy = !!installingCloud || !!activeLibraryOperation;
     const localImportBusy = importingLib || importingArduinoZip || !!activeLibraryOperation;
@@ -1192,14 +1375,20 @@ export const LibraryManagerModal = ({
                     )}
                     {tab === 'installed' && (
                         <>
-                            {userLibraries.length > 0 && (
+                            <LibraryCategoryBar
+                                categories={installedCategories}
+                                activeId={activeInstalledCategory}
+                                onSelect={setInstalledCategoryId}
+                                t={t}
+                            />
+                            {filteredUserLibraries.length > 0 && (
                                 <>
                                     <div className="flex items-center justify-between mb-2">
-                                        <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2"><Box size={15} className="text-[var(--accent)]" /> {t('manager.installedBlocks')}</h3>
+                                        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2"><Box size={15} className="text-[var(--accent)]" /> {t('manager.installedBlocks')}</h3>
                                         <div className="flex gap-2">
                                             <button
-                                                onClick={() => setSelectedLibs(allLibSelected ? [] : userLibraries.map((lib) => libraryEntryKey(lib)))}
-                                                className="px-2 py-1 text-xs rounded border"
+                                                onClick={() => setSelectedLibs(allLibSelected ? [] : filteredUserLibraries.map((lib) => libraryEntryKey(lib)))}
+                                                className="px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700"
                                             >
                                                 {allLibSelected ? t('manager.none') : t('manager.all')}
                                             </button>
@@ -1214,7 +1403,7 @@ export const LibraryManagerModal = ({
                                     </div>
 
                                     <div className="space-y-2 mb-6">
-                                        {userLibraries.map((lib) => {
+                                        {filteredUserLibraries.map((lib) => {
                                             const entryKey = libraryEntryKey(lib);
                                             const deleting = deletingLib === entryKey;
                                             const qualityExpanded = expandedQualityKey === entryKey;
@@ -1222,15 +1411,17 @@ export const LibraryManagerModal = ({
                                             return (
                                                 <div key={entryKey} className="border border-slate-200 dark:border-slate-700 rounded-lg p-3">
                                                     <div className="flex items-center justify-between gap-3">
-                                                        <div className="flex items-center gap-2 min-w-0">
+                                                        <div className="flex items-center gap-2.5 min-w-0">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={selectedLibs.includes(entryKey)}
                                                                 onChange={(event) => setSelectedLibs((prev) => event.target.checked ? [...new Set([...prev, entryKey])] : prev.filter((item) => item !== entryKey))}
                                                             />
+                                                            <LibraryBrandThumbnail lib={lib} />
                                                             <div className="min-w-0">
                                                                 <div className="flex flex-wrap items-center gap-2 min-w-0">
                                                                     <div className="font-semibold truncate">{lib.name}</div>
+                                                                    <LibraryVendorBadge lib={lib} />
                                                                     <PackageQualityStatusBadge report={lib.quality_report} />
                                                                     <BlockPackagePassportBadge library={lib} />
                                                                     {(activation.executablePresent || activation.state === 'declarative-safe') && (
@@ -1277,29 +1468,33 @@ export const LibraryManagerModal = ({
                                 </>
                             )}
 
-                            {protectedLibraries.length > 0 ? (
+                            {filteredProtectedLibraries.length > 0 ? (
                                 <>
-                                    <div className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2"><ShieldCheck size={15} className="text-slate-500" /> {t('manager.bundledBlocks')}</div>
+                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2"><ShieldCheck size={15} className="text-slate-500" /> {t('manager.bundledBlocks')}</div>
                                     <div className="space-y-2">
-                                        {protectedLibraries.map((lib) => {
+                                        {filteredProtectedLibraries.map((lib) => {
                                             const entryKey = `protected:${libraryEntryKey(lib)}`;
                                             const qualityExpanded = expandedQualityKey === entryKey;
                                             const activation = blockRuntimeActivation(lib);
                                             return (
                                                 <div key={entryKey} className="border border-slate-200 dark:border-slate-700 rounded-lg p-3">
                                                     <div className="flex items-center justify-between gap-3">
-                                                        <div className="min-w-0">
-                                                            <div className="flex flex-wrap items-center gap-2 min-w-0">
-                                                                <div className="font-semibold truncate">{lib.name}</div>
-                                                                <PackageQualityStatusBadge report={lib.quality_report} />
-                                                                <BlockPackagePassportBadge library={lib} />
-                                                                {(activation.executablePresent || activation.state === 'declarative-safe') && (
-                                                                    <span className={`px-1.5 py-0.5 text-[11px] rounded border whitespace-nowrap ${runtimeBadgeClass(lib)}`}>
-                                                                        {t(runtimeActivationLabelKey(lib))}
-                                                                    </span>
-                                                                )}
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <LibraryBrandThumbnail lib={lib} />
+                                                            <div className="min-w-0">
+                                                                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                                                    <div className="font-semibold truncate">{lib.name}</div>
+                                                                    <LibraryVendorBadge lib={lib} />
+                                                                    <PackageQualityStatusBadge report={lib.quality_report} />
+                                                                    <BlockPackagePassportBadge library={lib} />
+                                                                    {(activation.executablePresent || activation.state === 'declarative-safe') && (
+                                                                        <span className={`px-1.5 py-0.5 text-[11px] rounded border whitespace-nowrap ${runtimeBadgeClass(lib)}`}>
+                                                                            {t(runtimeActivationLabelKey(lib))}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="text-xs text-slate-500 truncate">{libraryMetaLabel(lib)}</div>
                                                             </div>
-                                                            <div className="text-xs text-slate-500 truncate">{libraryMetaLabel(lib)}</div>
                                                         </div>
                                                         <div className="flex shrink-0 items-center gap-2">
                                                             <button
@@ -1329,7 +1524,11 @@ export const LibraryManagerModal = ({
                                     </div>
                                 </>
                             ) : (
-                                <div className="text-sm text-slate-500 border rounded-lg p-3">{t('manager.noExtraBlocks')}</div>
+                                filteredUserLibraries.length === 0 ? (
+                                    <div className="text-sm text-slate-500 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
+                                        {availableLibraries.length > 0 ? t('manager.catalog.emptyCategory') : t('manager.noExtraBlocks')}
+                                    </div>
+                                ) : null
                             )}
 
                             <div className="mt-6">
@@ -1433,9 +1632,20 @@ export const LibraryManagerModal = ({
                                 </div>
                             </div>
 
+                            <LibraryCategoryBar
+                                categories={cloudCategories}
+                                activeId={activeCloudCategory}
+                                onSelect={setCloudCategoryId}
+                                t={t}
+                            />
+
                             <div className="space-y-2">
                                 {visibleCloud.length === 0 && (
-                                    <div className="text-sm text-slate-500 border rounded-lg p-3">{t('manager.noInstallable')}</div>
+                                    <div className="text-sm text-slate-500 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
+                                        {boardCompatibleCloud.length > 0 && activeCloudCategory !== 'all'
+                                            ? t('manager.catalog.emptyCategory')
+                                            : t('manager.noInstallable')}
+                                    </div>
                                 )}
 
                                 {visibleCloud.map((lib) => {
@@ -1445,8 +1655,9 @@ export const LibraryManagerModal = ({
                                     const installed = !needsReinstall && [k(lib.id), k(lib.name), nk(lib.id), nk(lib.name)].some((item) => item && installedLibKeys.has(item));
                                     const installing = installingCloud === lib.name;
                                     const selected = selectedCloudLibs.some((item) => item.url === lib.url);
+                                    const summary = n(lib.sentence || (lib.description !== 'Library from source' ? lib.description : ''));
                                     return (
-                                        <div key={`${lib.id || lib.name}:${lib.version}:${lib.url}`} className="border rounded-lg p-3 flex items-center justify-between gap-3">
+                                        <div key={`${lib.id || lib.name}:${lib.version}:${lib.url}`} className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 flex items-center justify-between gap-3">
                                             <input
                                                 type="checkbox"
                                                 className="form-checkbox h-4 w-4 text-blue-600 rounded flex-none"
@@ -1461,9 +1672,16 @@ export const LibraryManagerModal = ({
                                                 disabled={installed || installing || cloudBusy || !n(lib.url)}
                                                 title={cloudBusy ? libraryBusyReason : undefined}
                                             />
+                                            <LibraryBrandThumbnail lib={lib} />
                                             <div className="min-w-0 flex-1">
-                                                <div className="font-semibold truncate">{lib.name}</div>
+                                                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                                    <div className="font-semibold truncate">{lib.name}</div>
+                                                    <LibraryVendorBadge lib={lib} />
+                                                </div>
                                                 <div className="text-xs text-slate-500 truncate">v{lib.version}{lib.author ? ` · ${lib.author}` : ''}</div>
+                                                {summary && libraryHasBrandVisual(lib) ? (
+                                                    <div className="text-[11px] text-slate-400 truncate mt-0.5">{summary}</div>
+                                                ) : null}
                                             </div>
                                             <button
                                                 onClick={() => void cloudInstall(lib)}

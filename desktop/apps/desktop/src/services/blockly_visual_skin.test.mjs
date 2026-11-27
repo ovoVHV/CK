@@ -303,3 +303,26 @@ test('a parent block skin pass never repaints nested blocks fields', () => {
         assert.equal(document.querySelector('#own').style.getPropertyValue('fill'),'#07152b');
     });
 });
+
+test('underscored BLE and RF24 blocks keep one consistent network skin colour and DOM-only drag roots preserve block role', () => {
+    for (const style of ['pastel', 'arcade', 'sticker', 'neon', 'mono']) {
+        const bleBegin = skin.resolveBlocklySkinColour('#2563eb', 'emakefun_ble_begin', style);
+        const bleSendText = skin.resolveBlocklySkinColour('#2563eb', 'emakefun_ble_send_text', style);
+        const bleReadText = skin.resolveBlocklySkinColour('#2563eb', 'emakefun_ble_read_text', style);
+        const rfSendText = skin.resolveBlocklySkinColour('#e65100', 'emakefun_rf24_send_text', style);
+        assert.equal(bleSendText, bleBegin, `${style}: emakefun_ble_send_text must match emakefun_ble_begin`);
+        assert.equal(bleReadText, bleBegin, `${style}: emakefun_ble_read_text must match emakefun_ble_begin`);
+        assert.equal(rfSendText, bleBegin, `${style}: emakefun_rf24_send_text must stay in network role`);
+    }
+    withSvgDom('<svg xmlns="http://www.w3.org/2000/svg"><g class="emakefun_ble_send_text blocklyBlock blocklyDraggable"><path class="blocklyPath" fill="#2563eb"/></g></svg>', document => {
+        const root = document.querySelector('.blocklyBlock');
+        const path = document.querySelector('.blocklyPath');
+        assert.equal(skin.applyBlocklyVisualSkinToRoots([root], 'sticker'), 1);
+        const firstFill = path.getAttribute('fill');
+        assert.equal(path.dataset.ckBaseFill, '#2563eb');
+        // Repainting when fill is already url(#ck-skin-...) must never corrupt ckBaseFill or colour.
+        delete path.dataset.ckBaseFill;
+        path.setAttribute('fill', firstFill);
+        assert.equal(skin.applyBlocklyVisualSkinToRoots([root], 'sticker'), 0);
+    });
+});

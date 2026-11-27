@@ -380,7 +380,7 @@ const blockSkinRole = (blockType: unknown): SkinColourRole | null => {
     const type = String(blockType ?? '').trim().toLowerCase();
     if (!type) return null;
     if (/(?:tone|buzzer|music|sound|speaker|melody|note)/.test(type)) return 'sound';
-    if (/(?:wifi|network|http|mqtt|bluetooth|\bble\b|websocket|ethernet)/.test(type)) return 'network';
+    if (/(?:wifi|network|http|mqtt|bluetooth|(?:^|[^a-z0-9])(?:ble|rf24|nrf24)(?:$|[^a-z0-9])|websocket|ethernet)/.test(type)) return 'network';
     if (/(?:delay|wait|millis|micros|timer|timing|clock|time_)/.test(type)) return 'time';
     if (/(?:setup|start|event|when_|hat)/.test(type)) return 'hat';
     if (/(?:repeat|while|foreach|for_each|controls_for|controls_flow|\bloop\b|loop_)/.test(type)) return 'loop';
@@ -572,11 +572,21 @@ const rememberBaseColour = (path: SvgLike, candidate: string | null): string | n
     const remembered = path.dataset.ckBaseFill;
     if (remembered) return remembered;
     const attr = path.getAttribute('fill');
-    if (attr && attr !== 'none') {
+    if (attr && attr !== 'none' && !/^url\(#ck-skin-/i.test(attr)) {
         path.dataset.ckBaseFill = attr;
         return attr;
     }
     return null;
+};
+
+const inferBlockTypeFromRoot = (root: Element): string | undefined => {
+    const remembered = (root as SvgLike).dataset?.ckBlockType;
+    if (remembered) return remembered;
+    for (const cls of Array.from(root.classList)) {
+        if (!cls || cls.startsWith('blockly') || cls.startsWith('ck-')) continue;
+        if (/^[A-Za-z][A-Za-z0-9_]*$/.test(cls)) return cls;
+    }
+    return undefined;
 };
 
 const rememberShadowColour = (path: SvgLike, candidate: string | null): string | null => {
@@ -694,10 +704,14 @@ const paintRoot = (root: Element, block: BlockLike | undefined, style: BlocklyVi
     // 50k-block workspace just to apply the same native attributes again.
     if (style === 'original' && !path.dataset.ckVisualStyle) return false;
     const shadow = isShadowBlock(root, block);
+    const blockType = block?.type || inferBlockTypeFromRoot(root);
+    if (block?.type && (root as SvgLike).dataset) {
+        (root as SvgLike).dataset.ckBlockType = block.type;
+    }
     const base = rememberBaseColour(path, safeColour(block));
     if (!base) return false;
     const shadowBase = shadow ? rememberShadowColour(path, safeSecondaryColour(block)) : null;
-    const regularColour = resolveBlocklySkinColour(base, block?.type, style);
+    const regularColour = resolveBlocklySkinColour(base, blockType, style);
     const transformed = shadow
         ? style === 'original'
             ? shadowBase || regularColour

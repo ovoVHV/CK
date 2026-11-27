@@ -18,7 +18,7 @@ const bundle = await build({
         const mocks = {
             '../contexts/HardwareContext': 'export const useHardware = () => globalThis.__cloudTest.hardware;',
             '../contexts/DialogContext': 'export const useDialog = () => ({});',
-            '@tauri-apps/api/core': 'export const invoke = (...args) => globalThis.__cloudTest.invoke(...args);',
+            '@tauri-apps/api/core': 'export const invoke = (...args) => globalThis.__cloudTest.invoke(...args); export const convertFileSrc = (path) => path;',
             '@tauri-apps/plugin-dialog': 'export const open = async () => null;',
             '../services/block_package_migration_transaction': 'export const cancelPreparedBlockLibraryMigration = () => {}; export const commitPreparedBlockLibraryMigration = () => {}; export const formatBlockLibraryMigrationPreview = () => {}; export const prepareBlockLibraryMigration = () => {}; export const previewPreparedBlockLibraryMigration = () => {};',
         };

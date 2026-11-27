@@ -2512,7 +2512,10 @@ export async function registerExtensionBlocks(
             );
             if (!type || isCompatShadowType(type)) continue;
             extensionBlockOwners.set(type, ext.id);
-            if (visualColour) extensionBlockVisualColours.set(type, visualColour);
+            const resolvedColour = hasExplicitVisualColour(def?.colour)
+                ? String(def.colour).trim()
+                : visualColour;
+            if (resolvedColour) extensionBlockVisualColours.set(type, resolvedColour);
         }
 
         console.log(`[Extensions] Registered blocks for ${ext.id}`);
@@ -2938,16 +2941,22 @@ export async function fetchExtensionToolbox(ext: ExtensionInfo, visualColour?: s
 }
 
 export function registerToolboxBlockVisualColours(toolboxPayload: any, visualColour?: string): void {
-    if (!visualColour || !toolboxPayload) return;
+    if (!toolboxPayload) return;
     const blocksObj = resolveBlocklyApi()?.Blocks || (Blockly as any)?.Blocks;
-    const registerType = (rawType: any) => {
+    const registerType = (rawType: any, inheritedColour?: string) => {
         const type = normalizeLegacyToolboxBlockType(rawType);
         if (!type || isProtectedCoreBlockType(type)) return;
-        extensionBlockVisualColours.set(type, visualColour);
+        const resolvedColour = hasExplicitVisualColour(inheritedColour)
+            ? String(inheritedColour).trim()
+            : hasExplicitVisualColour(extensionBlockVisualColours.get(type))
+                ? extensionBlockVisualColours.get(type)!
+                : visualColour;
+        if (!resolvedColour) return;
+        extensionBlockVisualColours.set(type, resolvedColour);
 
         const definition = blocksObj?.[type];
         if (!definition || typeof definition.init !== 'function') return;
-        definition.__ckToolboxVisualColour = visualColour;
+        definition.__ckToolboxVisualColour = resolvedColour;
         if (definition.__ckToolboxVisualColourWrapped) return;
 
         const originalInit = definition.init;
@@ -2965,9 +2974,20 @@ export function registerToolboxBlockVisualColours(toolboxPayload: any, visualCol
                 const parser = new DOMParser();
                 const document = parser.parseFromString(`<xml>${toolboxPayload}</xml>`, 'text/xml');
                 if (!document.querySelector('parsererror')) {
-                    document.querySelectorAll('block[type]').forEach((block) => {
-                        registerType(block.getAttribute('type'));
-                    });
+                    const visitElement = (el: Element, inheritedColour?: string) => {
+                        const tag = el.tagName.toLowerCase();
+                        const ownColour = tag === 'category'
+                            ? String(el.getAttribute('colour') || el.getAttribute('color') || '').trim()
+                            : '';
+                        const nextColour = hasExplicitVisualColour(ownColour) ? ownColour : inheritedColour;
+                        if (tag === 'block') {
+                            registerType(el.getAttribute('type'), nextColour);
+                        }
+                        for (const child of Array.from(el.children)) {
+                            visitElement(child, nextColour);
+                        }
+                    };
+                    visitElement(document.documentElement, visualColour);
                     return;
                 }
             } catch { }
@@ -2975,26 +2995,31 @@ export function registerToolboxBlockVisualColours(toolboxPayload: any, visualCol
         const blockTypePattern = /<block\b[^>]*\btype=(['"])(.*?)\1/gi;
         let match: RegExpExecArray | null;
         while ((match = blockTypePattern.exec(toolboxPayload)) !== null) {
-            registerType(match[2]);
+            registerType(match[2], visualColour);
         }
         return;
     }
 
-    const walk = (node: any) => {
+    const walk = (node: any, inheritedColour?: string) => {
         if (!node) return;
         if (Array.isArray(node)) {
-            node.forEach(walk);
+            node.forEach(item => walk(item, inheritedColour));
             return;
         }
         if (typeof node !== 'object') return;
-        if (String(node.kind || '').toLowerCase() === 'block') registerType(node.type);
-        if (node.block && typeof node.block === 'object') registerType(node.block.type);
-        if (Array.isArray(node.contents)) node.contents.forEach(walk);
+        const kind = String(node.kind || '').toLowerCase();
+        const ownColour = kind === 'category'
+            ? String(node.colour ?? node.color ?? '').trim()
+            : '';
+        const nextColour = hasExplicitVisualColour(ownColour) ? ownColour : inheritedColour;
+        if (kind === 'block') registerType(node.type, nextColour);
+        if (node.block && typeof node.block === 'object') registerType(node.block.type, nextColour);
+        if (Array.isArray(node.contents)) node.contents.forEach((child: any) => walk(child, nextColour));
         if (node.inputs && typeof node.inputs === 'object') {
-            Object.values(node.inputs).forEach(walk);
+            Object.values(node.inputs).forEach((child: any) => walk(child, nextColour));
         }
     };
-    walk(toolboxPayload);
+    walk(toolboxPayload, visualColour);
 }
 
 const normalizeToolboxFieldValue = (blockType: string, fieldName: string, fieldValue: any): any => {

@@ -3,6 +3,9 @@
     version: string;
     author?: string;
     maintainer?: string;
+    vendor?: string;
+    vendor_logo?: string;
+    icon?: string;
     sentence?: string;
     paragraph?: string;
     website?: string;
@@ -312,6 +315,9 @@ export interface LibraryInfo {
     folder_name: string;
     name: string;
     version: string;
+    vendor?: string;
+    vendor_logo_path?: string;
+    icon_path?: string;
     path: string;
     location: "Bundled" | "BoardPackage" | "Board" | "Arch" | "Global";
     scope_detail?: string | null;

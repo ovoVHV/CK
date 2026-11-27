@@ -4109,6 +4109,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         () => collectExtensionBlockColours(extensionXml),
         [extensionXml],
     );
+    const extensionBlockColoursRef = useRef(extensionBlockColours);
+    extensionBlockColoursRef.current = extensionBlockColours;
 
     // Keep the engineering-health pin map live while editing. Compile/upload
     // still performs a fresh synchronous analysis immediately before building.
@@ -6221,8 +6223,39 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 }
             }
         }, { isInteracting: () => ws.isDragging() });
+        const syncAffectedBlockVisuals = (event: any) => {
+            const eventType = String(event?.type || '');
+            if (eventType !== 'create' && eventType !== 'change' && eventType !== 'drag' && eventType !== 'move' && eventType !== 'selected') {
+                return;
+            }
+            const rawIds: string[] = [];
+            if (Array.isArray(event?.ids)) rawIds.push(...event.ids);
+            if (event?.blockId) rawIds.push(event.blockId);
+            if (event?.newElementId) rawIds.push(event.newElementId);
+            if (event?.oldElementId) rawIds.push(event.oldElementId);
+            if (rawIds.length === 0) return;
+
+            const seen = new Set<Blockly.BlockSvg>();
+            const colourMap = extensionBlockColoursRef.current;
+            for (const id of rawIds) {
+                const block = ws.getBlockById(id) as Blockly.BlockSvg | null;
+                if (!block) continue;
+                const stack = typeof block.getDescendants === 'function' ? block.getDescendants(false) : [block];
+                for (const item of stack as Blockly.BlockSvg[]) {
+                    if (!item || seen.has(item)) continue;
+                    seen.add(item);
+                    const colour = colourMap.get(item.type);
+                    if (colour && item.getColour().toLowerCase() !== colour.toLowerCase()) item.setColour(colour);
+                    else if (!colour) syncExtensionBlockVisualColour(item);
+                }
+            }
+            if (seen.size > 0 && blocklyVisualStyleRef.current !== 'original') {
+                applyBlocklyVisualSkinToBlocks(seen, blocklyVisualStyleRef.current);
+            }
+        };
         const changeListener = (e: any) => {
             if (projectLoadingRef.current) return;
+            syncAffectedBlockVisuals(e);
             if (e.type === 'finished_loading') {
                 editRevision++;
                 codePreview.invalidate();
@@ -6246,16 +6279,6 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 setPinPreflightReport(null);
                 setResourcePreflightReport(null);
                 if (dirtyTrackingReadyRef.current) setIsProjectDirty(true);
-            }
-            const ids: string[] = Array.isArray(e.ids) ? e.ids : e.blockId ? [e.blockId] : [];
-            if (e.type === 'create' || e.type === 'change') {
-                const blocks = ids.map(id => ws.getBlockById(id)).filter((block): block is Blockly.BlockSvg => !!block);
-                for (const block of blocks) {
-                    const colour = extensionBlockColours.get(block.type);
-                    if (colour && block.getColour().toLowerCase() !== colour.toLowerCase()) block.setColour(colour);
-                    else if (!colour) syncExtensionBlockVisualColour(block);
-                }
-                applyBlocklyVisualSkinToBlocks(blocks, blocklyVisualStyleRef.current);
             }
             editScheduler.schedule();
         };
@@ -6410,6 +6433,15 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const workspace = blocklyWorkspace;
         const parentSvg = workspace?.getParentSvg?.();
         if (!workspace || !parentSvg || typeof MutationObserver === 'undefined') return;
+        const resolveBlockForRoot = (root: Element) => {
+            const id = root.getAttribute('data-id') || '';
+            if (!id) return undefined;
+            const mainBlock = workspace.getBlockById(id);
+            if (mainBlock) return mainBlock;
+            const flyoutWs = (workspace.getToolbox?.()?.getFlyout?.() as any)?.getWorkspace?.()
+                || (workspace.getFlyout?.() as any)?.getWorkspace?.();
+            return flyoutWs?.getBlockById?.(id) || undefined;
+        };
         const observer = new MutationObserver((mutations) => {
             // Theme transitions explicitly repaint the full workspace. Fresh
             // original-style SVG and viewport parking/restoration need no skin
@@ -6428,10 +6460,24 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     for (const root of node.querySelectorAll('.blocklyBlock')) roots.add(root);
                 }
             }
-            applyBlocklyVisualSkinToRoots(roots, blocklyVisualStyleRef.current,
-                root => workspace.getBlockById(root.getAttribute('data-id') || '') || undefined);
+            const colourMap = extensionBlockColoursRef.current;
+            roots.forEach((root) => {
+                const block = resolveBlockForRoot(root) as any;
+                if (!block) return;
+                const colour = colourMap.get(String(block.type || ''));
+                if (colour && String(block.getColour?.() || '').toLowerCase() !== colour.toLowerCase()) {
+                    try { block.setColour?.(colour); } catch { }
+                } else if (!colour) {
+                    syncExtensionBlockVisualColour(block);
+                }
+            });
+            applyBlocklyVisualSkinToRoots(roots, blocklyVisualStyleRef.current, resolveBlockForRoot);
         });
         observer.observe(parentSvg, { childList: true, subtree: true });
+        const dragSurfaceSvg = (workspace as any).getBlockDragSurface?.()?.getSvgRoot?.();
+        if (dragSurfaceSvg instanceof Element && dragSurfaceSvg !== parentSvg) {
+            observer.observe(dragSurfaceSvg, { childList: true, subtree: true });
+        }
         repaintBlocklyVisualSkin(workspace);
         return () => observer.disconnect();
     }, [blocklyWorkspace, repaintBlocklyVisualSkin, scheduleBlocklyVisualSkin]);
