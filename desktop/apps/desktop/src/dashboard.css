@@ -13,9 +13,9 @@
 .ck-home-secondary, .ck-home-storage { color: var(--text-primary); background: var(--bg-workspace); border: 1px solid var(--border-color); }
 .ck-home-storage { width: 100%; padding: 9px; margin-bottom: 8px; font-size: 13px; justify-content: start; }
 .ck-home-secondary:hover, .ck-home-storage:hover { border-color: var(--accent); }
-.ck-home-thumb, .ck-home-cover { display: grid; place-items: center; color: var(--text-secondary); background-color: var(--bg-workspace);
+.ck-home-thumb, .ck-home-cover { display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--text-secondary); background-color: var(--bg-workspace);
   background-image: radial-gradient(color-mix(in srgb, var(--text-secondary) 19%, transparent) 1px, transparent 1px); background-size: 12px 12px; }
-.ck-home-thumb { width: 60px; height: 60px; border: 1px solid var(--border-color); border-radius: 8px; }
+.ck-home-thumb { width: 60px; height: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 8px; flex-shrink: 0; }
 .ck-home-history { color: var(--text-secondary); font-size: 12px; }
 .ck-home-history summary { margin: 5px 0 0 72px; width: max-content; cursor: pointer; }
 .ck-home-history summary:hover { color: var(--accent); }
@@ -27,10 +27,10 @@
 .ck-home-switch { display: flex; align-items: center; padding: 2px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); }
 .ck-home-switch button[aria-pressed="true"] { color: var(--text-primary); background: var(--bg-workspace); font-weight: 600; }
 .ck-home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 16px; }
-.ck-home-cover { height: 132px; border-bottom: 1px solid var(--border-color); }
+.ck-home-cover { height: 132px; padding: 14px 20px; border-bottom: 1px solid var(--border-color); }
 .ck-home-cover[data-family="Arduino AVR"] { background-color: color-mix(in srgb, #14b8a6 8%, var(--bg-surface)); }
 .ck-home-cover[data-family="ESP32"] { background-color: color-mix(in srgb, #818cf8 13%, var(--bg-surface)); }
-.ck-home-cover img, .ck-home-thumb img { width: 70%; height: 72%; object-fit: contain; }
+.ck-home-cover img, .ck-home-thumb img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; }
 @media (min-width: 1550px) { .ck-home-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 1060px) {
   .ck-home { --rail: 168px; }

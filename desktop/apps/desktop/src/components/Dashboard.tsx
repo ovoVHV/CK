@@ -1007,7 +1007,7 @@ const ProjectRowList = ({ data, onClick, onRename, onDelete, onTogglePin, isSele
             </div>
           )}
           {boardExists && isImageArtworkSrc(icon) ? (
-            <img src={icon} alt={boardPkg?.name || data.board} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+            <img src={icon} alt={boardPkg?.name || data.board} loading="lazy" decoding="async" className="max-w-full max-h-full w-auto h-auto object-contain p-1" />
           ) : !boardExists ? (
             <AlertTriangle size={16} />
           ) : (
