@@ -206,8 +206,12 @@ export function syncExtensionBlockVisualColour(block: any): boolean {
     }
 }
 const CORE_BLOCK_TYPE_HINTS = new Set<string>([
+    'controls_global_defs_custom',
     'controls_setup_custom',
     'controls_loop_custom',
+    'macro_define_custom',
+    'code_include_custom',
+    'code_comment_custom',
     'arduino_setup',
     'arduino_loop',
     'base_setup',

@@ -772,6 +772,53 @@ Blockly.Blocks['math_bit_clear_custom'] = {
     }
 };
 
+Blockly.Blocks['macro_define_custom'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField('#define')
+            .appendField(new Blockly.FieldTextInput('LED_PIN'), 'NAME')
+            .appendField(new Blockly.FieldTextInput('13'), 'VALUE');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(VARIABLE_HUE);
+        this.setTooltip('\u5b9a\u4e49\u9884\u5904\u7406\u5b8f\uff08#define \u540d\u79f0 \u503c\uff09\uff0c\u901a\u5e38\u653e\u5728\u201c\u5168\u5c40\u5b9a\u4e49\u201d\u79ef\u6728\u5185');
+        this.setHelpUrl('');
+    }
+};
+
+Blockly.Blocks['code_include_custom'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField('#include')
+            .appendField(new Blockly.FieldDropdown([
+                ['<...>', 'ANGLE'],
+                ['"..."', 'QUOTE'],
+            ]), 'STYLE')
+            .appendField(new Blockly.FieldTextInput('Wire.h'), 'HEADER');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#4F6D8A');
+        this.setTooltip('\u5f15\u5165\u5934\u6587\u4ef6\uff08#include <Wire.h> \u6216 #include "my_header.h"\uff09\uff0c\u901a\u5e38\u653e\u5728\u201c\u5168\u5c40\u5b9a\u4e49\u201d\u79ef\u6728\u5185');
+        this.setHelpUrl('');
+    }
+};
+
+Blockly.Blocks['code_comment_custom'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField('// \u6ce8\u91ca')
+            .appendField(new Blockly.FieldTextInput('\u5728\u6b64\u586b\u5199\u8bf4\u660e'), 'TEXT');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#64748B');
+        this.setTooltip('\u5728\u751f\u6210\u7684\u4ee3\u7801\u4e2d\u63d2\u5165\u4e00\u884c\u6ce8\u91ca\uff08// ...\uff09\uff0c\u4e0d\u5f71\u54cd\u7a0b\u5e8f\u8fd0\u884c');
+        this.setHelpUrl('');
+    }
+};
+
 Blockly.Blocks['var_declare_custom'] = {
     init: function () {
         this.appendDummyInput()
@@ -3205,6 +3252,17 @@ Blockly.Blocks['delay_ms'] = {
     }
 };
 
+Blockly.Blocks['controls_global_defs_custom'] = {
+    init: function () {
+        this.appendStatementInput('DO')
+            .setCheck(null)
+            .appendField('\u5168\u5c40\u5b9a\u4e49');
+        this.setColour('#4F6D8A');
+        this.setTooltip('\u5728 setup() \u548c loop() \u4e4b\u524d\u751f\u6548\u7684\u5168\u5c40\u5b9a\u4e49\uff08\u53d8\u91cf\u3001\u6570\u7ec4\u3001#define \u5b8f\u3001\u5916\u8bbe\u58f0\u660e\u7b49\uff09');
+        this.setHelpUrl('');
+    }
+};
+
 Blockly.Blocks['controls_setup_custom'] = {
     init: function () {
         this.appendStatementInput('DO')
@@ -4164,6 +4222,7 @@ export const getToolbox = (boardFqbn?: string, extensionXml: string = '', coreVe
     </category>
 
     <category name="${categoryLabel('loops', '循环')}" data-category-id="loops" colour="${LOOP_HUE}">
+        <block type="controls_global_defs_custom"></block>
         <block type="controls_setup_custom"></block>
         <block type="controls_loop_custom"></block>
         <block type="controls_repeat_ext">
@@ -4772,6 +4831,17 @@ export const getToolbox = (boardFqbn?: string, extensionXml: string = '', coreVe
             <field name="QUAL">NONE</field>
             <field name="NAME">variable</field>
             <field name="TYPE">int</field>
+        </block>
+        <block type="macro_define_custom">
+            <field name="NAME">LED_PIN</field>
+            <field name="VALUE">13</field>
+        </block>
+        <block type="code_include_custom">
+            <field name="STYLE">ANGLE</field>
+            <field name="HEADER">Wire.h</field>
+        </block>
+        <block type="code_comment_custom">
+            <field name="TEXT">note</field>
         </block>
         <block type="var_set_custom">
             <value name="NAME">

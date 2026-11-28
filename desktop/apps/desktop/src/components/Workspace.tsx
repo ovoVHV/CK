@@ -44,7 +44,7 @@ import {
     Ban,
     Save,
     Trash2,
-    FolderOpen, FilePlus, Send, Cpu, Play, Pause, Type, Activity, BookOpen, Binary, Clock3, Copy, Bug, ArchiveRestore, AlertTriangle, HeartPulse, ShieldCheck, ExternalLink, Palette
+    FolderOpen, FilePlus, Send, Cpu, Play, Pause, Type, Activity, BookOpen, Binary, Clock3, Copy, Bug, ArchiveRestore, AlertTriangle, HeartPulse, ShieldCheck, ExternalLink, Palette, Pin
 } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo, listen } from '@tauri-apps/api/event';
@@ -69,7 +69,12 @@ import {
 } from '../services/project_open';
 import 'blockly/blocks';
 import { getToolbox, setBlocklyBoard, registerDetailedBoard } from './blockly_setup';
-import arduinoGenerator, { setArduinoGeneratorTarget, stripBlockMarkers } from './arduino_generator';
+import arduinoGenerator, {
+    hasStructuredWorkspaceRoots,
+    isActiveStructuredTopBlock,
+    setArduinoGeneratorTarget,
+    stripBlockMarkers,
+} from './arduino_generator';
 import { composeBoardFqbn, useHardware } from '../contexts/HardwareContext';
 import { baseBoardFqbn, parseBoardFqbnOptions } from '../services/board_fqbn';
 import {
@@ -730,6 +735,75 @@ const isKnownBlockType = (type: string | null | undefined): boolean => {
     return Boolean((Blockly as any).Blocks?.[type]);
 };
 
+const PROTECTED_STARTER_ROOT_TYPES = [
+    'controls_global_defs_custom',
+    'controls_setup_custom',
+    'controls_loop_custom',
+] as const;
+
+const seedStructuredStarterBlocks = (workspace: Blockly.WorkspaceSvg) => {
+    const eventsWereEnabled = Blockly.Events.isEnabled();
+    Blockly.Events.disable();
+    try {
+        const starterSpecs: Array<{ type: string; x: number; y: number }> = [
+            { type: 'controls_global_defs_custom', x: 40, y: 40 },
+            { type: 'controls_setup_custom', x: 280, y: 40 },
+            { type: 'controls_loop_custom', x: 520, y: 40 },
+        ];
+        for (const spec of starterSpecs) {
+            if (!Blockly.Blocks[spec.type]) continue;
+            const block = workspace.newBlock(spec.type) as Blockly.BlockSvg;
+            block.moveBy(spec.x, spec.y);
+            block.setDeletable(false);
+            if (workspace.rendered) {
+                block.initSvg();
+                block.render();
+            }
+        }
+    } finally {
+        if (eventsWereEnabled) Blockly.Events.enable();
+    }
+};
+
+const syncStructuredRootProtection = (workspace: Blockly.WorkspaceSvg | null | undefined) => {
+    if (!workspace || typeof workspace.getTopBlocks !== 'function') return;
+    const byType = new Map<string, Blockly.Block[]>();
+    for (const block of workspace.getAllBlocks(false)) {
+        if (block.isInFlyout) continue;
+        if ((PROTECTED_STARTER_ROOT_TYPES as readonly string[]).includes(block.type)) {
+            const list = byType.get(block.type) || [];
+            list.push(block);
+            byType.set(block.type, list);
+        }
+    }
+    const eventsWereEnabled = Blockly.Events.isEnabled();
+    if (eventsWereEnabled) Blockly.Events.disable();
+    try {
+        for (const list of byType.values()) {
+            const shouldLock = list.length === 1;
+            for (const block of list) {
+                if (block.isDeletable() === shouldLock) {
+                    block.setDeletable(!shouldLock);
+                }
+            }
+        }
+    } finally {
+        if (eventsWereEnabled) Blockly.Events.enable();
+    }
+};
+
+const syncOrphanBlockVisuals = (workspace: Blockly.WorkspaceSvg | null | undefined) => {
+    if (!workspace || typeof workspace.getTopBlocks !== 'function') return;
+    syncStructuredRootProtection(workspace);
+    const structured = hasStructuredWorkspaceRoots(workspace);
+    for (const topBlock of workspace.getTopBlocks(false)) {
+        const svgRoot = (topBlock as Blockly.BlockSvg)?.getSvgRoot?.();
+        if (!svgRoot) continue;
+        const isOrphan = structured && !isActiveStructuredTopBlock(topBlock);
+        svgRoot.classList.toggle('ck-orphan-block', isOrphan);
+    }
+};
+
 const collectExtensionBlockColours = (toolboxXml: string): Map<string, string> => {
     const colours = new Map<string, string>();
     if (typeof DOMParser === 'undefined' || !toolboxXml.trim()) return colours;
@@ -978,6 +1052,77 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             window.localStorage.setItem('ck_engineering_health_dock_width', String(engineeringHealthWidth));
         } catch { /* Width persistence is best-effort only. */ }
     }, [engineeringHealthWidth]);
+
+    const stageRef = useRef<HTMLDivElement | null>(null);
+    const [isFlyoutPinned, setIsFlyoutPinned] = useState<boolean>(() => {
+        try {
+            return window.localStorage.getItem('ck.blockly.flyoutPinned') === '1';
+        } catch {
+            return false;
+        }
+    });
+    const isFlyoutPinnedRef = useRef(isFlyoutPinned);
+    isFlyoutPinnedRef.current = isFlyoutPinned;
+    const [flyoutPinRect, setFlyoutPinRect] = useState<{ left: number; top: number } | null>(null);
+
+    const syncFlyoutPinOverlay = useCallback((ws: Blockly.WorkspaceSvg | null | undefined) => {
+        if (!ws || !stageRef.current || !blocklyDiv.current) {
+            setFlyoutPinRect(prev => (prev ? null : prev));
+            return;
+        }
+        const flyout = ((ws.getToolbox?.() as any)?.getFlyout?.() || ws.getFlyout?.()) as any;
+        if (flyout && flyout.autoClose !== !isFlyoutPinnedRef.current) {
+            if (typeof flyout.setAutoClose === 'function') {
+                flyout.setAutoClose(!isFlyoutPinnedRef.current);
+            } else {
+                flyout.autoClose = !isFlyoutPinnedRef.current;
+            }
+        }
+        const flyoutEl = (flyout?.svgGroup_ as SVGElement | undefined)
+            || (blocklyDiv.current.querySelector('svg.blocklyFlyout') as SVGElement | null);
+        if (!flyoutEl) {
+            setFlyoutPinRect(prev => (prev ? null : prev));
+            return;
+        }
+        const style = window.getComputedStyle(flyoutEl);
+        const visible = Boolean(flyout?.isVisible?.())
+            && style.display !== 'none'
+            && style.visibility !== 'hidden';
+        const rect = flyoutEl.getBoundingClientRect();
+        if (!visible || rect.width < 48 || rect.height < 48) {
+            setFlyoutPinRect(prev => (prev ? null : prev));
+            return;
+        }
+        const stageRect = stageRef.current.getBoundingClientRect();
+        const nextLeft = Math.max(8, Math.round(rect.right - stageRect.left - 36));
+        const nextTop = Math.max(8, Math.round(rect.top - stageRect.top + 8));
+        setFlyoutPinRect(prev => (
+            prev && prev.left === nextLeft && prev.top === nextTop
+                ? prev
+                : { left: nextLeft, top: nextTop }
+        ));
+    }, []);
+
+    const toggleFlyoutPin = useCallback(() => {
+        setIsFlyoutPinned(prev => {
+            const next = !prev;
+            isFlyoutPinnedRef.current = next;
+            try {
+                window.localStorage.setItem('ck.blockly.flyoutPinned', next ? '1' : '0');
+            } catch { /* best effort */ }
+            const ws = workspaceRef.current;
+            const flyout = ((ws?.getToolbox?.() as any)?.getFlyout?.() || ws?.getFlyout?.()) as any;
+            if (flyout) {
+                if (typeof flyout.setAutoClose === 'function') {
+                    flyout.setAutoClose(!next);
+                } else {
+                    flyout.autoClose = !next;
+                }
+            }
+            requestAnimationFrame(() => syncFlyoutPinOverlay(workspaceRef.current));
+            return next;
+        });
+    }, [syncFlyoutPinOverlay]);
 
     // Backend / Hardware State
     // Backend / Hardware State
@@ -6192,10 +6337,38 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             refreshBlockBreakpointVisuals(ws, next, blockDebugSessionRef.current.pausedBlockId);
         });
         refreshToolboxCategoryStyles(ws);
+        syncFlyoutPinOverlay(ws);
+
+        // Track Blockly flyout open/close/resize to keep the green Pin button anchored top-right.
+        const flyoutSvgEl = (((ws.getToolbox?.() as any)?.getFlyout?.() || ws.getFlyout?.()) as any)?.svgGroup_ as Element | undefined
+            || blocklyDiv.current?.querySelector('svg.blocklyFlyout')
+            || undefined;
+        let flyoutPinRaf: number | null = null;
+        const scheduleFlyoutPinSync = () => {
+            if (flyoutPinRaf != null) return;
+            flyoutPinRaf = requestAnimationFrame(() => {
+                flyoutPinRaf = null;
+                syncFlyoutPinOverlay(ws);
+            });
+        };
+        const flyoutMutationObserver = flyoutSvgEl ? new MutationObserver(scheduleFlyoutPinSync) : null;
+        if (flyoutSvgEl && flyoutMutationObserver) {
+            flyoutMutationObserver.observe(flyoutSvgEl, {
+                attributes: true,
+                attributeFilter: ['style', 'width', 'height', 'class', 'display'],
+            });
+        }
+        const flyoutResizeObserver = (flyoutSvgEl && typeof ResizeObserver !== 'undefined')
+            ? new ResizeObserver(scheduleFlyoutPinSync)
+            : null;
+        if (flyoutSvgEl && flyoutResizeObserver) {
+            flyoutResizeObserver.observe(flyoutSvgEl);
+        }
 
         // Handle Resize
         const handleResize = () => {
             ws.resize();
+            scheduleFlyoutPinSync();
         };
         window.addEventListener('resize', handleResize);
 
@@ -6296,6 +6469,13 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const changeListener = (e: any) => {
             if (projectLoadingRef.current) return;
             syncAffectedBlockVisuals(e);
+            const evType = String(e?.type || '');
+            if (evType === 'toolbox_item_select' || evType === 'click' || evType === 'drag' || evType === 'viewport_change') {
+                scheduleFlyoutPinSync();
+            }
+            if (evType === 'move' || evType === 'create' || evType === 'delete' || evType === 'finished_loading') {
+                syncOrphanBlockVisuals(ws);
+            }
             if (e.type === 'finished_loading') {
                 editRevision++;
                 codePreview.invalidate();
@@ -6416,6 +6596,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
         return () => {
             console.log("[Blockly] Disposing...");
+            if (flyoutPinRaf != null) cancelAnimationFrame(flyoutPinRaf);
+            flyoutMutationObserver?.disconnect();
+            flyoutResizeObserver?.disconnect();
+            setFlyoutPinRect(null);
             editScheduler.dispose();
             codePreview.dispose();
             viewportCulling.dispose();
@@ -6783,6 +6967,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         setWorkspaceSource(workspaceRef.current, null);
                         clearBlockBreakpoints(workspaceRef.current);
                         workspaceRef.current.clear();
+                        seedStructuredStarterBlocks(workspaceRef.current);
                         setUnknownBlockProtection(null);
                         setProjectLoadSafetyError(null);
                         showToast(uiText('已加载（空项目）', 'Loaded (empty project)'), 'success');
@@ -6797,6 +6982,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         projectLoadedKeyRef.current = loadKey;
                         return;
                     }
+
+                    syncOrphanBlockVisuals(workspaceRef.current);
 
                     // Blockly deserialization may emit only `finished_loading`, which the
                     // edit listener deliberately ignores. Synchronize explicitly so an
@@ -8532,7 +8719,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             {/* Main Content */}
             <div className={`ck-workspace-main flex flex-1 min-h-0 overflow-hidden min-w-0 w-full max-w-full relative z-0 ${isConfigOpen ? 'blur-[2px] opacity-90' : ''} `}>
                 <div className="ck-editing-surface">
-                <div className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]" data-editor-mode={sourceMode ? 'source' : 'blocks'}>
+                <div ref={stageRef} className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]" data-editor-mode={sourceMode ? 'source' : 'blocks'}>
                     <div id="ck-blocks-panel" role="tabpanel" aria-labelledby="ck-blocks-tab" className="ck-blocks-panel absolute inset-0 isolate z-0" ref={blocklyDiv} style={{ touchAction: 'none', display: sourceMode ? 'none' : undefined }} aria-hidden={sourceMode} inert={sourceMode}></div>
                     {workspaceSource && <div id="ck-source-panel" role="tabpanel" aria-labelledby="ck-source-tab" className="ck-source-panel" hidden={!sourceMode} inert={!sourceMode}><Suspense fallback={<div role="status" className="ck-source-loading">{uiText('正在准备编辑器…', 'Preparing editor…')}</div>}><WorkspaceSourcePane source={workspaceSource} onResolve={resolveProjectSource} active={sourceMode} dirty={isProjectDirty} followsBlocks={workspaceSource.code === workspaceSource.generatedBase} actionsDisabled={editorSwitchBlocked}
                         onImport={() => { void importProjectSource(); }} onExport={() => { void exportProjectSource(); }} onRegenerate={() => { void replaceSourceFromBlocks(); }} code={workspaceSource.code} documentKey={currentPath + ':' + projectLoadedRevision}
@@ -8661,6 +8848,29 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             </button>
                         )}
                     </div>}
+                    {!sourceMode && !unknownBlockProtection && !projectLoadSafetyError && !rendererRecoveryFailure && flyoutPinRect && (
+                        <button
+                            type="button"
+                            className={`ck-flyout-pin-btn ${isFlyoutPinned ? 'is-pinned' : ''}`}
+                            style={{ left: `${flyoutPinRect.left}px`, top: `${flyoutPinRect.top}px` }}
+                            data-ck-role="flyout-pin-toggle"
+                            aria-pressed={isFlyoutPinned}
+                            title={isFlyoutPinned
+                                ? uiText('取消固定积木栏（拖出积木或点击画布后自动收起）', 'Unpin block drawer (auto-close after dragging or clicking canvas)')
+                                : uiText('固定积木栏（拖出积木或点击画布时保持展开）', 'Pin block drawer (keep open while dragging blocks or clicking canvas)')}
+                            aria-label={isFlyoutPinned
+                                ? uiText('取消固定积木栏', 'Unpin block drawer')
+                                : uiText('固定积木栏', 'Pin block drawer')}
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onMouseDown={(event) => event.stopPropagation()}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                toggleFlyoutPin();
+                            }}
+                        >
+                            <Pin size={15} fill={isFlyoutPinned ? 'currentColor' : 'none'} />
+                        </button>
+                    )}
                     {toolboxLoading && !sourceMode && (
                         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 bg-white/90 backdrop-blur-sm shadow-md rounded-full px-4 py-1.5 flex items-center gap-2 text-xs text-slate-500 border border-slate-200 animate-in fade-in duration-200 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-400">
                             <Loader2 size={12} className="animate-spin text-brand-500" />

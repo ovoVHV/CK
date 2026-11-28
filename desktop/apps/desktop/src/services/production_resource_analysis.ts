@@ -104,8 +104,9 @@ export function analyzeProductionResolvedResources(
     // the same filtering before entering the generic claim boundary.
     const pure = new Set([
       'math_number', 'text', 'logic_boolean', 'board_pin_selector',
-      'serial_baudrate_selector', 'io_level', 'controls_setup_custom',
-      'controls_loop_custom',
+      'serial_baudrate_selector', 'io_level', 'controls_global_defs_custom',
+      'controls_setup_custom', 'controls_loop_custom', 'macro_define_custom',
+      'code_include_custom', 'code_comment_custom',
     ]);
     const declared = analyzeDeclaredHardware(
       { resource_graph: graph },

@@ -147,6 +147,7 @@ const SOURCE_ARTIFACT_REGISTRIES = [
     'variables_',
     'macros_',
     'functions_',
+    'customGlobals_',
     'setups_',
     'customSetups_',
     'customLoops_',
@@ -195,16 +196,55 @@ const sourceBlockMetadata = (block: any): { blockId: string; blockType: string }
     };
 };
 
+const GLOBAL_DEFS_CONTAINER_BLOCK_TYPES = new Set([
+    'controls_global_defs_custom',
+]);
+
 const SETUP_CONTAINER_BLOCK_TYPES = new Set([
     'controls_setup_custom',
     'arduino_setup',
     'base_setup',
 ]);
 
+const LOOP_CONTAINER_BLOCK_TYPES = new Set([
+    'controls_loop_custom',
+    'arduino_loop',
+    'base_loop',
+]);
+
+export const STRUCTURED_ROOT_BLOCK_TYPES = new Set([
+    ...GLOBAL_DEFS_CONTAINER_BLOCK_TYPES,
+    ...SETUP_CONTAINER_BLOCK_TYPES,
+    ...LOOP_CONTAINER_BLOCK_TYPES,
+]);
+
 const DEFINITION_CONTAINER_BLOCK_TYPES = new Set([
+    'controls_global_defs_custom',
     'procedures_defnoreturn',
     'procedures_defreturn',
 ]);
+
+/**
+ * Mind+-style active root predicate: when a workspace uses structured roots
+ * (Definitions / Setup / Loop), only those containers, function definitions,
+ * and true hat blocks (no previous or output connection) participate in code
+ * generation. Loose detached blocks parked on the blank canvas stay inactive.
+ */
+export const isActiveStructuredTopBlock = (block: any): boolean => {
+    if (!block) return false;
+    const type = String(block.type || '');
+    if (STRUCTURED_ROOT_BLOCK_TYPES.has(type) || DEFINITION_CONTAINER_BLOCK_TYPES.has(type)) {
+        return true;
+    }
+    return !block.previousConnection && !block.outputConnection;
+};
+
+export const hasStructuredWorkspaceRoots = (workspace: Blockly.Workspace | null | undefined): boolean => {
+    if (!workspace || typeof workspace.getTopBlocks !== 'function') return false;
+    return workspace.getTopBlocks(false).some((block: any) => (
+        STRUCTURED_ROOT_BLOCK_TYPES.has(String(block?.type || ''))
+    ));
+};
 
 /** Resolve the section from Blockly's structural parentage, not generation order.
  * `scrub_` generates a block's `next` sibling before returning, so the active
@@ -479,7 +519,32 @@ const originalWorkspaceToCode = arduinoGenerator.workspaceToCode;
 // @ts-ignore
 arduinoGenerator.workspaceToCode = function (workspace: Blockly.Workspace) {
     ensureNameDbVariableMap(this, workspace);
-    return originalWorkspaceToCode.call(this, workspace);
+    if (!hasStructuredWorkspaceRoots(workspace)) {
+        return originalWorkspaceToCode.call(this, workspace);
+    }
+    const code: string[] = [];
+    this.init(workspace);
+    const blocks = workspace.getTopBlocks(true);
+    for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        if (!isActiveStructuredTopBlock(block)) continue;
+        let line = this.blockToCode(block);
+        if (Array.isArray(line)) {
+            line = line[0];
+        }
+        if (line) {
+            if ((block as any).outputConnection) {
+                line = this.scrubNakedValue(line);
+            }
+            code.push(line);
+        }
+    }
+    let finalCode = code.join('\n');
+    finalCode = this.finish(finalCode);
+    finalCode = finalCode.replace(/^\s+\n/, '');
+    finalCode = finalCode.replace(/\n\s+$/, '\n');
+    finalCode = finalCode.replace(/[ \t]+\n/g, '\n');
+    return finalCode;
 };
 
 // @ts-ignore
@@ -1402,6 +1467,8 @@ arduinoGenerator.init = function (_workspace) {
     // @ts-ignore
     arduinoGenerator.macros_ = {};
     // @ts-ignore
+    arduinoGenerator.customGlobals_ = [];
+    // @ts-ignore
     arduinoGenerator.customSetups_ = [];
     // @ts-ignore
     arduinoGenerator.customLoops_ = [];
@@ -1429,6 +1496,8 @@ arduinoGenerator.finish = function (code) {
     // @ts-ignore
     const setupsMap = arduinoGenerator.setups_ || {};
     // @ts-ignore
+    const customGlobalsList = arduinoGenerator.customGlobals_ || [];
+    // @ts-ignore
     const customSetupsList = arduinoGenerator.customSetups_ || [];
     // @ts-ignore
     const customLoopsList = arduinoGenerator.customLoops_ || [];
@@ -1450,6 +1519,7 @@ arduinoGenerator.finish = function (code) {
         .filter(fragment => fragment.trim().length > 0)
         .join(separator);
     const macros = wrapDefinitions(generatedSourceEntries('macros_', macrosMap));
+    const customGlobals = wrapDefinitions(generatedSourceEntries('customGlobals_', customGlobalsList));
     const variables = wrapDefinitions(generatedSourceEntries('variables_', variablesMap));
     const definitions = wrapDefinitions(definitionBlocks);
     const functions = wrapDefinitions(generatedSourceEntries('functions_', functionsMap), '\n\n');
@@ -1476,7 +1546,7 @@ arduinoGenerator.finish = function (code) {
         .join('\n');
     const loopBody = [customLoops, code].filter((part) => String(part).trim().length > 0).join('\n').trimEnd();
 
-    const headers = [includes, macros, variables, definitions, functions].filter((part) => String(part).trim().length > 0).join('\n\n');
+    const headers = [includes, macros, customGlobals, variables, definitions, functions].filter((part) => String(part).trim().length > 0).join('\n\n');
     const headerSection = headers ? `${headers}\n\n` : '';
 
     const setupSection = setupBody ? `void setup() {\n${setupBody}\n}` : 'void setup() {\n}';
@@ -2107,6 +2177,20 @@ ${loopBody}    }
   }\n`;
 };
 
+arduinoGenerator.forBlock['controls_global_defs_custom'] = function (block) {
+    const branch = arduinoGenerator.statementToCode(block, 'DO');
+    const dedented = String(branch || '')
+        .split('\n')
+        .map((line) => line.replace(/^  /, ''))
+        .join('\n')
+        .trim();
+    if (dedented.length > 0) {
+        // @ts-ignore
+        arduinoGenerator.customGlobals_.push(dedented);
+    }
+    return '';
+};
+
 arduinoGenerator.forBlock['controls_setup_custom'] = function (block) {
     const branch = arduinoGenerator.statementToCode(block, 'DO');
     if (String(branch).trim().length > 0) {
@@ -2692,6 +2776,32 @@ arduinoGenerator.forBlock['var_ref_custom'] = function (block) {
     const rawName = resolveVariableFieldName(block, 'NAME', 'variable');
     const varName = sanitizeVariableName(rawName);
     return [varName, Order.ATOMIC];
+};
+
+arduinoGenerator.forBlock['macro_define_custom'] = function (block) {
+    const rawName = String(block.getFieldValue('NAME') || 'LED_PIN').trim();
+    const name = sanitizeIdentifier(rawName || 'LED_PIN');
+    const value = String(block.getFieldValue('VALUE') ?? '').trim();
+    const directive = value ? `#define ${name} ${value}` : `#define ${name}`;
+    arduinoGenerator.addMacro(`macro_${name}`, directive);
+    return '';
+};
+
+arduinoGenerator.forBlock['code_include_custom'] = function (block) {
+    const style = String(block.getFieldValue('STYLE') || 'ANGLE').trim();
+    const rawHeader = String(block.getFieldValue('HEADER') || 'Wire.h')
+        .trim()
+        .replace(/^["<]+|[">]+$/g, '')
+        .replace(/[\r\n]/g, '');
+    if (!rawHeader) return '';
+    const directive = style === 'QUOTE' ? `#include "${rawHeader}"` : `#include <${rawHeader}>`;
+    arduinoGenerator.addInclude(`user_inc_${sanitizeIdentifier(rawHeader)}`, directive);
+    return '';
+};
+
+arduinoGenerator.forBlock['code_comment_custom'] = function (block) {
+    const text = String(block.getFieldValue('TEXT') || '').replace(/[\r\n]+/g, ' ').trim();
+    return text ? `  // ${text}\n` : '  //\n';
 };
 
 arduinoGenerator.forBlock['var_declare_custom'] = function (block) {

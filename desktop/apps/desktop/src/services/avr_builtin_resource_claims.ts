@@ -40,7 +40,7 @@ export function analyzeAvrWorkspaceResources(identity: ResolvedAvrResourceIdenti
     const baudValues = serialSetups.filter(b => selectedSerialPort(b) === port).map(serialSetupBaud);
     return !baudValues.length ? '115200' : baudValues.every(v => v !== undefined && v === baudValues[0]) ? baudValues[0] : undefined;
   };
-  const pure = new Set(['math_number', 'text', 'logic_boolean', 'board_pin_selector', 'serial_baudrate_selector', 'io_level', 'controls_setup_custom', 'controls_loop_custom']);
+  const pure = new Set(['math_number', 'text', 'logic_boolean', 'board_pin_selector', 'serial_baudrate_selector', 'io_level', 'controls_global_defs_custom', 'controls_setup_custom', 'controls_loop_custom', 'macro_define_custom', 'code_include_custom', 'code_comment_custom']);
   for (const block of blocks) {
     if (pure.has(block.type) || compatLiteralField(block)) continue;
     const pin = constantInput(block, 'PIN');

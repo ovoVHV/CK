@@ -37,7 +37,7 @@ export function analyzeEsp32WorkspaceResources(identity: Esp32ResolvedIdentity, 
   const claims: ResourceClaim[] = [];
   const gaps: { block?: string; code: string }[] = [];
   const aliases = new Map(model.resource_graph.resources.flatMap(resource => [[resource.id, resource.id], ...(resource.aliases ?? []).map(alias => [alias, resource.id])] as [string, string][]));
-  const pure = new Set(['math_number', 'text', 'logic_boolean', 'board_pin_selector', 'serial_baudrate_selector', 'io_level', 'controls_setup_custom', 'controls_loop_custom']);
+  const pure = new Set(['math_number', 'text', 'logic_boolean', 'board_pin_selector', 'serial_baudrate_selector', 'io_level', 'controls_global_defs_custom', 'controls_setup_custom', 'controls_loop_custom', 'macro_define_custom', 'code_include_custom', 'code_comment_custom']);
   const adapted = (block: ResourceBlock, gpio?: string): ResourceBlock => ({
     id: block.id, type: block.type, getFieldValue: name => block.getFieldValue(name),
     getInputTargetBlock: name => name === 'PIN' && gpio ? { id: `${block.id}:pin`, type: 'text', getFieldValue: () => gpio, getInputTargetBlock: () => null } : block.getInputTargetBlock(name),

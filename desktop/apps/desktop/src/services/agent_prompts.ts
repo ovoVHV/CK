@@ -29,6 +29,9 @@ export const getAgentSystemPrompt = (): string => {
 - 逻辑运算: logic_and($a, $b), logic_or($a, $b)
 
 【仅供参考的 ABS 语法示例 —— LED闪烁】
+controls_global_defs_custom()
+    @DO:
+        macro_define_custom("LED_PIN", "13")
 controls_setup_custom()
     @DO:
         pin_mode("13", "OUTPUT")

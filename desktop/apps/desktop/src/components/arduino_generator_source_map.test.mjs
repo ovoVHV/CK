@@ -59,10 +59,52 @@ Blockly.defineBlocksWithJsonArray([
         colour: 210,
     },
     {
+        type: 'controls_global_defs_custom',
+        message0: 'global defs %1',
+        args0: [{ type: 'input_statement', name: 'DO' }],
+        colour: '#4F6D8A',
+    },
+    {
         type: 'controls_setup_custom',
         message0: 'setup %1',
         args0: [{ type: 'input_statement', name: 'DO' }],
         colour: 210,
+    },
+    {
+        type: 'controls_loop_custom',
+        message0: 'loop %1',
+        args0: [{ type: 'input_statement', name: 'DO' }],
+        colour: 210,
+    },
+    {
+        type: 'macro_define_custom',
+        message0: '#define %1 %2',
+        args0: [
+            { type: 'field_input', name: 'NAME', text: 'LED_PIN' },
+            { type: 'field_input', name: 'VALUE', text: '13' },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: 290,
+    },
+    {
+        type: 'code_include_custom',
+        message0: '#include %1 %2',
+        args0: [
+            { type: 'field_dropdown', name: 'STYLE', options: [['<...>', 'ANGLE'], ['"..."', 'QUOTE']] },
+            { type: 'field_input', name: 'HEADER', text: 'Wire.h' },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: '#4F6D8A',
+    },
+    {
+        type: 'code_comment_custom',
+        message0: '// %1',
+        args0: [{ type: 'field_input', name: 'TEXT', text: 'note' }],
+        previousStatement: null,
+        nextStatement: null,
+        colour: '#64748B',
     },
 ]);
 
@@ -205,7 +247,7 @@ test('copy uses the preview source while raw compilation and workspace identitie
     const visit=node=>{
         if(ts.isJsxOpeningElement(node)&&node.tagName.getText(tree)==='button'){
             const attrs=node.attributes.properties;
-            if(attrs.some(a=>ts.isJsxAttribute(a)&&a.name.getText(tree)==='aria-label'&&a.initializer?.text==='复制代码')){
+            if(attrs.some(a=>ts.isJsxAttribute(a)&&a.name.getText(tree)==='aria-label'&&(a.initializer?.text==='复制代码'||a.initializer?.getText(tree).includes('复制代码')))){
                 handler=attrs.find(a=>ts.isJsxAttribute(a)&&a.name.getText(tree)==='onClick')?.initializer?.expression;
             }
         }
@@ -216,8 +258,8 @@ test('copy uses the preview source while raw compilation and workspace identitie
     const {sourceWithBuildTarget}=await import('data:text/javascript;base64,'+Buffer.from(targetModule.outputFiles[0].text).toString('base64'));
     const target={board:'arduino:avr:uno',coreVersion:'1.8.8',fqbn:'arduino:avr:uno'};
     let copied;
-    const run = new Function('navigator', 'userReadableCode', 'showToast', 'sourceWithBuildTarget','captureBuildTarget',`return (${handler.getText(tree)})();`);
-    await run({ clipboard: { writeText: async value => { copied = value; } } }, userReadableCode, () => {},sourceWithBuildTarget,()=>target);
+    const run = new Function('navigator', 'userReadableCode', 'showToast', 'sourceWithBuildTarget','captureBuildTarget','uiText',`return (${handler.getText(tree)})();`);
+    await run({ clipboard: { writeText: async value => { copied = value; } } }, userReadableCode, () => {},sourceWithBuildTarget,()=>target,(zh)=>zh);
     assert.equal(copied, sourceWithBuildTarget(userReadableCode,target));
     assert(copied.endsWith(userReadableCode));assert(copied.includes(JSON.stringify(target)));
     assert.doesNotMatch(copied, /@ck-source-begin|@ck-source-end|@ck:v1/);
@@ -306,4 +348,49 @@ test('structural setup and procedure children retain their actual sections', () 
         && mapping.confidence === 'exact'
     )));
     procedureWorkspace.dispose();
+});
+
+test('Mind+-style structured workspace ignores detached orphan blocks while keeping Definitions, Setup, Loop, and functions active', () => {
+    const ws = new Blockly.Workspace();
+    const globals = ws.newBlock('controls_global_defs_custom', 'global-root');
+    const setup = ws.newBlock('controls_setup_custom', 'setup-root');
+    const loop = ws.newBlock('controls_loop_custom', 'loop-root');
+    const fn = ws.newBlock('procedures_defnoreturn', 'fn-root');
+    fn.setFieldValue('helperFn', 'NAME');
+
+    const macro = ws.newBlock('macro_define_custom', 'macro-def');
+    macro.setFieldValue('LED_PIN', 'NAME');
+    macro.setFieldValue('13', 'VALUE');
+    const inc = ws.newBlock('code_include_custom', 'inc-def');
+    inc.setFieldValue('ANGLE', 'STYLE');
+    inc.setFieldValue('Wire.h', 'HEADER');
+    const comment = ws.newBlock('code_comment_custom', 'comment-def');
+    comment.setFieldValue('global config', 'TEXT');
+    globals.getInput('DO').connection.connect(inc.previousConnection);
+    inc.nextConnection.connect(macro.previousConnection);
+    macro.nextConnection.connect(comment.previousConnection);
+
+    const setupStmt = ws.newBlock('ck_source_map_plain_statement', 'setup-stmt');
+    setup.getInput('DO').connection.connect(setupStmt.previousConnection);
+
+    const loopStmt = ws.newBlock('ck_source_map_plain_statement', 'loop-stmt');
+    loop.getInput('DO').connection.connect(loopStmt.previousConnection);
+
+    const fnStmt = ws.newBlock('ck_source_map_plain_statement', 'fn-stmt');
+    fn.getInput('STACK').connection.connect(fnStmt.previousConnection);
+
+    // Detached orphan block parked outside the 3 roots and functions — must be ignored!
+    const orphan = ws.newBlock('ck_source_map_fixture_statement', 'orphan-stmt');
+    const orphanExpr = ws.newBlock('ck_source_map_fixture_expression', 'orphan-expr');
+    orphan.getInput('VALUE').connection.connect(orphanExpr.outputConnection);
+
+    const code = stripBlockMarkers(arduinoGenerator.workspaceToCode(ws));
+    assert.match(code, /#include <Wire\.h>/);
+    assert.match(code, /#define LED_PIN 13/);
+    assert.match(code, /\/\/ global config/);
+    assert.match(code, /void helperFn\(\)/);
+    assert.match(code, /void setup\(\) \{\n\s*child_first\(\);/);
+    assert.match(code, /void loop\(\) \{\n\s*child_first\(\);/);
+    assert.doesNotMatch(code, /dangerous_unicode_值|fixture_first|consume\(/, 'Orphan block must not leak into generated code');
+    ws.dispose();
 });

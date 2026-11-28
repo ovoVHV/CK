@@ -120,6 +120,7 @@ list_libraries按功能查已加载库，search_blocks匹配声明语义，get_b
 只能使用 read_workspace 返回的 blockId。保留无关积木、引脚与板卡配置；不清空工程。
 可使用 schema.template 的 extraState 支持已安装的动态积木。不能确认的第三方功能要说明缺失信息。
 新变量名必须在stage_changes或propose_change的variables中登记（type通常为空字符串），再用声明积木指定C++类型及初值。动态变量下拉可引用登记的变量；不要把模板默认variable当作所有变量名。静态下拉只能用返回的选项。
+工作区采用结构化根块：全局定义（controls_global_defs_custom）、初始化（controls_setup_custom）、循环（controls_loop_custom）和函数定义（procedures_defnoreturn/procedures_defreturn）内的积木才会编译生效，拖在空白画布上的游离散块会被忽略。全局变量声明、#define（macro_define_custom）、#include（code_include_custom）应放入 controls_global_defs_custom。
 __CK_PRIVATE_n__ 是本地私密值占位符，保持原样；不要猜真实值。
 选中积木的请求优先围绕它修改。若会删除输入子块，必须在 summary 说明。
 复杂方案用stage_blocks扁平图分段搭建：先变量声明和初始化，再循环逻辑，最后propose_change(summary,edits:[])整体送验。nodes的inputs/next引用key，placements放置根节点；类型、字段和输入取自schema。每次引用创建新积木，不同段key唯一。每段少于3000输出token；累计最多40编辑、180新积木、60000字符。暂存不改变原工程，必须覆盖全部需求。简单局部修改可用stage_changes或propose_change。

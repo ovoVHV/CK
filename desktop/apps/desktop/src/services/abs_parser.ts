@@ -28,8 +28,12 @@ const FALLBACK_BLOCKS: Record<string, BlockMeta> = {
     'controls_whileUntil': { statementInputNames: ['DO'], valueInputNames: ['BOOL'], fieldNames: ['MODE'] },
     'controls_for': { statementInputNames: ['DO'], valueInputNames: ['FROM', 'TO', 'BY'], fieldNames: ['VAR'] },
     'controls_repeat_ext': { statementInputNames: ['DO'], valueInputNames: ['TIMES'] },
+    'controls_global_defs_custom': { statementInputNames: ['DO'] },
     'controls_setup_custom': { statementInputNames: ['DO'] },
     'controls_loop_custom': { statementInputNames: ['DO'] },
+    'macro_define_custom': { fieldNames: ['NAME', 'VALUE'] },
+    'code_include_custom': { fieldNames: ['STYLE', 'HEADER'] },
+    'code_comment_custom': { fieldNames: ['TEXT'] },
 
     // 串口
     'serial_setup': { fieldNames: ['BAUDRATE'] },

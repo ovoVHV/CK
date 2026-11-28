@@ -251,8 +251,8 @@ export function previewAiProposal(workspace: Blockly.Workspace, proposal: AiProp
                 checkMaterialized(edit.block, child);
                 if (edit.action === 'add_top') {
                     assert(!child.outputConnection, '值积木需要连接到输入，不能单独放置');
-                    if (/^controls_(setup|loop)_custom$/.test(child.type)) {
-                        assert(draft.getAllBlocks(false).filter(b => b.type === child.type).length === 1, '初始化/循环容器已经存在，请追加或修改现有容器');
+                    if (/^controls_(global_defs|setup|loop)_custom$/.test(child.type)) {
+                        assert(draft.getAllBlocks(false).filter(b => b.type === child.type).length === 1, '全局定义/初始化/循环容器已经存在，请追加或修改现有容器');
                     }
                     const y = Math.max(24, ...draft.getTopBlocks(false).filter(b => b !== child).map(b => b.getRelativeToSurfaceXY().y + 160));
                     child.moveBy(36, y);
