@@ -20,6 +20,7 @@ import {nonInteractiveStdio} from './process-stdio.mjs';
 import {platformRecipeHash} from './targets.mjs';
 import {bootIdentity} from './native/session-boot.mjs';
 import {sketchSnapshot,mirrorMembers} from './sketch-files.mjs';
+import {libraryLinkage} from './native/library-linkage.mjs';
 export class NeedsOfficial extends Error{}
 export const artifactNames=['sketch.ino.elf','sketch.ino.bin','sketch.ino.partitions.bin','sketch.ino.merged.bin','flash_args','boot_app0.bin','sketch.ino.bootloader.bin','sdkconfig','build.options.json','partitions.csv'];
 const norm=p=>path.resolve(p),source=c=>path.join(c.sketchDir,'sketch.ino');
@@ -192,7 +193,11 @@ export async function discover(c,p,index,{onSketchReady,deferCore=false}={}){con
     // been checked. The final planner rechecks its full command and inputs.
     sketchJobs.push(Promise.resolve().then(()=>onSketchReady(result,pool)).then(()=>null,error=>error));
    }
-   pos++;continue;}const match=probe.stderr.match(/fatal error: ([^\r\n]+): No such file or directory/);if(!match)throw new NeedsOfficial('preprocessor error: '+probe.stderr.slice(-1500));const header=match[1];probe.missingHeader=header;probe.negativeExplicitCandidates=[path.dirname(probe.unit),...probe.explicitSearchOrder].map(d=>({file:path.resolve(d,header),exists:fs.existsSync(path.resolve(d,header))}));const choice=resolve(index,header,p['build.arch'].toLowerCase());decisions.push(choice);if(!choice.qualified)throw Object.assign(new NeedsOfficial(choice.reason+': '+header),{decisions,probes});const lib=choice.winner;if(selected.some(x=>x.install_dir===lib.install_dir))throw new NeedsOfficial('selected candidate still missing header');if(lib.precompiled||lib.dot_a_linkage||lib.ldflags||fs.existsSync(path.join(lib.install_dir,'arch')))throw new NeedsOfficial('unsupported library archive/hook layout');selected.push(lib);includes.push(lib.source_dir);for(const file of [...sourceFiles(lib.source_dir,lib.layout==='recursive'),...(lib.utility?sourceFiles(lib.utility,false):[])])if(!seen.has(file)){seen.add(file);const utility=lib.utility&&path.relative(lib.utility,file).split(path.sep)[0]!=='..';queue.push({file,extra:lib.utility,library:lib,base:utility?lib.utility:lib.source_dir,out:path.join(c.workspace,'build','libraries',lib.dirName,...(utility?['utility']:[]))});}restart=true;break;}
+   pos++;continue;}const match=probe.stderr.match(/fatal error: ([^\r\n]+): No such file or directory/);if(!match)throw new NeedsOfficial('preprocessor error: '+probe.stderr.slice(-1500));const header=match[1];probe.missingHeader=header;probe.negativeExplicitCandidates=[path.dirname(probe.unit),...probe.explicitSearchOrder].map(d=>({file:path.resolve(d,header),exists:fs.existsSync(path.resolve(d,header))}));const choice=resolve(index,header,p['build.arch'].toLowerCase());decisions.push(choice);if(!choice.qualified)throw Object.assign(new NeedsOfficial(choice.reason+': '+header),{decisions,probes});const lib=choice.winner;if(selected.some(x=>x.install_dir===lib.install_dir))throw new NeedsOfficial('selected candidate still missing header');
+   if(lib.manifestSha256 && fs.statSync(path.join(lib.install_dir,'arch'),{throwIfNoEntry:false})?.isDirectory())throw new NeedsOfficial(lib.name+': obsolete arch/ layout');
+   const linkage=libraryLinkage(lib,p);
+   selected.push(lib);includes.push(lib.source_dir);
+   if(linkage.discover)for(const file of [...sourceFiles(lib.source_dir,lib.layout==='recursive'),...(lib.utility?sourceFiles(lib.utility,false):[])])if(!seen.has(file)){seen.add(file);const utility=lib.utility&&path.relative(lib.utility,file).split(path.sep)[0]!=='..';queue.push({file,extra:lib.utility,library:lib,base:utility?lib.utility:lib.source_dir,out:path.join(c.workspace,'build','libraries',lib.dirName,...(utility?['utility']:[]))});}restart=true;break;}
   if(!restart&&pos<queue.length&&batch.length===0)throw Error('empty discovery queue');if(probes.length>1000)throw new NeedsOfficial('discovery work bound');
  }
  result.timings.selectionReadyMs=performance.now()-started;
@@ -212,7 +217,7 @@ export async function discover(c,p,index,{onSketchReady,deferCore=false}={}){con
 export function compilationDatabase(c,p,d){const build=path.join(c.workspace,'build'),entries=[];
  function add(file,base,out,dirs){entries.push(compileEntry(c,p,file,base,out,dirs));}
  const sketchDir=path.join(build,'sketch');for(const name of [...sketchSnapshot(c.sketchDir).units,'sketch.ino.cpp'].sort())add(path.join(sketchDir,name),sketchDir,sketchDir,d.includes);
- for(const lib of d.selected){const dirs=[...d.includes,...(lib.utility?[lib.utility]:[])],out=path.join(build,'libraries',lib.dirName);for(const f of sourceFiles(lib.source_dir,lib.layout==='recursive'))add(f,lib.source_dir,out,dirs);if(lib.utility)for(const f of sourceFiles(lib.utility,false))add(f,lib.utility,path.join(out,'utility'),dirs);}
+ for(const lib of d.selected){if(!libraryLinkage(lib,p).sources)continue;const dirs=[...d.includes,...(lib.utility?[lib.utility]:[])],out=path.join(build,'libraries',lib.dirName);for(const f of sourceFiles(lib.source_dir,lib.layout==='recursive'))add(f,lib.source_dir,out,dirs);if(lib.utility)for(const f of sourceFiles(lib.utility,false))add(f,lib.utility,path.join(out,'utility'),dirs);}
  const coreDirs=[p['build.core.path'],p['build.variant.path']];for(const dir of [...coreDirs].reverse())for(const f of sourceFiles(dir,true))add(f,dir,path.join(build,'core'),coreDirs);
  write(path.join(build,'compile_commands.json'),entries);return entries;
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "engineVersion": "1.0.64",
+  "engineVersion": "1.0.65",
   "paths": {
     "sysroot": "C:\\Users\\YOUR_USER\\Documents\\CK",
     "node": "C:\\Program Files\\nodejs\\node.exe",

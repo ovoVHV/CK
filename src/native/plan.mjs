@@ -2,6 +2,7 @@
 // compilation, archive, link and image actions are executed by Ninja.
 import fs from 'node:fs';
 import {linkExecution,buildFileExecution} from './link-paths.mjs';
+import {archiveMembers,libraryLinkage} from './library-linkage.mjs';
 import {parseFqbn,platformVersionSupported,platformRecipeHash} from '../targets.mjs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -14,7 +15,7 @@ import { qualifyNativeElfRecipe } from './elf-image.mjs';
 import { toolchainFingerprint, objectCacheConfig, nativeDependencyTarget, compilerInvocationCacheable } from './object-cache.mjs';
 
 export const sha = bytes => createHash('sha256').update(bytes).digest('hex');
-export const PLAN_SEMANTICS_VERSION = 9;
+export const PLAN_SEMANTICS_VERSION = 11;
 export const slash = value => String(value).replaceAll('\\', '/');
 // Arduino's Windows builder orders native paths. Replacing '\\' with '/'
 // before sorting changes directory-prefix order (epd3c\\ precedes epd\\),
@@ -79,10 +80,25 @@ export function createPlan(config, frontend) {
   if (!target || target.arch!==arch || !platformVersionSupported(arch,path.basename(platform))) throw new Error('Unsupported target/Core');
   for (const file of ['platform.local.txt', 'boards.local.txt']) if (fs.existsSync(path.join(platform, file))) throw new Error('Local platform overrides need qualification');
   if (sha(fs.readFileSync(path.join(platform, 'platform.txt'))) !== platformRecipeHash(arch,path.basename(platform))) throw new Error('Platform recipes changed; qualification required');
-  for (const library of frontend.builder_result.used_libraries ?? []) {
-    if (library.precompiled || library.dot_a_linkage || library.ldflags || ['Insights', 'ESP_SR'].includes(path.basename(library.install_dir))) throw new Error('Library archive or active special hooks need qualification');
+  const libraries = frontend.builder_result.used_libraries ?? [];
+  const grouped = new Map(), binaryFlags=[], binaryArchives=[], namedArchives=new Map();
+  for (const [index, library] of libraries.entries()) {
+    if (arch==='esp32' && /^(?:Insights|ESP_SR)$/i.test(path.basename(library.install_dir))) throw new Error(library.name+': ESP32 platform post-build hook requires Arduino CLI');
+    const linkage=libraryLinkage(library,props);
+    if (linkage.directory) {
+      binaryFlags.push('-L'+linkage.directory,...linkage.flags);
+      for (const file of linkage.archives) {
+        const name=path.basename(file);
+        if (name.startsWith('lib')) {
+          if(namedArchives.has(name.toLowerCase())) throw Error('Ambiguous precompiled archive: '+name);
+          namedArchives.set(name.toLowerCase(),file); binaryFlags.push('-l'+name.slice(3,-2));
+        } else binaryArchives.push({file,index});
+      }
+    }
+    if (linkage.sources && library.dot_a_linkage && library.layout === 'recursive') grouped.set(index, []);
   }
-  if (props['compiler.libraries.ldflags']?.trim()) throw new Error('Precompiled/library linker flags require separate qualification');
+  const existingFlags=tokens(props['compiler.libraries.ldflags']??'');
+  if (existingFlags.length && JSON.stringify(existingFlags)!==JSON.stringify(binaryFlags)) throw Error('Unqualified platform/library linker flags');
   if (/^build\.library_discovery_phase=/m.test(fs.readFileSync(path.join(platform, 'platform.txt'), 'utf8'))) throw new Error('Discovery-specific semantics unsupported');
   const db = readJson(path.join(build, 'compile_commands.json'));
   const rules = [], cwd = db[0].directory;
@@ -98,13 +114,16 @@ export function createPlan(config, frontend) {
     const isCore = path.relative(path.join(build, 'core'), target).split(path.sep)[0] !== '..' && target.startsWith(path.join(build, 'core') + path.sep);
     const argv = entry.arguments.map(arg => arg.startsWith('@') && path.basename(arg.slice(1)) === 'file_opts' ? '@' + (isCore ? coreOptions : normalOptions) : arg);
     argv[0] = executable(argv[0]);
-    (isCore ? coreObjects : directObjects).push(target);
-    if (!isCore) {
+    if (isCore) coreObjects.push(target);
+    else {
       const source = path.resolve(entry.file);
-      const libraryIndex = (frontend.builder_result.used_libraries ?? []).findIndex(lib => source.startsWith(path.resolve(lib.source_dir) + path.sep));
+      const libraryIndex = libraries.findIndex(lib => source.startsWith(path.resolve(lib.source_dir) + path.sep));
       const sketchUnit = source.startsWith(path.join(build, 'sketch') + path.sep);
       if (!sketchUnit && libraryIndex < 0) throw new Error('Cannot establish official object group: ' + source);
-      directOrder.set(target, (sketchUnit ? '00000' : String(libraryIndex + 1).padStart(5, '0')) + ':' + officialObjectPathKey(target));
+      (grouped.get(libraryIndex) ?? directObjects).push(target);
+      // The flat layout links all root objects before its separate utility group.
+      const lib=libraries[libraryIndex], utility=lib?.layout==='flat' && path.dirname(source)===path.join(lib.source_dir,'utility');
+      directOrder.set(target, (sketchUnit ? '00000' : String(libraryIndex + 1).padStart(5, '0')) + (utility ? ':2:' : ':1:') + officialObjectPathKey(target));
     }
     rules.push({ name: 'compile-' + sha(target).slice(0, 16), kind: 'compile', argv, directory: entry.directory,
       inputs: [path.resolve(entry.directory, entry.file)], output: target, depfile: target.replace(/\.o$/, '.d') });
@@ -185,17 +204,51 @@ export function createPlan(config, frontend) {
   // are Windows-path-sorted; link inputs are sketch first, then discovery-order
   // library groups, with each group's objects in that same native-path order.
   coreObjects.sort((a, b) => officialObjectPathKey(a) < officialObjectPathKey(b) ? -1 : officialObjectPathKey(a) > officialObjectPathKey(b) ? 1 : 0);
-  directObjects.sort((a, b) => directOrder.get(a) < directOrder.get(b) ? -1 : directOrder.get(a) > directOrder.get(b) ? 1 : 0);
+  const byLinkOrder = (a, b) => directOrder.get(a) < directOrder.get(b) ? -1 : directOrder.get(a) > directOrder.get(b) ? 1 : 0;
   function recipe(key, replacements = {}) {
     let text = props[key]; if (!text) throw new Error('Missing recipe: ' + key);
     for (const [name, value] of Object.entries(replacements)) text = text.replaceAll('{' + name + '}', value);
     if (/\{[^}]+\}/.test(text)) throw new Error('Unresolved recipe: ' + key);
     const argv = tokens(text); argv[0] = executable(argv[0]); return argv;
   }
-  const ar = recipe('recipe.ar.pattern', { archive_file_path: archive + '.ck-tmp', archive_file:'core/core.a.ck-tmp', object_file: '__CK_MEMBER__' });
-  if (ar[1] !== (arch==='avr'?'rcs':'cr') || ar.at(-1) !== '__CK_MEMBER__') throw new Error('Unqualified archive recipe');
-  rules.push({ name: 'core-archive', kind: 'archive', directory: cwd, argv: [...ar.slice(0, -1), ...coreObjects],
-    output: archive, inputs: coreObjects, archiveTemporary: archive + '.ck-tmp', archiveOutput: archive });
+  function addArchive(name, file, members) {
+    const temp = file + '.ck-tmp';
+    const ar = recipe('recipe.ar.pattern', { archive_file_path: temp, archive_file: slash(path.relative(build,temp)), object_file: '__CK_MEMBER__' });
+    if (ar[1] !== (arch==='avr'?'rcs':'cr') || ar.at(-1) !== '__CK_MEMBER__') throw new Error('Unqualified archive recipe');
+    rules.push({ name, kind: 'archive', directory: cwd, argv: [...ar.slice(0, -1), ...members],
+      output: file, inputs: members, archiveTemporary: temp, archiveOutput: file });
+  }
+  addArchive('core-archive',archive,coreObjects);
+  for (const [index, members] of grouped) {
+    const dir = path.basename(libraries[index].install_dir);
+    if (!members.length) throw Error(dir+': source archive has no members');
+    const file = within(build,path.join(build,'libraries',dir,dir+'.a'));
+    if (members.some(f=>!f.startsWith(path.dirname(file)+path.sep))) throw Error('Unexpected library archive output group');
+    members.sort(byLinkOrder);
+    addArchive('library-archive-'+index,file,archiveMembers(members));
+    directOrder.set(file,directOrder.get(members[0]));
+    directObjects.push(file);
+  }
+  for (const {file,index} of binaryArchives) {
+    directOrder.set(file,String(index+1).padStart(5,'0')+':0:'+officialObjectPathKey(file));
+    directObjects.push(file);
+  }
+  directObjects.sort(byLinkOrder);
+  if (binaryFlags.length) {
+    // Bootstrap properties were expanded before library selection. Re-expand
+    // the pinned platform's link pattern with the selected flags at its own slot.
+    const raw=fs.readFileSync(path.join(platform,'platform.txt'),'utf8').match(/^recipe\.c\.combine\.pattern=(.*)$/m)?.[1]?.trim();
+    if (!raw?.includes('{compiler.libraries.ldflags}')) throw Error('Missing platform library flag slot');
+    const expand=flags=>raw.replace(/\{([^{}]+)\}/g,(token,key)=>key==='compiler.libraries.ldflags'?flags:
+      ['object_files','archive_file','archive_file_path'].includes(key)?token:props[key]??token);
+    const quoted=binaryFlags.map(f=>'"'+f+'"').join(' ');
+    const pattern=props['recipe.c.combine.pattern'];
+    // Official frontend may have already inserted its own flags. Require parity
+    // with the original expansion (slash/placeholder spelling is platform-specific).
+    const same=(a,b)=>JSON.stringify(tokens(a))===JSON.stringify(tokens(b));
+    if (!same(expand(''),pattern) && !same(expand(quoted),pattern)) throw Error('Precompiled library link recipe differs from platform expansion');
+    props['recipe.c.combine.pattern']=expand(quoted);
+  }
   const link = recipe('recipe.c.combine.pattern', { object_files: directObjects.map(file => '"' + file + '"').join(' '), archive_file_path: archive, archive_file:'core/core.a' });
   const linkResponses = responses(link.slice(1), cwd), expanded = linkResponses.expanded;
   const dirs = expanded.filter(x => x.startsWith('-L')).map(x => path.resolve(cwd, x.slice(2)));
@@ -211,7 +264,11 @@ export function createPlan(config, frontend) {
   const linkInputs = [...directObjects, archive, ...linkResponses.files];
   for (let i = 0; i < expanded.length; i++) {
     const value = expanded[i];
-    if (value.startsWith('-l')) linkInputs.push(resolveLink(value.startsWith('-l:') ? value.slice(3) : 'lib' + value.slice(2) + '.a'));
+    if (value.startsWith('-l')) {
+      const name=value.startsWith('-l:') ? value.slice(3) : 'lib' + value.slice(2) + '.a', file=resolveLink(name);
+      if (namedArchives.has(name.toLowerCase()) && namedArchives.get(name.toLowerCase())!==file) throw Error('Precompiled library shadowed: '+name);
+      linkInputs.push(file);
+    }
     if (value === '-T') linkInputs.push(resolveLink(expanded[++i]));
     else if (value.startsWith('-T')) linkInputs.push(resolveLink(value.slice(2)));
   }
