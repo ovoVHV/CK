@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { ChevronRight, Code2, Ellipsis, FileCode2, FilePlus2, FileText, Folder, FolderOpen, FolderSearch, PanelRightClose, PanelRightOpen, Pencil, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import './ProjectSourceFiles.css';
+import { useUiText } from '../i18n/uiText';
 
 const Editor = lazy(() => import('./SourceCodeEditor').then(m => ({default:m.SourceCodeEditor})));
 const diagnostics: never[] = [];
@@ -29,6 +30,7 @@ type TreeProps={tree:Branch;prefix:string;active:string|null;docs:Doc[];busy:boo
     select:(name:string)=>void; setMenu:(name:string|null)=>void; action:(kind:'rename'|'delete',name:string)=>void;
     start:(event:ReactPointerEvent<HTMLButtonElement>,name:string)=>void};
 function Entries(props:TreeProps) {
+    const { tr } = useUiText();
     const {tree,active,docs,busy,disabled,menu,select,setMenu,action}=props;
     return <>{Array.from(tree.dirs,([dir,children])=><details open key={dir}>
         <summary data-drop-dir={props.prefix+dir+'/'}><ChevronRight size={12}/><Folder size={15}/><span>{dir}</span></summary>
@@ -41,18 +43,19 @@ function Entries(props:TreeProps) {
                         if(disabled||busy)return;
                         if(e.key==='F2'||e.key==='Delete'){e.preventDefault();action(e.key==='F2'?'rename':'delete',name);}
                     }}><Icon size={15} className={header?'ck-header-icon':'ck-unit-icon'}/><span>{basename(name)}</span>
-                    {docs.some(d=>d.name===name&&dirty(d))&&<i className="ck-source-dirty" aria-label="未保存"/>}</button>
-                <button type="button" className="ck-file-more" aria-label={`${name} 的文件操作`} aria-expanded={menu===name}
-                    title="文件操作" disabled={disabled||busy} onClick={()=>setMenu(menu===name?null:name)}><Ellipsis size={15}/></button>
+                    {docs.some(d=>d.name===name&&dirty(d))&&<i className="ck-source-dirty" aria-label={tr('未保存', 'Unsaved')}/>}</button>
+                <button type="button" className="ck-file-more" aria-label={tr(`${name} 的文件操作`, `File actions for ${name}`)} aria-expanded={menu===name}
+                    title={tr('文件操作', 'File actions')} disabled={disabled||busy} onClick={()=>setMenu(menu===name?null:name)}><Ellipsis size={15}/></button>
             </div>
             {menu===name&&<div className="ck-file-actions">
-                <button type="button" onClick={()=>action('rename',name)}><Pencil size={13}/>重命名或移动</button>
-                <button type="button" onClick={()=>action('delete',name)}><Trash2 size={13}/>删除文件</button>
+                <button type="button" onClick={()=>action('rename',name)}><Pencil size={13}/>{tr('重命名或移动', 'Rename or move')}</button>
+                <button type="button" onClick={()=>action('delete',name)}><Trash2 size={13}/>{tr('删除文件', 'Delete file')}</button>
             </div>}
         </div>;
     })}</>;
 }
 export function ProjectSourceFiles({path,disabled,dark,handle,onBuild}:{path:string;disabled:boolean;dark:boolean;handle:Ref<ProjectFilesHandle>;onBuild:()=>void}) {
+    const { tr } = useUiText();
     const [names,setNames]=useState<string[]|null>(), [expanded,setExpanded]=useState<boolean>(), [wide,setWide]=useState(false);
     const [docs,setDocs]=useState<Doc[]>([]), live=useRef<Doc[]>([]), [active,setActive]=useState<string|null>(null);
     const [busy,setBusy]=useState(false),lock=useRef(false),[error,setError]=useState('');
@@ -125,13 +128,13 @@ export function ProjectSourceFiles({path,disabled,dark,handle,onBuild}:{path:str
         if(active===name)setActive(live.current[live.current.length-1]?.name??null);
     }
     function closeFile(d:Doc){
-        if(dirty(d)){setError('文件尚未保存。');setAction({kind:'discard',name:d.name});}else forget(d.name);
+        if(dirty(d)){setError(tr('文件尚未保存。', 'File has unsaved changes.'));setAction({kind:'discard',name:d.name});}else forget(d.name);
     }
     function begin(kind:'rename'|'delete',name:string,destination=name){
         setMenu(null);if(disabled)return;
         void run(async()=>{
             const d=live.current.find(d=>d.name===name);
-            if(d&&dirty(d)){setActive(name);throw Error('文件尚未保存。请先保存，再执行此操作。');}
+            if(d&&dirty(d)){setActive(name);throw Error(tr('文件尚未保存。请先保存，再执行此操作。', 'File has unsaved changes. Save it before performing this action.'));}
             const revision=d?.revision??(await invoke<{revision:string}>('read_project_source',{path,name})).revision;
             setFilename(destination);setAction({kind,name,revision});
         });
@@ -153,7 +156,7 @@ export function ProjectSourceFiles({path,disabled,dark,handle,onBuild}:{path:str
             setAction(null);if(kind!=='discard')await refresh();
         });
     }
-    const title=action?.kind==='create'?'新建源码文件':action?.kind==='rename'?'重命名或移动':action?.kind==='delete'?'删除文件':'放弃未保存的修改';
+    const title=action?.kind==='create'?tr('新建源码文件', 'New Source File'):action?.kind==='rename'?tr('重命名或移动', 'Rename or Move'):action?.kind==='delete'?tr('删除文件', 'Delete File'):tr('放弃未保存的修改', 'Discard Unsaved Changes');
     function targetAt(e:ReactPointerEvent){
         const el=document.elementFromPoint(e.clientX,e.clientY)?.closest<HTMLElement>('[data-drop-dir]');
         return el&&host.current?.contains(el)?el:null;
@@ -162,7 +165,7 @@ export function ProjectSourceFiles({path,disabled,dark,handle,onBuild}:{path:str
         if(dropTarget.current)delete dropTarget.current.dataset.dropOver;
         dropTarget.current=null;dragged.current=null;
     }
-    return <aside ref={host} className="ck-project-dock" data-expanded={open} aria-label="工程文件"
+    return <aside ref={host} className="ck-project-dock" data-expanded={open} aria-label={tr('工程文件', 'Project Files')}
         onPointerMove={e=>{
             const d=dragged.current;if(!d||d.id!==e.pointerId)return;
             if(!d.moving&&Math.hypot(d.x-e.clientX,d.y-e.clientY)<6)return;
@@ -175,27 +178,27 @@ export function ProjectSourceFiles({path,disabled,dark,handle,onBuild}:{path:str
             if(d.moving){swallowClick.current=true;if(!disabled&&!busy&&dir!==undefined&&dir+basename(d.name)!==d.name)begin('rename',d.name,dir+basename(d.name));}
         }} onPointerCancel={clearDrag} onLostPointerCapture={clearDrag}
         onClickCapture={e=>{if(swallowClick.current){swallowClick.current=false;e.preventDefault();e.stopPropagation();}}}>
-        {!open?<button type="button" className="ck-files-rail" onClick={()=>{setExpanded(true);void refresh();}} title="展开工程文件" aria-expanded={false}>
-            <PanelRightOpen size={16}/><span>工程文件</span>{!!names?.length&&<small>{names.length}</small>}</button>:<>
-            <header><FolderOpen size={15}/><strong>工程文件</strong><small>{names?.length??''}</small>
-                <button type="button" title="收起工程文件" aria-label="收起工程文件" onClick={()=>setExpanded(false)}><PanelRightClose size={15}/></button></header>
-            <div className="ck-files-project" data-drop-dir=""><button type="button" className="ck-tree-main" title={`返回 ${entry}`} onClick={()=>{setActive(null);setMenu(null);}}><Code2 size={14}/><strong>{entry}</strong></button>
-                {Array.isArray(names)&&<button title="新建源码文件" aria-label="新建源码文件" disabled={disabled||busy} onClick={()=>{setFilename('');setMenu(null);setError('');setAction({kind:'create',name:''});}}><FilePlus2 size={15}/></button>}
-                <button title="刷新文件列表" aria-label="刷新文件列表" disabled={busy} onClick={()=>{setError('');void refresh();}}><RefreshCw size={13}/></button></div>
-            <nav aria-label="工程源码文件"><Entries tree={tree} prefix="" active={active} docs={docs} busy={busy} disabled={disabled} menu={menu} select={select} setMenu={setMenu} action={begin}
+        {!open?<button type="button" className="ck-files-rail" onClick={()=>{setExpanded(true);void refresh();}} title={tr('展开工程文件', 'Expand Project Files')} aria-expanded={false}>
+            <PanelRightOpen size={16}/><span>{tr('工程文件', 'Files')}</span>{!!names?.length&&<small>{names.length}</small>}</button>:<>
+            <header><FolderOpen size={15}/><strong>{tr('工程文件', 'Project Files')}</strong><small>{names?.length??''}</small>
+                <button type="button" title={tr('收起工程文件', 'Collapse Project Files')} aria-label={tr('收起工程文件', 'Collapse Project Files')} onClick={()=>setExpanded(false)}><PanelRightClose size={15}/></button></header>
+            <div className="ck-files-project" data-drop-dir=""><button type="button" className="ck-tree-main" title={tr(`返回 ${entry}`, `Return to ${entry}`)} onClick={()=>{setActive(null);setMenu(null);}}><Code2 size={14}/><strong>{entry}</strong></button>
+                {Array.isArray(names)&&<button title={tr('新建源码文件', 'New Source File')} aria-label={tr('新建源码文件', 'New Source File')} disabled={disabled||busy} onClick={()=>{setFilename('');setMenu(null);setError('');setAction({kind:'create',name:''});}}><FilePlus2 size={15}/></button>}
+                <button title={tr('刷新文件列表', 'Refresh File List')} aria-label={tr('刷新文件列表', 'Refresh File List')} disabled={busy} onClick={()=>{setError('');void refresh();}}><RefreshCw size={13}/></button></div>
+            <nav aria-label={tr('工程源码文件', 'Project Source Files')}><Entries tree={tree} prefix="" active={active} docs={docs} busy={busy} disabled={disabled} menu={menu} select={select} setMenu={setMenu} action={begin}
                 start={(e,name)=>{swallowClick.current=false;if(e.button!==0||e.pointerType!=='mouse')return;
                     dragged.current={name,x:e.clientX,y:e.clientY,id:e.pointerId,moving:false};e.currentTarget.setPointerCapture(e.pointerId);}}/>
-                {names===null?<p>将 <b>{entry}</b> 放入同名文件夹后，可添加源码。</p>:names?.length===0?<p>暂无附带源码</p>:null}
+                {names===null?<p>{tr('将 ', 'Place ')}<b>{entry}</b>{tr(' 放入同名文件夹后，可添加源码。', ' inside a folder with the same name to add extra source files.')}</p>:names?.length===0?<p>{tr('暂无附带源码', 'No additional source files')}</p>:null}
                 {!action&&error&&!doc&&<p role="alert">{error}</p>}</nav>
-            <button type="button" className="ck-files-location" title={path} onClick={()=>void run(()=>invoke('show_in_folder',{path}))}><FolderSearch size={15}/>打开所在文件夹</button>
+            <button type="button" className="ck-files-location" title={path} onClick={()=>void run(()=>invoke('show_in_folder',{path}))}><FolderSearch size={15}/>{tr('打开所在文件夹', 'Open Containing Folder')}</button>
         </>}
-        {stage&&doc&&createPortal(<section className="ck-file-workbench" aria-label="工程源码编辑器">
-            <div className="ck-member-tabbar"><div ref={tabstrip} className="ck-member-tabs" aria-label="已打开的文件">
-                <button type="button" className="ck-main-tab" onClick={()=>setActive(null)} title={`返回 ${entry}`}><Code2 size={14}/>{entry}</button>
+        {stage&&doc&&createPortal(<section className="ck-file-workbench" aria-label={tr('工程源码编辑器', 'Project Source Editor')}>
+            <div className="ck-member-tabbar"><div ref={tabstrip} className="ck-member-tabs" aria-label={tr('已打开的文件', 'Open Files')}>
+                <button type="button" className="ck-main-tab" onClick={()=>setActive(null)} title={tr(`返回 ${entry}`, `Return to ${entry}`)}><Code2 size={14}/>{entry}</button>
                 {docs.map(d=><div key={d.name} data-current={active===d.name} className="ck-member-tab">
-                    <button type="button" title={d.name} aria-current={active===d.name?'page':undefined} onClick={()=>select(d.name)}><FileCode2 size={13}/>{basename(d.name)}{dirty(d)&&<i className="ck-source-dirty" aria-label="未保存"/>}</button>
-                    <button disabled={busy} title={`关闭 ${d.name}`} aria-label={active===d.name?'关闭文件编辑器':`关闭 ${d.name}`} onClick={()=>closeFile(d)}><X size={12}/></button></div>)}
-            </div><button className="ck-member-primary" type="button" title="保存当前文件" aria-label="保存当前文件" disabled={!dirty(doc)||disabled||busy} onClick={()=>void run(()=>persist(doc))}><Save size={15}/></button></div>
+                    <button type="button" title={d.name} aria-current={active===d.name?'page':undefined} onClick={()=>select(d.name)}><FileCode2 size={13}/>{basename(d.name)}{dirty(d)&&<i className="ck-source-dirty" aria-label={tr('未保存', 'Unsaved')}/>}</button>
+                    <button disabled={busy} title={tr(`关闭 ${d.name}`, `Close ${d.name}`)} aria-label={active===d.name?tr('关闭文件编辑器', 'Close file editor'):tr(`关闭 ${d.name}`, `Close ${d.name}`)} onClick={()=>closeFile(d)}><X size={12}/></button></div>)}
+            </div><button className="ck-member-primary" type="button" title={tr('保存当前文件', 'Save current file')} aria-label={tr('保存当前文件', 'Save current file')} disabled={!dirty(doc)||disabled||busy} onClick={()=>void run(()=>persist(doc))}><Save size={15}/></button></div>
             <div className="ck-member-path" title={path}>{entry} <ChevronRight size={12}/>{doc.name}</div>
             {!action&&error&&<p role="alert">{error}</p>}
             <div className="ck-member-content"><Suspense fallback={null}><Editor key={doc.name} documentKey={path+':'+doc.name} code={doc.code} dark={dark} readOnly={disabled||busy}
@@ -203,13 +206,13 @@ export function ProjectSourceFiles({path,disabled,dark,handle,onBuild}:{path:str
                 onSave={()=>{if(!disabled&&dirty(doc))void run(()=>persist(doc));}} onBuild={onBuild} onCursor={()=>{}} onRejectedEdit={setError}/></Suspense></div>
         </section>,stage)}
         <dialog ref={dialog} className="ck-member-window" data-create="true" aria-label={title} onCancel={e=>{e.preventDefault();cancel();}} onKeyDown={e=>e.stopPropagation()}>
-            {action&&<><header><strong>{title}</strong><button aria-label="取消" onClick={cancel}><X size={16}/></button></header>
+            {action&&<><header><strong>{title}</strong><button aria-label={tr('取消', 'Cancel')} onClick={cancel}><X size={16}/></button></header>
                 <form onSubmit={e=>{e.preventDefault();submit();}}>
-                    {action.kind==='create'||action.kind==='rename'?<label>工程内相对路径<input autoFocus required aria-label="文件路径" placeholder="src/Motor.cpp" value={filename} onChange={e=>setFilename(e.target.value)}/></label>
-                    :<p>{action.kind==='delete'?'从磁盘删除':'放弃修改并关闭'}「{action.name}」？</p>}
+                    {action.kind==='create'||action.kind==='rename'?<label>{tr('工程内相对路径', 'Relative path in project')}<input autoFocus required aria-label={tr('文件路径', 'File path')} placeholder="src/Motor.cpp" value={filename} onChange={e=>setFilename(e.target.value)}/></label>
+                    :<p>{action.kind==='delete'?tr(`从磁盘删除「${action.name}」？`, `Delete "${action.name}" from disk?`):tr(`放弃修改并关闭「${action.name}」？`, `Discard changes and close "${action.name}"?`)}</p>}
                     {error&&<p role="alert">{error}</p>}
-                    <div className="ck-action-buttons"><button type="button" disabled={busy} onClick={cancel}>取消</button><button className="ck-member-primary"
-                        disabled={busy||disabled||((action.kind==='create'||action.kind==='rename')&&!filename.trim())}>{action.kind==='create'?'创建文件':action.kind==='rename'?'确定':action.kind==='delete'?'确认删除':'放弃修改'}</button></div>
+                    <div className="ck-action-buttons"><button type="button" disabled={busy} onClick={cancel}>{tr('取消', 'Cancel')}</button><button className="ck-member-primary"
+                        disabled={busy||disabled||((action.kind==='create'||action.kind==='rename')&&!filename.trim())}>{action.kind==='create'?tr('创建文件', 'Create File'):action.kind==='rename'?tr('确定', 'OK'):action.kind==='delete'?tr('确认删除', 'Delete'):tr('放弃修改', 'Discard')}</button></div>
                 </form></>}
         </dialog>
     </aside>;

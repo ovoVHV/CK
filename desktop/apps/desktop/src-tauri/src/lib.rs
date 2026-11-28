@@ -23797,11 +23797,9 @@ pub fn run() {
         .manage(app_update::UpdateState::default())
         .manage(compile_feedback::FeedbackState::default())
         .manage(startup_project_open_state)
-        // This must remain the first plugin: it owns the process rendezvous
-        // used by Windows file associations while CK is already running.
-        .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-            project_open::handle_second_instance(app, args, cwd);
-        }))
+        // Multi-instance launches are intentionally supported: each process opens
+        // its own independent CK LAB window and loads any .ck/.maker project passed
+        // via startup_project_open_state.
         .setup(move |app| {
             // Initialize our IPC logger
             logging::init(app.handle().clone()).expect("failed to initialize logger");

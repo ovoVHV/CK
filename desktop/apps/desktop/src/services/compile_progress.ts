@@ -1,3 +1,12 @@
+const isEnUi = (): boolean => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { return false; }
+};
+const uiText = (zh: string, en: string): string => (isEnUi() ? en : zh);
+
 export type BuildProgressMode = 'compile' | 'upload';
 export type BuildProgressStage =
     | 'idle'
@@ -286,7 +295,14 @@ export const applyBuildLogLine = (
             : /^编译 Sketch/.test(message) ? 'sketch'
             : /^(发现\/编译|对象编译|静态归档|预编译头)/.test(message) ? 'full-build'
             : /^(资产校验|相同源码|任务调度)/.test(message) ? 'cache-check' : 'preparing';
-        return { ...previous, stage, indeterminate: true, message, messageCode: null,
+        const enActivity = stage === 'linking' ? 'Linking firmware'
+            : stage === 'artifacts' ? 'Generating upload artifacts'
+            : stage === 'finalizing' ? 'Checking firmware size and artifacts'
+            : stage === 'sketch' ? 'Compiling the current sketch'
+            : stage === 'full-build' ? 'Compiling the Core and dependencies'
+            : stage === 'cache-check' ? 'Checking reusable cache'
+            : 'Preparing compilation';
+        return { ...previous, stage, indeterminate: true, message: uiText(message, enActivity), messageCode: null,
             messageParams: {}, rawMessage: activity, lastActivityAt: now, quietMs: 0,
             elapsedMs: previous.startedAt ? Math.max(0, now - previous.startedAt) : 0 };
     }

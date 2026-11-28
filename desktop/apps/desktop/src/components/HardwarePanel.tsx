@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { SerialMonitor } from './SerialMonitor';
+import { useUiText } from '../i18n/uiText';
 
 export const HardwarePanel: React.FC = () => {
+    const { tr } = useUiText();
     const [boards, setBoards] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [ports, setPorts] = useState<{ port_name: string, description: string }[]>([]);
@@ -27,12 +29,12 @@ export const HardwarePanel: React.FC = () => {
 
     const scanBoards = async () => {
         setLoading(true);
-        setBoards("正在扫描硬件... (初次运行可能需要下载工具链)");
+        setBoards(tr("正在扫描硬件... (初次运行可能需要下载工具链)", "Scanning hardware... (first run may download toolchain)"));
         try {
             const result = await invoke<string>("arduino_board_list");
             setBoards(result);
         } catch (e) {
-            setBoards(`错误: ${e}`);
+            setBoards(`${tr("错误", "Error")}: ${e}`);
         } finally {
             setLoading(false);
         }
@@ -40,12 +42,12 @@ export const HardwarePanel: React.FC = () => {
 
     const runDemo = async () => {
         setLoading(true);
-        setBoards("正在初始化编译引擎...");
+        setBoards(tr("正在初始化编译引擎...", "Initializing build engine..."));
         try {
             const result = await invoke<string>("verify_sketch_demo");
             setBoards(result);
         } catch (e) {
-            setBoards(`编译错误: ${e}`);
+            setBoards(`${tr("编译错误", "Build error")}: ${e}`);
         } finally {
             setLoading(false);
         }
@@ -53,16 +55,16 @@ export const HardwarePanel: React.FC = () => {
 
     const runUpload = async () => {
         if (!selectedPort) {
-            setBoards("请先选择一个串口！");
+            setBoards(tr("请先选择一个串口！", "Please select a serial port first."));
             return;
         }
         setLoading(true);
-        setBoards(`正在向 ${selectedPort} 烧录固件...`);
+        setBoards(tr(`正在向 ${selectedPort} 烧录固件...`, `Uploading firmware to ${selectedPort}...`));
         try {
             const result = await invoke<string>("upload_sketch_demo", { port: selectedPort });
             setBoards(result);
         } catch (e) {
-            setBoards(`烧录错误: ${e}`);
+            setBoards(`${tr("烧录错误", "Upload error")}: ${e}`);
         } finally {
             setLoading(false);
         }
@@ -71,31 +73,31 @@ export const HardwarePanel: React.FC = () => {
     return (
         <div style={styles.container}>
             <div style={styles.header}>
-                <h3>硬件设备</h3>
+                <h3>{tr("硬件设备", "Hardware Devices")}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <select
                         value={selectedPort}
                         onChange={(e) => setSelectedPort(e.target.value)}
                         style={{ padding: '5px', borderRadius: '4px', border: '1px solid #44475a', backgroundColor: '#44475a', color: 'white' }}
                     >
-                        {ports.length === 0 && <option value="">未发现串口</option>}
+                        {ports.length === 0 && <option value="">{tr("未发现串口", "No serial ports found")}</option>}
                         {ports.map(p => (
                             <option key={p.port_name} value={p.port_name}>
                                 {p.port_name} ({p.description})
                             </option>
                         ))}
                     </select>
-                    <button onClick={refreshPorts} style={styles.iconBtn} title="刷新串口">🔄</button>
+                    <button onClick={refreshPorts} style={styles.iconBtn} title={tr("刷新串口", "Refresh serial ports")}>🔄</button>
                 </div>
                 <div>
                     <button onClick={scanBoards} disabled={loading}>
-                        {loading ? "处理中..." : "扫描开发板"}
+                        {loading ? tr("处理中...", "Working...") : tr("扫描开发板", "Scan Boards")}
                     </button>
                     <button onClick={runDemo} disabled={loading} style={{ marginLeft: '10px', backgroundColor: '#6272a4', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
-                        ⚡ 测试编译引擎
+                        ⚡ {tr("测试编译引擎", "Test Build Engine")}
                     </button>
                     <button onClick={runUpload} disabled={loading || !selectedPort} style={{ marginLeft: '10px', backgroundColor: '#50fa7b', color: '#282a36', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                        🔥 烧录
+                        🔥 {tr("烧录", "Upload")}
                     </button>
                 </div>
             </div>

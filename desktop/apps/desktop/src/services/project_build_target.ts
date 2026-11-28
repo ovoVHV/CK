@@ -1,4 +1,11 @@
 import { baseBoardFqbn, composeBoardFqbn, parseBoardFqbnOptions, sanitizeBoardOptions } from './board_fqbn';
+const uiText = (zh: string, en: string): string => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || '')) ? en : zh;
+    } catch { return zh; }
+};
 
 /** Reproducible project settings, not a cache authorization or a toolchain lock. */
 export interface ProjectBuildTarget {
@@ -35,13 +42,13 @@ export const readProjectBuildTarget = (raw: unknown): ProjectBuildTarget | null 
         || !(value.coreVersion === null || (typeof value.coreVersion === 'string' && value.coreVersion.trim()))
         || typeof value.optionsComplete !== 'boolean'
         || !value.options || typeof value.options !== 'object' || Array.isArray(value.options)) {
-        throw new Error('工程板卡配置记录损坏或版本不受支持');
+        throw new Error(uiText('工程板卡配置记录损坏或版本不受支持', 'Project board target record is corrupted or unsupported'));
     }
     const options = sortedOptions(value.options);
     if (Object.keys(options).length !== Object.keys(value.options).length
         || Object.entries(value.options).some(([key, val]) => options[key] !== val)
         || value.fqbn !== composeBoardFqbn(value.board, options)) {
-        throw new Error('工程板卡配置与完整 FQBN 不一致');
+        throw new Error(uiText('工程板卡配置与完整 FQBN 不一致', 'Project board options do not match the full FQBN'));
     }
     return { schemaVersion: 1, board: value.board, boardPackageId: value.boardPackageId,
         coreId: value.coreId, coreVersion: value.coreVersion, fqbn: value.fqbn,
@@ -56,11 +63,11 @@ export const projectBuildTargetDifference = (
 ): string | null => {
     if (!saved || !sameBoard(saved, env)) return null; // An explicit board switch starts a new target.
     if (saved.coreVersion && saved.coreVersion !== env.coreVersion) {
-        return `工程记录 ${saved.coreId} @ ${saved.coreVersion}；当前为 ${env.coreVersion || '未安装或尚未识别'}。`;
+        return uiText(`工程记录 ${saved.coreId} @ ${saved.coreVersion}；当前为 ${env.coreVersion || '未安装或尚未识别'}。`, `Project expects ${saved.coreId} @ ${saved.coreVersion}; current is ${env.coreVersion || 'not installed or unrecognized'}.`);
     }
     if (saved.optionsComplete && env.resolved) {
         const newMenus = Object.keys(env.effectiveOptions).filter(key => !(key in saved.options));
-        if (newMenus.length) return `当前板卡增加了工程未记录的配置项：${newMenus.join('、')}。`;
+        if (newMenus.length) return uiText(`当前板卡增加了工程未记录的配置项：${newMenus.join('、')}。`, `Current board added options not recorded in project: ${newMenus.join(', ')}.`);
     }
     return null;
 };

@@ -127,7 +127,8 @@
       "pin-reserved": { "title": "引脚已被保留", "detail": "保留资源由板卡引脚合同声明，先提示风险。" },
       "pin-risk": { "title": "命中板卡引脚风险", "detail": "当前用法命中了板卡声明的引脚风险。" },
       "same-block-pin-collision": { "title": "同一积木内引脚重复", "detail": "同一积木的两个输入使用了相同引脚。" },
-      "exclusive-pin-reused": { "title": "独占引脚被重复使用", "detail": "至少一项结构化资源声明要求独占。" }
+      "exclusive-pin-reused": { "title": "独占引脚被重复使用", "detail": "至少一项结构化资源声明要求独占。" },
+      "library-hardware-uncovered": { "title": "库的硬件检查尚未完整覆盖", "detail": "当前只检查能解析的声明；缺失声明或未覆盖资源不能视为通过。" }
     }
   },
   "resourceInspector": {

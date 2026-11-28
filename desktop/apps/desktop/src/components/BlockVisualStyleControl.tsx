@@ -6,6 +6,8 @@ import {
     blocklyVisualStyleOption,
     type BlocklyVisualStyle,
 } from '../services/blockly_visual_style';
+import { useTranslation } from 'react-i18next';
+import { useUiText } from '../i18n/uiText';
 
 interface BlockVisualStyleControlProps {
     value: BlocklyVisualStyle;
@@ -71,6 +73,8 @@ export function BlockVisualStyleControl({
     onChange,
     disabled = false,
 }: BlockVisualStyleControlProps) {
+    const { t } = useTranslation();
+    const { tr } = useUiText();
     const [open, setOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
     const rootRef = useRef<HTMLDivElement>(null);
@@ -133,10 +137,10 @@ export function BlockVisualStyleControl({
                     aria-haspopup="menu"
                     aria-expanded={open}
                     aria-controls={open ? 'ck-block-visual-style-menu' : undefined}
-                    title={`积木皮肤：${current.label}`}
+                    title={`${t('settings.appearance.blockSkin.title')}：${t(`settings.appearance.blockSkin.styles.${current.id}.label`, { defaultValue: current.label })}`}
                 >
                     <Palette size={14} />
-                    <span>积木 · {current.shortLabel}</span>
+                    <span>{tr('积木', 'Blocks')} · {t(`settings.appearance.blockSkin.styles.${current.id}.label`, { defaultValue: current.shortLabel })}</span>
                 </button>
             </div>
 
@@ -148,13 +152,15 @@ export function BlockVisualStyleControl({
                     className="fixed z-[10000] overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-slate-600 dark:bg-slate-900"
                     style={{ left: menuPosition.left, top: menuPosition.top, width: MENU_WIDTH }}
                     role="menu"
-                    aria-label="选择积木外观"
+                    aria-label={t('settings.appearance.blockSkin.selectAria')}
                 >
                     <div className="px-2.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                        工作区积木外观
+                        {tr('工作区积木外观', 'Workspace Block Skin')}
                     </div>
                     {BLOCKLY_VISUAL_STYLE_OPTIONS.map(option => {
                         const selected = option.id === value;
+                        const label = t(`settings.appearance.blockSkin.styles.${option.id}.label`, { defaultValue: option.label });
+                        const description = t(`settings.appearance.blockSkin.styles.${option.id}.description`, { defaultValue: option.description });
                         return (
                             <button
                                 key={option.id}
@@ -172,15 +178,15 @@ export function BlockVisualStyleControl({
                             >
                                 <BlockVisualStyleSample style={option.id} />
                                 <span className="min-w-0 flex-1">
-                                    <span className="block text-xs font-bold">{option.label}</span>
-                                    <span className="mt-0.5 block text-[9px] leading-4 text-slate-500 dark:text-slate-400">{option.description}</span>
+                                    <span className="block text-xs font-bold">{label}</span>
+                                    <span className="mt-0.5 block text-[9px] leading-4 text-slate-500 dark:text-slate-400">{description}</span>
                                 </span>
                                 {selected && <Check size={14} className="shrink-0 text-brand-600 dark:text-brand-300" />}
                             </button>
                         );
                     })}
                     <div className="mx-2 mt-1 border-t border-slate-100 px-0 pb-1 pt-2 text-[9px] leading-4 text-slate-400 dark:border-slate-700 dark:text-slate-500">
-                        只改变颜色与质感，不改变积木形状、代码或工程格式。
+                        {tr('只改变颜色与质感，不改变积木形状、代码或工程格式。', 'Changes colors and texture only; block geometry, code, and project files stay unchanged.')}
                     </div>
                 </div>
             , document.body)}

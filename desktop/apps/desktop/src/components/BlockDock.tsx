@@ -802,8 +802,9 @@ export function BlockDock({ workspace, renderer, theme, visualStyle, disabled = 
         try {
             block = createBlockFromEntry(workspace, entry);
             if (activeTarget) {
+                const isEn = blockLocale === 'en-US';
                 if (activeTarget.connection.disposed || !workspace.getBlockById(activeTarget.blockId)) {
-                    throw new Error('插入位置已经变化，请重新点一次 +');
+                    throw new Error(isEn ? 'Insertion point changed; click + again' : '插入位置已经变化，请重新点一次 +');
                 }
                 const candidateConnection = activeTarget.kind === 'value'
                     ? block.outputConnection
@@ -812,22 +813,22 @@ export function BlockDock({ workspace, renderer, theme, visualStyle, disabled = 
                     activeTarget.connection.getCheck(),
                     candidateConnection.getCheck(),
                 )) {
-                    throw new Error('这个积木无法接入当前位置');
+                    throw new Error(isEn ? 'This block cannot connect here' : '这个积木无法接入当前位置');
                 }
                 previousBlock = activeTarget.connection.targetBlock();
                 previousConnection = activeTarget.connection.targetConnection;
                 if (previousConnection) activeTarget.connection.disconnect();
                 activeTarget.connection.connect(candidateConnection);
                 if (activeTarget.connection.targetConnection !== candidateConnection) {
-                    throw new Error('Blockly 拒绝了不兼容的连接');
+                    throw new Error(isEn ? 'Blockly rejected an incompatible connection' : 'Blockly 拒绝了不兼容的连接');
                 }
                 if (activeTarget.kind === 'statement' && previousConnection) {
                     if (!block.nextConnection) {
-                        throw new Error('这个积木不能插入已有语句之间');
+                        throw new Error(isEn ? 'This block cannot be inserted between statements' : '这个积木不能插入已有语句之间');
                     }
                     block.nextConnection.connect(previousConnection);
                     if (block.nextConnection.targetConnection !== previousConnection) {
-                        throw new Error('这个积木不能插入已有语句之间');
+                        throw new Error(isEn ? 'This block cannot be inserted between statements' : '这个积木不能插入已有语句之间');
                     }
                 } else if (activeTarget.kind === 'value' && previousBlock?.isShadow()) {
                     previousBlock.dispose(false);
@@ -859,7 +860,7 @@ export function BlockDock({ workspace, renderer, theme, visualStyle, disabled = 
                     activeTarget.connection.connect(previousConnection);
                 }
             } catch { }
-            onNotice?.(error instanceof Error ? error.message : '积木插入失败', 'error');
+            onNotice?.(error instanceof Error ? error.message : (blockLocale === 'en-US' ? 'Failed to insert block' : '积木插入失败'), 'error');
         } finally {
             Blockly.Events.setGroup(group || false);
         }

@@ -1,5 +1,6 @@
 import { ChevronDown, Gauge, HardDrive, MemoryStick } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useUiText } from '../i18n/uiText';
 import {
     assessMemoryConfiguration,
     formatResourceBytes,
@@ -167,7 +168,17 @@ function ResourceGrowthDetails({
     compact: boolean;
 }) {
     const { t: translate } = useTranslation('health');
+    const { isEn } = useUiText();
     const t = translate as unknown as (key: string, options?: Record<string, unknown>) => string;
+    const localizeContributionLabel = (label: string, kind: string) => {
+        if (kind === 'linker-overhead') return t('resource.growth.linkerOverhead');
+        if (!isEn) return label;
+        if (label === '生成代码') return 'Generated code';
+        if (label === '其他链接对象') return 'Other linked objects';
+        const overflowMatch = label.match(/^其他链接对象（(\d+)\s*组）$/);
+        if (overflowMatch) return `Other linked objects (${overflowMatch[1]} groups)`;
+        return label;
+    };
     const positiveGrowth = (explanation.flashDeltaBytes || 0) > 0
         || (explanation.ramDeltaBytes || 0) > 0;
     const title = t(positiveGrowth ? 'resource.growth.whyLarger' : 'resource.growth.title');
@@ -207,7 +218,7 @@ function ResourceGrowthDetails({
                     <div className="mt-1.5 grid gap-1" aria-label={t('resource.growth.sourcesAriaLabel')}>
                         {explanation.contributions.slice(0, 8).map(item => (
                             <div key={item.id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded bg-slate-50 px-2 py-1 dark:bg-slate-800/75">
-                                <span className="min-w-0 truncate font-semibold text-slate-700 dark:text-slate-200" title={item.label}>{item.kind === 'linker-overhead' ? t('resource.growth.linkerOverhead') : item.label}</span>
+                                <span className="min-w-0 truncate font-semibold text-slate-700 dark:text-slate-200" title={localizeContributionLabel(item.label, item.kind)}>{localizeContributionLabel(item.label, item.kind)}</span>
                                 <span className={deltaClass(item.flashDeltaBytes)}>Flash {signedBytes(item.flashDeltaBytes)}</span>
                                 <span className={deltaClass(item.ramDeltaBytes)}>RAM {signedBytes(item.ramDeltaBytes)}</span>
                             </div>

@@ -109,7 +109,8 @@
       "pin-reserved": { "title": "Pin is reserved", "detail": "The board pin contract reserves this resource; CK reports the risk first." },
       "pin-risk": { "title": "Board pin risk matched", "detail": "The current usage matches a risk declared by the board." },
       "same-block-pin-collision": { "title": "Duplicate pin inside one block", "detail": "Two inputs on the same block use the same pin." },
-      "exclusive-pin-reused": { "title": "Exclusive pin is reused", "detail": "At least one structured resource declaration requires exclusive use." }
+      "exclusive-pin-reused": { "title": "Exclusive pin is reused", "detail": "At least one structured resource declaration requires exclusive use." },
+      "library-hardware-uncovered": { "title": "Library hardware coverage is incomplete", "detail": "This library has not declared full hardware resource usage; only parsable declarations are checked." }
     }
   },
   "resourceInspector": {

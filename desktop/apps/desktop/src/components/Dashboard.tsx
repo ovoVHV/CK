@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
+import { uiText } from '../i18n/uiText';
 import { useHardware } from '../contexts/HardwareContext';
 import { getBoardIcon, getBoardName } from '../constants/boards';
 import DeviceSelectorModal from './DeviceSelectorModal';
@@ -116,7 +117,45 @@ interface ProjectRowListProps {
   canPin: boolean;
 }
 
-function getBoardTag(board: string): string {
+function resolveBoardArtworkSrc(board: string, boardPkg?: any): string {
+  const rawIcon = String(boardPkg?.icon || '').trim();
+  if (rawIcon) {
+    if (rawIcon.startsWith('/') || rawIcon.startsWith('http://') || rawIcon.startsWith('https://')) {
+      return rawIcon;
+    }
+    try {
+      const isAbsolute = /^[a-zA-Z]:/.test(rawIcon);
+      if (isAbsolute) {
+        return convertFileSrc(rawIcon);
+      }
+      const rawPath = String(boardPkg?.path || '').trim();
+      if (rawPath) {
+        const cleanPath = rawPath.replace(/\\/g, '/');
+        const prefix = cleanPath.endsWith('/') ? cleanPath : `${cleanPath}/`;
+        return convertFileSrc(prefix + rawIcon.replace(/\\/g, '/'));
+      }
+      return convertFileSrc(rawIcon);
+    } catch {
+      // Fall through to built-in board icon
+    }
+  }
+  return getBoardIcon(String(board || '').split(':').slice(0, 3).join(':'));
+}
+
+function isImageArtworkSrc(src: string): boolean {
+  return src.startsWith('/') || src.includes('://') || src.includes('asset');
+}
+
+function getBoardTag(board: string, boardPkg?: any): string {
+  if (boardPkg?.is_custom && typeof boardPkg?.name === 'string' && boardPkg.name.trim()) {
+    const fullName = boardPkg.name.trim();
+    const vendor = String(boardPkg?.catalog_vendor || boardPkg?.vendor || '').trim();
+    if (vendor && fullName.toLowerCase().startsWith(`${vendor.toLowerCase()} `)) {
+      const shortName = fullName.slice(vendor.length).trim();
+      if (shortName) return shortName;
+    }
+    return fullName;
+  }
   try {
     const parts = String(board || '').split(':');
     return parts[2] || board;
@@ -132,10 +171,13 @@ function boardFamily(board: string) {
   return vendor === arch ? arch.toUpperCase() : `${vendor} ${arch.toUpperCase()}`;
 }
 
-function BoardArtwork({ board, missing = false }: { board: string; missing?: boolean }) {
-  const icon = getBoardIcon(board.split(':').slice(0, 3).join(':'));
-  return missing ? <AlertTriangle aria-hidden size={28} /> : icon.startsWith('/')
-    ? <img src={icon} alt="" draggable={false} loading="lazy" />
+function BoardArtwork({ board, boardPkg, missing = false }: { board: string; boardPkg?: any; missing?: boolean }) {
+  const primary = resolveBoardArtworkSrc(board, boardPkg);
+  const fallback = getBoardIcon(String(board || '').split(':').slice(0, 3).join(':'));
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const icon = primary && primary !== failedSrc ? primary : fallback;
+  return missing ? <AlertTriangle aria-hidden size={28} /> : isImageArtworkSrc(icon)
+    ? <img src={icon} alt="" draggable={false} loading="lazy" onError={() => { if (icon !== fallback) setFailedSrc(icon); }} />
     : <Cpu aria-hidden size={36} />;
 }
 
@@ -510,10 +552,10 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
               <FolderOpen size={16}/>{t('dashboard.storage.title')}<ChevronRight size={14} className="ml-auto"/>
             </button>
             <button type="button" data-ck-action="copy-official-qq-group" onClick={async () => {
-              try { await navigator.clipboard.writeText(CK_OFFICIAL_QQ_GROUP); setResourceNotice({ message: `已复制 CK LAB 官方QQ群：${CK_OFFICIAL_QQ_GROUP}`, error: false }); }
-              catch { setResourceNotice({ message: `请在 QQ 搜索群号：${CK_OFFICIAL_QQ_GROUP}`, error: false }); }
+              try { await navigator.clipboard.writeText(CK_OFFICIAL_QQ_GROUP); setResourceNotice({ message: uiText(`已复制 CK LAB 官方QQ群：${CK_OFFICIAL_QQ_GROUP}`, `Copied CK LAB QQ Group: ${CK_OFFICIAL_QQ_GROUP}`), error: false }); }
+              catch { setResourceNotice({ message: uiText(`请在 QQ 搜索群号：${CK_OFFICIAL_QQ_GROUP}`, `Search QQ Group ID: ${CK_OFFICIAL_QQ_GROUP}`), error: false }); }
             }} className="mb-2 flex w-full items-center justify-between gap-2 rounded-xl border border-brand-100 bg-brand-50 px-3 py-3 text-left text-brand-700 hover:bg-brand-100 dark:border-brand-900 dark:bg-brand-950/40 dark:text-brand-300">
-              <span><span className="block text-xs font-bold">CK LAB 官方QQ群</span><span className="mt-1 block text-sm font-semibold tracking-wide">{CK_OFFICIAL_QQ_GROUP}</span></span><Copy size={15} />
+              <span><span className="block text-xs font-bold">{uiText('CK LAB 官方QQ群', 'CK LAB Official QQ Group')}</span><span className="mt-1 block text-sm font-semibold tracking-wide">{CK_OFFICIAL_QQ_GROUP}</span></span><Copy size={15} />
             </button>
             <button type="button" onClick={() => void openResourceLink(CK_LAB)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-bold text-slate-700 hover:bg-brand-50 hover:text-brand-700 dark:text-slate-200 dark:hover:bg-slate-800">
               CK LAB <ExternalLink size={14} />
@@ -531,7 +573,7 @@ export default function UserDashboard({ onOpenProject, onNewProject }: Dashboard
           {resourceTab === 'projects' && latestProject && !query && !isLoading ? (
             <div key={latestProject.path} className="mb-5 min-w-0 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
             <div className="flex min-w-0 flex-wrap items-center gap-3">
-              <span className="ck-home-thumb"><BoardArtwork board={latestProject.board} missing={!latestBoard}/></span>
+              <span className="ck-home-thumb"><BoardArtwork board={latestProject.board} boardPkg={latestBoard} missing={!latestBoard}/></span>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-brand-600 dark:text-brand-300">{t('dashboard.home.lastProject')}</p>
                 <h2 className="truncate text-lg font-bold text-slate-900 dark:text-slate-100" title={latestProject.name}>
@@ -787,7 +829,8 @@ const ProjectCardGrid = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const boardExists = availableBoards ? projectBoardExists(data, availableBoards) : true;
-  const label = resolveBoardPackage(availableBoards, data.board, data.board_package_id)?.name || getBoardName(data.board.split(':').slice(0,3).join(':'));
+  const boardPkg = resolveBoardPackage(availableBoards, data.board, data.board_package_id);
+  const label = boardPkg?.name || getBoardName(data.board.split(':').slice(0,3).join(':'));
 
   return (
     <div
@@ -823,14 +866,14 @@ const ProjectCardGrid = ({
       )}
 
       <div className="ck-home-cover relative" data-family={boardFamily(data.board)}>
-        <BoardArtwork board={data.board} missing={!boardExists}/>
+        <BoardArtwork board={data.board} boardPkg={boardPkg} missing={!boardExists}/>
 
         <div className="absolute top-2 right-2 max-w-[80%] flex justify-end z-20">
           <span
             className="bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full font-mono border border-white/20 truncate max-w-full shadow-sm"
-            title={data.board}
+            title={boardPkg?.name || data.board}
           >
-            {getBoardTag(data.board).toUpperCase()}
+            {getBoardTag(data.board, boardPkg).toUpperCase()}
           </span>
         </div>
       </div>
@@ -935,7 +978,8 @@ const ProjectRowList = ({ data, onClick, onRename, onDelete, onTogglePin, isSele
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const boardExists = availableBoards ? projectBoardExists(data, availableBoards) : true;
-  const icon = boardExists ? getBoardIcon(data.board) : '';
+  const boardPkg = resolveBoardPackage(availableBoards, data.board, data.board_package_id);
+  const icon = boardExists ? resolveBoardArtworkSrc(data.board, boardPkg) : '';
   const color = inferBoardSolidColor(data.board, boardExists);
 
   return (
@@ -962,8 +1006,8 @@ const ProjectRowList = ({ data, onClick, onRename, onDelete, onTogglePin, isSele
               <AlertTriangle size={16} />
             </div>
           )}
-          {boardExists && icon.startsWith('/') ? (
-            <img src={icon} alt={data.board} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+          {boardExists && isImageArtworkSrc(icon) ? (
+            <img src={icon} alt={boardPkg?.name || data.board} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           ) : !boardExists ? (
             <AlertTriangle size={16} />
           ) : (
@@ -980,9 +1024,9 @@ const ProjectRowList = ({ data, onClick, onRename, onDelete, onTogglePin, isSele
         <div>
           <span
             className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 truncate"
-            title={data.board}
+            title={boardPkg?.name || data.board}
           >
-            {getBoardTag(data.board)}
+            {getBoardTag(data.board, boardPkg)}
           </span>
         </div>
 

@@ -287,6 +287,7 @@ fn validate_project_open_document(path: &Path) -> Result<(), ErrorDescriptor> {
     })
 }
 
+#[allow(dead_code)]
 pub fn handle_second_instance(app: &AppHandle, args: Vec<String>, cwd: String) {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.unminimize();

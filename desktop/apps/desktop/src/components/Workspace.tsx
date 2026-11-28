@@ -7,6 +7,7 @@ import { BuildActivitySpinner } from './BuildActivitySpinner';
 import { clearCompileErrors, markCompileError, revealCompileError } from '../services/compile_block_feedback';
 import React, { lazy, Suspense, useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { uiText, useUiText } from '../i18n/uiText';
 import { StatusFooter } from './StatusFooter';
 import { publishProjectStatus } from './project_status_session';
 import { analyzeProductionResolvedResources, resourceCatalogFromLibraries } from '../services/production_resource_analysis';
@@ -364,7 +365,7 @@ const Toast = ({ message, type, show, onClose }: any) => {
             {icon}
             <span className="text-sm font-medium">{message}</span>
             {type !== 'loading' && (
-                <button onClick={onClose} className="ml-4 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200" title="关闭提示" aria-label="关闭提示">
+                <button onClick={onClose} className="ml-4 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200" title={uiText('关闭提示', 'Dismiss notice')} aria-label={uiText('关闭提示', 'Dismiss notice')}>
                     <X size={16} />
                 </button>
             )}
@@ -586,10 +587,11 @@ const UnsavedChangesDialog = ({
     willCreateCheckpoint: boolean;
     onChoose: (choice: UnsavedNavigationChoice) => void;
 }) => {
+    const { tr } = useUiText();
     const cancelRef = useRef<HTMLButtonElement>(null);
-    const actionLabel = context === 'back' ? '返回项目列表' : context === 'open' ? '打开其他工程' : '退出软件';
-    const saveLabel = context === 'back' ? '保存并返回' : context === 'open' ? '保存后打开' : '保存并退出';
-    const discardLabel = context === 'back' ? '不保存，返回' : context === 'open' ? '不保存，继续打开' : '不保存，退出';
+    const actionLabel = context === 'back' ? tr('返回项目列表', 'return to projects') : context === 'open' ? tr('打开其他工程', 'open another project') : tr('退出软件', 'close the app');
+    const saveLabel = context === 'back' ? tr('保存并返回', 'Save & Return') : context === 'open' ? tr('保存后打开', 'Save & Open') : tr('保存并退出', 'Save & Exit');
+    const discardLabel = context === 'back' ? tr('不保存，返回', "Don't Save, Return") : context === 'open' ? tr('不保存，继续打开', "Don't Save, Open") : tr('不保存，退出', "Don't Save, Exit");
 
     useEffect(() => {
         cancelRef.current?.focus();
@@ -621,16 +623,16 @@ const UnsavedChangesDialog = ({
                         <AlertTriangle size={19} />
                     </span>
                     <div className="min-w-0">
-                        <h2 id="ck-unsaved-title" className="text-base font-bold text-slate-900 dark:text-slate-100">工程尚未保存</h2>
+                        <h2 id="ck-unsaved-title" className="text-base font-bold text-slate-900 dark:text-slate-100">{tr('工程尚未保存', 'Unsaved Changes')}</h2>
                         <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400" title={projectName}>{projectName}</p>
                     </div>
                 </div>
                 <div id="ck-unsaved-description" className="space-y-3 px-5 py-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                    <p>当前工程的积木、源码、板卡或编译选项已经修改。要{actionLabel}，请选择如何处理这些修改。</p>
+                    <p>{tr(`当前工程的积木、源码、板卡或编译选项已经修改。要${actionLabel}，请选择如何处理这些修改。`, `Blocks, source code, board, or build options have been modified. Choose what to do before you ${actionLabel}.`)}</p>
                     <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-400">
                         {willCreateCheckpoint
-                            ? '选择不保存时，CK 会先创建一个本地保护检查点，之后仍可从“工程检查点”恢复。'
-                            : '当前环境无法创建本地保护检查点；选择不保存后，这些修改将无法恢复。'}
+                            ? tr('选择不保存时，CK 会先创建一个本地保护检查点，之后仍可从“工程检查点”恢复。', 'If you choose not to save, CK creates a local safety checkpoint first so you can still restore from Project Checkpoints.')
+                            : tr('当前环境无法创建本地保护检查点；选择不保存后，这些修改将无法恢复。', 'Local safety checkpoints are unavailable here; discarding will permanently lose these changes.')}
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3 dark:border-slate-700 dark:bg-slate-900">
@@ -649,7 +651,7 @@ const UnsavedChangesDialog = ({
                         className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
                         <X size={14} />
-                        取消
+                        {tr('取消', 'Cancel')}
                     </button>
                     <button
                         type="button"
@@ -944,7 +946,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     const openEngineeringHealth = useCallback(() => {
         if (workspaceSourceRef.current?.mode === 'source') {
-            showToast('源码的编译诊断请查看输出日志；积木工程检查请切回积木', 'info');
+            showToast(uiText('源码的编译诊断请查看输出日志；积木工程检查请切回积木', 'View source build diagnostics in Build Output; switch to Blocks for project checks'), 'info');
             return;
         }
         setAiOpen(false);
@@ -1347,7 +1349,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     // Helper for Board Name
     const getBoardName = () => {
-        if (!activeBoard) return '未选择开发板';
+        if (!activeBoard) return uiText('未选择开发板', 'No board selected');
         const b = activeBoardPackage || BOARDS.find(b => b.id === activeBoard);
         if (b) return b.name;
         const parts = activeBoard.split(':');
@@ -1569,8 +1571,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
             // Extract error message
             const errMsgMatch = line.match(/(?:fatal\s+error|error):\s*(.+)/i);
-            const errMsg = errMsgMatch ? errMsgMatch[1].trim() : '编译错误';
-            markCompileError(block, `编译错误 (${mapping.section} · 行 ${location.line})\n${errMsg}`);
+            const errMsg = errMsgMatch ? errMsgMatch[1].trim() : uiText('编译错误', 'Compile error');
+            markCompileError(block, uiText(`编译错误 (${mapping.section} · 行 ${location.line})\n${errMsg}`, `Compile error (${mapping.section} · line ${location.line})\n${errMsg}`));
 
             if (!firstErrorBlockId) {
                 firstErrorBlockId = blockId;
@@ -1616,7 +1618,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         for (const issue of mappedIssues) {
             const context = issue.blockContext!;
             const messages = messagesByBlock.get(context.blockId) || [];
-            messages.push(`编译错误 (${context.section} · 行 ${context.sourceLine})\n${issue.summary || issue.title}`);
+            messages.push(uiText(`编译错误 (${context.section} · 行 ${context.sourceLine})\n${issue.summary || issue.title}`, `Compile error (${context.section} · line ${context.sourceLine})\n${issue.summary || issue.title}`));
             messagesByBlock.set(context.blockId, messages);
         }
         for (const [blockId, messages] of messagesByBlock) {
@@ -1854,7 +1856,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         } catch (error) {
             console.error(`Failed to send block debug ${command} command`, error);
             if (notifyFailure) {
-                showToast('调试命令发送失败，请检查串口连接', 'error');
+                showToast(uiText('调试命令发送失败，请检查串口连接', 'Failed to send debug command; check serial connection'), 'error');
             }
             return false;
         }
@@ -1899,7 +1901,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             && serialSettingsSeqRef.current !== expectedSettingsSeq
         ) {
             await invoke('close_serial_monitor');
-            throw new Error('串口恢复请求已被较新的操作取代');
+            throw new Error(uiText('串口恢复请求已被较新的操作取代', 'Serial restore request was superseded by a newer action'));
         }
 
         desiredSerialOpenRef.current = true;
@@ -1919,38 +1921,44 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (debugSession.active) {
             const traceMode = blockRunModeRef.current === 'trace';
             if (debugSession.phase === 'stopping') {
-                serialMonitorRef.current?.write(`\r\n[${traceMode ? '轨迹' : '调试'}] 串口已恢复，正在重新发送结束命令并等待开发板确认。\r\n`);
+                serialMonitorRef.current?.write(uiText(
+                    `\r\n[${traceMode ? '轨迹' : '调试'}] 串口已恢复，正在重新发送结束命令并等待开发板确认。\r\n`,
+                    `\r\n[${traceMode ? 'Trace' : 'Debug'}] Serial restored; resending stop command and awaiting board confirmation.\r\n`,
+                ));
                 void writeBlockDebugCommand(debugSession.sessionId, 'STOP', false);
             } else {
                 if (traceMode) traceAggregatorRef.current?.resetTiming();
                 const connectingSession = markBlockDebugSessionConnecting(debugSession);
                 blockDebugSessionRef.current = connectingSession;
                 setBlockDebugSession(connectingSession);
-                serialMonitorRef.current?.write(`\r\n[${traceMode ? '轨迹' : '调试'}] 串口已就绪，正在附加开发板上的${traceMode ? '轨迹' : '调试'}固件。\r\n`);
+                serialMonitorRef.current?.write(uiText(
+                    `\r\n[${traceMode ? '轨迹' : '调试'}] 串口已就绪，正在附加开发板上的${traceMode ? '轨迹' : '调试'}固件。\r\n`,
+                    `\r\n[${traceMode ? 'Trace' : 'Debug'}] Serial ready; attaching ${traceMode ? 'trace' : 'debug'} firmware on board.\r\n`,
+                ));
                 void attachCurrentBlockDebugSession();
             }
         }
 
         if (source === 'switch-baud') {
             serialMonitorRef.current?.clear();
-            serialMonitorRef.current?.write(`\r\n[系统] 波特率已切换至 ${targetBaud}\r\n`);
+            serialMonitorRef.current?.write(uiText(`\r\n[系统] 波特率已切换至 ${targetBaud}\r\n`, `\r\n[System] Baud rate switched to ${targetBaud}\r\n`));
             return;
         }
 
         if (source === 'reconnect') {
-            serialMonitorRef.current?.write(`\r\n[系统] 串口已自动重连：${portName} @ ${targetBaud} 波特率\r\n`);
-            showToast('串口已自动重连', 'success');
+            serialMonitorRef.current?.write(uiText(`\r\n[系统] 串口已自动重连：${portName} @ ${targetBaud} 波特率\r\n`, `\r\n[System] Serial reconnected automatically: ${portName} @ ${targetBaud} baud\r\n`));
+            showToast(uiText('串口已自动重连', 'Serial reconnected'), 'success');
             return;
         }
 
         if (source === 'restore') {
-            serialMonitorRef.current?.write(`\r\n[系统] 已恢复串口监视器：${portName} @ ${targetBaud} 波特率\r\n`);
-            showToast('已恢复串口监视器', 'info');
+            serialMonitorRef.current?.write(uiText(`\r\n[系统] 已恢复串口监视器：${portName} @ ${targetBaud} 波特率\r\n`, `\r\n[System] Serial monitor restored: ${portName} @ ${targetBaud} baud\r\n`));
+            showToast(uiText('已恢复串口监视器', 'Serial monitor restored'), 'info');
             return;
         }
 
-        serialMonitorRef.current?.write(`\r\n[系统] 串口已打开：${portName} @ ${targetBaud} 波特率\r\n`);
-        showToast('串口已打开', 'success');
+        serialMonitorRef.current?.write(uiText(`\r\n[系统] 串口已打开：${portName} @ ${targetBaud} 波特率\r\n`, `\r\n[System] Serial port opened: ${portName} @ ${targetBaud} baud\r\n`));
+        showToast(uiText('串口已打开', 'Serial port opened'), 'success');
     }, [attachCurrentBlockDebugSession, clearSerialReconnectTimer, writeBlockDebugCommand]);
 
     // Keep the backend endpoint synchronized with both selectors. The UI reports
@@ -1977,7 +1985,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 setMonitorBaudRate(null);
                 setIsSerialMonitorOpen(false);
                 console.error('Failed to apply serial settings', error);
-                showToast('串口端口或波特率切换失败', 'error');
+                showToast(uiText('串口端口或波特率切换失败', 'Failed to switch serial port or baud rate'), 'error');
             } finally {
                 if (!cancelled && serialSettingsSeqRef.current === seq) {
                     setIsSerialMonitorSwitching(false);
@@ -2008,12 +2016,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const maxAttempts = 6;
         if (nextAttempt > maxAttempts) {
             desiredSerialOpenRef.current = false;
-            serialMonitorRef.current?.write('\r\n[系统] 自动重连已停止，请检查设备连接后手动重新打开串口。\r\n');
-            const activeRunLabel = blockRunModeRef.current === 'trace' ? '轨迹' : '调试';
+            serialMonitorRef.current?.write(uiText('\r\n[系统] 自动重连已停止，请检查设备连接后手动重新打开串口。\r\n', '\r\n[System] Auto-reconnect stopped; check USB connection and reopen the serial port manually.\r\n'));
+            const activeRunLabel = blockRunModeRef.current === 'trace' ? uiText('轨迹', 'trace') : uiText('调试', 'debug');
             showToast(
                 blockDebugSessionRef.current.active
-                    ? `自动重连失败，${activeRunLabel}会话已保留，可手动重开串口`
-                    : '串口自动重连失败，请检查设备连接',
+                    ? uiText(`自动重连失败，${activeRunLabel}会话已保留，可手动重开串口`, `Auto-reconnect failed; ${activeRunLabel} session kept so you can reopen serial manually`)
+                    : uiText('串口自动重连失败，请检查设备连接', 'Serial auto-reconnect failed; check device connection'),
                 'error',
             );
             return;
@@ -2022,9 +2030,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         serialReconnectAttemptsRef.current = nextAttempt;
         const delayMs = Math.min(1000 * nextAttempt, 5000);
         const reconnectSettingsSeq = serialSettingsSeqRef.current;
-        serialMonitorRef.current?.write(`\r\n[系统] 串口断开，${(delayMs / 1000).toFixed(delayMs >= 1000 ? 0 : 1)} 秒后尝试重连 (${nextAttempt}/${maxAttempts})...\r\n`);
+        serialMonitorRef.current?.write(uiText(
+            `\r\n[系统] 串口断开，${(delayMs / 1000).toFixed(delayMs >= 1000 ? 0 : 1)} 秒后尝试重连 (${nextAttempt}/${maxAttempts})...\r\n`,
+            `\r\n[System] Serial disconnected; retrying in ${(delayMs / 1000).toFixed(delayMs >= 1000 ? 0 : 1)}s (${nextAttempt}/${maxAttempts})...\r\n`,
+        ));
         if (reason) {
-            serialMonitorRef.current?.write(`[系统] 断开原因: ${reason}\r\n`);
+            serialMonitorRef.current?.write(uiText(`[系统] 断开原因: ${reason}\r\n`, `[System] Disconnect reason: ${reason}\r\n`));
         }
 
         serialReconnectTimerRef.current = setTimeout(async () => {
@@ -2040,7 +2051,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     reconnectSettingsSeq,
                 );
             } catch (e: any) {
-                serialMonitorRef.current?.write(`\r\n[系统] 第 ${nextAttempt} 次重连失败: ${String(e)}\r\n`);
+                serialMonitorRef.current?.write(uiText(`\r\n[系统] 第 ${nextAttempt} 次重连失败: ${String(e)}\r\n`, `\r\n[System] Reconnect attempt #${nextAttempt} failed: ${String(e)}\r\n`));
                 scheduleSerialReconnect(String(e), portName, targetBaud);
             }
         }, delayMs);
@@ -2175,10 +2186,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         blockDebugSessionRef.current = connectingSession;
                         setBlockDebugSession(connectingSession);
                         debugStreamParserRef.current.reset();
-                        serialMonitorRef.current?.write(`\r\n[${traceMode ? '轨迹' : '调试'}] 串口断开，会话已保留，正在自动重连。\r\n`);
-                        showToast(`${traceMode ? '轨迹' : '调试'}串口断开，正在自动重连`, 'info');
+                        serialMonitorRef.current?.write(uiText(`\r\n[${traceMode ? '轨迹' : '调试'}] 串口断开，会话已保留，正在自动重连。\r\n`, `\r\n[${traceMode ? 'Trace' : 'Debug'}] Serial disconnected; session preserved, reconnecting automatically.\r\n`));
+                        showToast(uiText(`${traceMode ? '轨迹' : '调试'}串口断开，正在自动重连`, `${traceMode ? 'Trace' : 'Debug'} serial disconnected; reconnecting`), 'info');
                     } else {
-                        showToast('串口已断开', 'error');
+                        showToast(uiText('串口已断开', 'Serial port disconnected'), 'error');
                     }
                     scheduleSerialReconnect(reason, reconnectPort, reconnectBaud);
                 });
@@ -2212,13 +2223,13 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     const closeSerialMonitorConfirmed = async (source: 'main' | 'detached' = 'main') => {
         if (deviceHealthRunningRef.current) {
-            throw new Error('真机体检期间串口由体检独占，请稍候');
+            throw new Error(uiText('真机体检期间串口由体检独占，请稍候', 'Serial port is reserved during device check, please wait'));
         }
         if (blockDebugSessionRef.current.active) {
             throw new Error(
                 blockRunModeRef.current === 'trace'
-                    ? '运行轨迹期间需要保持串口连接，请先结束轨迹'
-                    : '积木调试期间需要保持串口连接，请先结束调试',
+                    ? uiText('运行轨迹期间需要保持串口连接，请先结束轨迹', 'Serial connection is required while trace is running; stop trace first')
+                    : uiText('积木调试期间需要保持串口连接，请先结束调试', 'Serial connection is required while debugging; stop debug first'),
             );
         }
 
@@ -2237,8 +2248,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         setIsSerialMonitorSwitching(false);
 
         if (source === 'main') {
-            serialMonitorRef.current?.write('\r\n[系统] 串口已真正关闭，端口已经释放。\r\n');
-            showToast('串口已关闭，端口已释放', 'success');
+            serialMonitorRef.current?.write(uiText('\r\n[系统] 串口已真正关闭，端口已经释放。\r\n', '\r\n[System] Serial monitor closed and port released.\r\n'));
+            showToast(uiText('串口已关闭，端口已释放', 'Serial monitor closed, port released'), 'success');
         }
     };
 
@@ -2249,7 +2260,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             } else {
                 // Open
                 if (!activePort) {
-                    showToast('请先选择端口', 'error');
+                    showToast(uiText('请先选择端口', 'Select a serial port first'), 'error');
                     return;
                 }
 
@@ -2274,8 +2285,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         } catch (e: any) {
             console.error(e);
             setIsSerialMonitorSwitching(false);
-            showToast(String(e?.message || e || '串口操作失败'), 'error');
-            serialMonitorRef.current?.write(`\r\n[错误] ${e} \r\n`);
+            showToast(String(e?.message || e || uiText('串口操作失败', 'Serial operation failed')), 'error');
+            serialMonitorRef.current?.write(`\r\n[${uiText('错误', 'Error')}] ${e} \r\n`);
         }
     };
 
@@ -2313,13 +2324,13 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 setIsConsoleDetached(false);
                 setConsoleOpen(true);
                 setConsoleTab('serial');
-                showToast('串口监视器已收回主窗口', 'info');
+                showToast(uiText('串口监视器已收回主窗口', 'Serial monitor docked back to main window'), 'info');
                 return;
             }
             if (command.action === 'send') {
-                if (blockDebugSessionRef.current.active) throw new Error('调试/轨迹期间 Serial 由控制协议独占，不能发送普通数据。');
+                if (blockDebugSessionRef.current.active) throw new Error(uiText('调试/轨迹期间 Serial 由控制协议独占，不能发送普通数据。', 'Serial is reserved for debug/trace protocol; cannot send regular data.'));
                 if (!desiredSerialOpenRef.current || monitorPortRef.current === null) {
-                    throw new Error('串口尚未打开');
+                    throw new Error(uiText('串口尚未打开', 'Serial monitor is not open'));
                 }
                 const data = Array.isArray(command.data)
                     ? command.data.filter(value => Number.isInteger(value) && value >= 0 && value <= 255)
@@ -2336,11 +2347,11 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
             const portName = String(command.port || activePortRef.current || '').trim();
             const targetBaud = Number(command.baud || baudRateRef.current);
-            if (!portName) throw new Error('请先选择串口');
-            if (!Number.isFinite(targetBaud) || targetBaud <= 0) throw new Error('波特率无效');
-            if (deviceHealthRunningRef.current) throw new Error('真机体检期间串口由体检独占，请稍候');
+            if (!portName) throw new Error(uiText('请先选择串口', 'Select a serial port first'));
+            if (!Number.isFinite(targetBaud) || targetBaud <= 0) throw new Error(uiText('波特率无效', 'Invalid baud rate'));
+            if (deviceHealthRunningRef.current) throw new Error(uiText('真机体检期间串口由体检独占，请稍候', 'Serial port is reserved during device check'));
             if (blockDebugSessionRef.current.active && command.action === 'set-settings') {
-                throw new Error('运行轨迹或积木调试期间不能切换串口设置');
+                throw new Error(uiText('运行轨迹或积木调试期间不能切换串口设置', 'Cannot change serial settings during debug or trace'));
             }
 
             connectDevice(portName);
@@ -2412,7 +2423,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
             const detached = new WebviewWindow(DETACHED_CONSOLE_LABEL, {
                 url: 'index.html?console=detached',
-                title: 'CK 串口监视器',
+                title: uiText('CK 串口监视器', 'CK Serial Monitor'),
                 width: 920,
                 height: 600,
                 minWidth: 680,
@@ -2425,14 +2436,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 setIsConsoleDetached(true);
                 setConsoleOpen(false);
                 setConsoleTab('serial');
-                showToast('串口监视器已弹出为独立窗口', 'success');
+                showToast(uiText('串口监视器已弹出为独立窗口', 'Serial monitor popped out to separate window'), 'success');
             });
             void detached.once('tauri://error', event => {
                 console.error('[SerialConsole] Failed to create detached window', event.payload);
                 isConsoleDetachedRef.current = false;
                 setIsConsoleDetached(false);
                 setConsoleOpen(true);
-                showToast('串口浮窗创建失败', 'error');
+                showToast(uiText('串口浮窗创建失败', 'Failed to open detached serial window'), 'error');
             });
             void detached.once('tauri://destroyed', () => {
                 isConsoleDetachedRef.current = false;
@@ -2445,27 +2456,27 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             isConsoleDetachedRef.current = false;
             setIsConsoleDetached(false);
             setConsoleOpen(true);
-            showToast('串口浮窗创建失败', 'error');
+            showToast(uiText('串口浮窗创建失败', 'Failed to open detached serial window'), 'error');
         }
     };
 
     const handleInspectDevice = async () => {
         if (deviceHealthRunningRef.current) return;
         if (isCompilingRef.current) {
-            showToast('请等待当前编译或上传结束后再进行真机体检', 'info');
+            showToast(uiText('请等待当前编译或上传结束后再进行真机体检', 'Wait for the current build or upload to finish before running device check'), 'info');
             return;
         }
         if (blockDebugSessionRef.current.active) {
-            showToast('请先结束积木调试或运行轨迹，再进行真机体检', 'info');
+            showToast(uiText('请先结束积木调试或运行轨迹，再进行真机体检', 'Stop block debug or trace before running device check'), 'info');
             return;
         }
         if (!activePort) {
-            showToast('真机体检需要先选择串口', 'error');
+            showToast(uiText('真机体检需要先选择串口', 'Select a serial port before running device check'), 'error');
             setIsPortMenuOpen(true);
             return;
         }
         if (!isEsp32DeviceHealthTarget(effectiveCompileFqbn)) {
-            showToast('真机体检 P0 当前仅支持 ESP32 系列', 'error');
+            showToast(uiText('真机体检 P0 当前仅支持 ESP32 系列', 'Device check currently supports ESP32 boards only'), 'error');
             return;
         }
 
@@ -2500,7 +2511,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         setIsDeviceHealthRunning(true);
         setIsPortMenuOpen(false);
         openEngineeringHealth();
-        showToast('正在进行真机体检；开发板会短暂复位，但不会写入 Flash', 'loading');
+        showToast(uiText('正在进行真机体检；开发板会短暂复位，但不会写入 Flash', 'Running device check; board will briefly reset without writing Flash'), 'loading');
 
         let resultToast: { message: string; type: 'info' | 'success' | 'error' } | null = null;
         try {
@@ -2523,20 +2534,20 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 },
             });
             const report = normalizeDeviceHealthReport(rawReport, target);
-            if (!report) throw new Error('后端返回了无法识别的真机体检结果');
-            if (report.requestId !== target.requestId) throw new Error('真机体检结果与当前请求不匹配');
+            if (!report) throw new Error(uiText('后端返回了无法识别的真机体检结果', 'Backend returned an unrecognized device check result'));
+            if (report.requestId !== target.requestId) throw new Error(uiText('真机体检结果与当前请求不匹配', 'Device check result does not match the current request'));
             if (publishIfCurrent(report)) {
                 const presentation = deriveDeviceHealthPresentation(report);
                 resultToast = presentation.status === 'healthy'
-                    ? { message: '真机体检通过', type: 'success' }
+                    ? { message: uiText('真机体检通过', 'Device check passed'), type: 'success' }
                     : presentation.status === 'problem'
-                        ? { message: '真机体检发现需要处理的问题', type: 'error' }
+                        ? { message: uiText('真机体检发现需要处理的问题', 'Device check found issues that need attention'), type: 'error' }
                         : { message: presentation.title, type: 'info' };
             }
         } catch (error) {
             const failure = createFailedDeviceHealthReport(target, error);
             if (publishIfCurrent(failure)) {
-                resultToast = { message: '真机体检未完成，请查看检查结果', type: 'error' };
+                resultToast = { message: uiText('真机体检未完成，请查看检查结果', 'Device check did not complete; see results'), type: 'error' };
             }
         } finally {
             let restoreFailed = false;
@@ -2585,7 +2596,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             if (isCurrentTarget()) {
                 openEngineeringHealth();
                 if (restoreFailed) {
-                    showToast('体检已结束，但串口监视器恢复失败，请手动重开', 'error');
+                    showToast(uiText('体检已结束，但串口监视器恢复失败，请手动重开', 'Device check finished, but failed to reopen serial monitor'), 'error');
                 } else if (resultToast) {
                     showToast(resultToast.message, resultToast.type);
                 }
@@ -2598,7 +2609,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     };
 
     const handleSendSerial = async () => {
-        if (blockDebugSessionRef.current.active) { showToast('调试/轨迹期间 Serial 由控制协议独占，请先结束会话', 'info'); return; }
+        if (blockDebugSessionRef.current.active) { showToast(uiText('调试/轨迹期间 Serial 由控制协议独占，请先结束会话', 'Serial is reserved for debug/trace protocol; stop the session first'), 'info'); return; }
         if (!serialInput.trim()) return;
 
         try {
@@ -2612,14 +2623,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             setSerialInput('');
         } catch (e: any) {
             console.error(e);
-            serialMonitorRef.current?.write("\\r\\n[错误] 发送失败: " + e + " \\r\\n");
+            serialMonitorRef.current?.write(uiText("\\r\\n[错误] 发送失败: ", "\\r\\n[Error] Send failed: ") + e + " \\r\\n");
         }
     };
 
     const handleExportSerialCapture = async () => {
         const capture = serialMonitorRef.current?.getCapture(viewMode) || '';
         if (!capture) {
-            showToast('当前没有可导出的串口内容', 'info');
+            showToast(uiText('当前没有可导出的串口内容', 'No serial output to export'), 'info');
             return;
         }
 
@@ -2638,10 +2649,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
         try {
             let selectedPath = await save({
-                title: isHex ? '导出串口 HEX 捕获' : '导出串口文本捕获',
+                title: isHex ? uiText('导出串口 HEX 捕获', 'Export Serial HEX Capture') : uiText('导出串口文本捕获', 'Export Serial Text Capture'),
                 defaultPath: `CK-serial-${timestamp}.${defaultExtension}`,
                 filters: [{
-                    name: isHex ? 'HEX 或文本文件' : '串口日志或文本文件',
+                    name: isHex ? uiText('HEX 或文本文件', 'HEX or Text File') : uiText('串口日志或文本文件', 'Serial Log or Text File'),
                     extensions: isHex ? ['hex', 'txt'] : ['log', 'txt'],
                 }],
             });
@@ -2652,10 +2663,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 selectedPath += `.${defaultExtension}`;
             }
             await writeTextFile(selectedPath, capture);
-            showToast(`串口${isHex ? ' HEX' : ''}内容已导出`, 'success');
+            showToast(isHex ? uiText('串口 HEX 内容已导出', 'Serial HEX output exported') : uiText('串口内容已导出', 'Serial output exported'), 'success');
         } catch (error) {
             console.error('[SerialMonitor] Failed to export capture', error);
-            showToast('串口内容导出失败', 'error');
+            showToast(uiText('串口内容导出失败', 'Failed to export serial output'), 'error');
         }
     };
 
@@ -2762,23 +2773,23 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (runId) cancelRequestedBuildRunIdsRef.current.add(runId);
         setBuildProgress(prev => ({
             ...prev,
-            message: '正在安全停止编译进程…',
+            message: uiText('正在安全停止编译进程…', 'Stopping build process safely…'),
             indeterminate: true,
         }));
-        appendCompileLog('\n[信息] 正在终止本次 Arduino CLI/GCC 进程树，并等待它们完全退出…\n');
+        appendCompileLog(uiText('\n[信息] 正在终止本次 Arduino CLI/GCC 进程树，并等待它们完全退出…\n', '\n[Info] Stopping Arduino CLI/GCC processes and waiting for clean exit…\n'));
         try {
             if (runId) {
                 const report = await invoke<string>('cancel_foreground_build', { runId });
                 if (foregroundBuildRunIdRef.current !== runId) return;
-                appendCompileLog(`[信息] ${report}\n`);
+                appendCompileLog(`[${uiText('信息', 'Info')}] ${report}\n`);
             } else {
                 await invoke('cancel_upload');
             }
         } catch (error) {
             if (foregroundBuildRunIdRef.current !== runId) return;
             if (runId) cancelRequestedBuildRunIdsRef.current.delete(runId);
-            appendCompileLog(`[错误] 无法确认后台任务已经停止：${String(error)}\n`);
-            showToast('取消失败，仍在等待后台任务安全退出', 'error');
+            appendCompileLog(uiText(`[错误] 无法确认后台任务已经停止：${String(error)}\n`, `[Error] Could not confirm background task stopped: ${String(error)}\n`));
+            showToast(uiText('取消失败，仍在等待后台任务安全退出', 'Cancel failed; still waiting for background task'), 'error');
             buildCancelInFlightRef.current = false;
             return;
         }
@@ -2788,34 +2799,36 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     const checkBuildTarget = (isUpload: boolean, options: CompileRunOptions, sourceBuild: boolean) => {
         if (unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure) {
-            showToast('工程处于只读保护模式，已阻止编译和上传', 'error');
+            showToast(uiText('工程处于只读保护模式，已阻止编译和上传', 'Project is in read-only protection mode; build and upload blocked'), 'error');
             appendCompileLog(
                 rendererRecoveryFailure
-                    ? '\n[工程保护] 积木外观切换后未能完整恢复工作区。CK 已保留切换前快照并阻止编译/上传，请先重试恢复。\n'
-                    : '\n[工程保护] 当前工程未被安全反序列化。CK 不会基于空工作区或删减后的积木生成固件；请先补齐第三方积木包或修复工程数据。\n',
+                    ? uiText('\n[工程保护] 积木外观切换后未能完整恢复工作区。CK 已保留切换前快照并阻止编译/上传，请先重试恢复。\n', '\n[Protection] Workspace could not be restored after skin switch. Build and upload are blocked until recovery completes.\n')
+                    : uiText('\n[工程保护] 当前工程未被安全反序列化。CK 不会基于空工作区或删减后的积木生成固件；请先补齐第三方积木包或修复工程数据。\n', '\n[Protection] Project was not safely deserialized. Install missing block libraries or repair project data before building.\n'),
             );
             setConsoleOpen(true);
             setConsoleTab('compile');
             return false;
         }
         if (deviceHealthRunningRef.current) {
-            showToast('请等待真机体检结束后再编译或上传', 'info');
+            showToast(uiText('请等待真机体检结束后再编译或上传', 'Wait for device check to finish before building or uploading'), 'info');
             return false;
         }
         const configurationDifference = projectBuildTargetDifference(recordedBuildTargetRef.current, buildEnvironmentRef.current);
         if (configurationDifference) {
-            showToast('工程记录的编译环境与当前环境不同，请先确认配置', 'error');
-            appendCompileLog(`\n[工程配置] ${configurationDifference} 请安装原 Core，或在工作区明确选择“采用当前环境”后重试。\n`);
+            showToast(uiText('工程记录的编译环境与当前环境不同，请先确认配置', 'Project build environment differs from current setup; please confirm first'), 'error');
+            appendCompileLog(uiText(`\n[工程配置] ${configurationDifference} 请安装原 Core，或在工作区明确选择“采用当前环境”后重试。\n`, `\n[Build Target] ${configurationDifference} Install the original Core or choose "Use Current Environment" before retrying.\n`));
             setConsoleOpen(true);
             setConsoleTab('compile');
             return false;
         }
         if (!activeBoardPackageBuildGate.canBuild) {
-            const action = isUpload ? '上传' : '编译';
-            showToast(`板卡包未就绪，已阻止${action}`, 'error');
+            const action = isUpload ? uiText('上传', 'upload') : uiText('编译', 'build');
+            showToast(uiText(`板卡包未就绪，已阻止${action}`, `Board package is not ready; ${action} blocked`), 'error');
             appendCompileLog(
-                `\n[板卡包门禁] 已阻止${action}：${activeBoardPackageBuildGate.reason}\n`
-                + '[板卡包门禁] 工程仍可打开查看；请重新安装精确板卡包，或修复质量/Core 环境后再试。\n',
+                uiText(
+                    `\n[板卡包门禁] 已阻止${action}：${activeBoardPackageBuildGate.reason}\n[板卡包门禁] 工程仍可打开查看；请重新安装精确板卡包，或修复质量/Core 环境后再试。\n`,
+                    `\n[Board Gate] Blocked ${action}: ${activeBoardPackageBuildGate.reason}\n[Board Gate] Reinstall the exact board package or fix Core environment before retrying.\n`,
+                ),
             );
             setConsoleOpen(true);
             setConsoleTab('compile');
@@ -2823,13 +2836,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         }
         if (boardOptionsStatus === 'loading') {
             if (Object.keys(boardOptions).length === 0) {
-                // No project option can be lost or silently rewritten here:
-                // Arduino CLI owns the board/Core defaults for a base FQBN.
-                // Keep the schema lookup in the background instead of making
-                // a first Compile click wait or disappear.
-                appendCompileLog('\n[准备] 板卡选项目录仍在后台加载；当前工程没有自定义板卡选项，直接使用 Core 默认配置开始。\n');
+                appendCompileLog(uiText('\n[准备] 板卡选项目录仍在后台加载；当前工程没有自定义板卡选项，直接使用 Core 默认配置开始。\n', '\n[Prepare] Board options are still loading in background; using Core defaults since no custom options are set.\n'));
             } else if (options.codeOverride === undefined) {
-                const action = isUpload ? '上传' : '编译';
+                const action = isUpload ? uiText('上传', 'upload') : uiText('编译', 'build');
                 const existing = pendingBoardOptionBuildRef.current;
                 pendingBoardOptionBuildRef.current = {
                     isUpload,
@@ -2842,44 +2851,44 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         : Date.now(),
                 };
                 setIsBuildPreparing(true);
-                showToast(`正在校验板卡选项，完成后将自动${action}（无需再次点击）`, 'loading');
+                showToast(uiText(`正在校验板卡选项，完成后将自动${action}（无需再次点击）`, `Validating board options; ${action} will start automatically`), 'loading');
                 if (!existing) {
-                    appendCompileLog(`\n[准备] 正在校验工程保存的板卡选项；校验完成后将自动${action}，无需再次点击。\n`);
+                    appendCompileLog(uiText(`\n[准备] 正在校验工程保存的板卡选项；校验完成后将自动${action}，无需再次点击。\n`, `\n[Prepare] Validating saved board options; ${action} will start automatically once ready.\n`));
                 }
                 return false;
             } else {
-                showToast('正在校验板卡选项；调试/轨迹固件请在完成后重试', 'info');
-                appendCompileLog('\n[准备] 调试/轨迹固件包含一次性源码，板卡选项校验完成前不会排队保存。\n');
+                showToast(uiText('正在校验板卡选项；调试/轨迹固件请在完成后重试', 'Validating board options; retry debug/trace once complete'), 'info');
+                appendCompileLog(uiText('\n[准备] 调试/轨迹固件包含一次性源码，板卡选项校验完成前不会排队保存。\n', '\n[Prepare] Debug/trace firmware is not queued while board options are still validating.\n'));
                 return false;
             }
         }
         if (boardOptionsStatus === 'unverified') {
-            showToast('板卡定义加载失败，工程中的编译选项尚未验证', 'error');
-            appendCompileLog('\n[错误] 工程包含显式板卡选项，但当前无法加载板卡定义进行校验。为避免静默改用默认配置，已阻止编译/上传；请重新加载板卡或检查核心安装。\n');
+            showToast(uiText('板卡定义加载失败，工程中的编译选项尚未验证', 'Failed to load board definition; build options are unverified'), 'error');
+            appendCompileLog(uiText('\n[错误] 工程包含显式板卡选项，但当前无法加载板卡定义进行校验。为避免静默改用默认配置，已阻止编译/上传；请重新加载板卡或检查核心安装。\n', '\n[Error] Explicit board options could not be verified because board definitions failed to load. Reload board or check Core installation.\n'));
             return false;
         }
         if (Object.keys(droppedBoardOptions).length > 0) {
             const incompatibleOptions = Object.entries(droppedBoardOptions)
                 .map(([key, value]) => `${key}=${value}`)
-                .join('、');
-            showToast('存在当前板卡不支持的旧配置，已阻止构建', 'error');
-            appendCompileLog(`\n[错误] 已阻止编译/上传：当前板卡不支持配置 ${incompatibleOptions}。CK 不会静默改用默认值；请在板卡设置中移除不兼容旧配置。\n`);
+                .join(uiText('、', ', '));
+            showToast(uiText('存在当前板卡不支持的旧配置，已阻止构建', 'Unsupported legacy board options detected; build blocked'), 'error');
+            appendCompileLog(uiText(`\n[错误] 已阻止编译/上传：当前板卡不支持配置 ${incompatibleOptions}。CK 不会静默改用默认值；请在板卡设置中移除不兼容旧配置。\n`, `\n[Error] Build blocked: unsupported board options ${incompatibleOptions}. Remove incompatible options in Board Settings.\n`));
             setConsoleOpen(true);
             setConsoleTab('compile');
             setIsConfigOpen(true);
             return false;
         }
         if (isUpload && !activePort) {
-            showToast('请先选择串口', 'error');
-            appendCompileLog('\n错误：未选择串口。\n');
+            showToast(uiText('请先选择串口', 'Select a serial port first'), 'error');
+            appendCompileLog(uiText('\n错误：未选择串口。\n', '\nError: No serial port selected.\n'));
             return false;
         }
 
         if (!extensionsReady
             || extensionsLoadedBoard !== activeBoard
             || extensionsLoadedBoardPackageId !== activeBoardPackageId) {
-            showToast('正在校验当前板卡包的积木运行时，请稍候', 'info');
-            appendCompileLog('\n[积木运行时门禁] 当前精确板卡包的扩展仍在加载，本次构建尚未开始。\n');
+            showToast(uiText('正在校验当前板卡包的积木运行时，请稍候', 'Validating block runtime for the current board package, please wait'), 'info');
+            appendCompileLog(uiText('\n[积木运行时门禁] 当前精确板卡包的扩展仍在加载，本次构建尚未开始。\n', '\n[Block Runtime Gate] Board extensions are still loading; build not started yet.\n'));
             return false;
         }
         const disallowedExtensionRuntimes = sourceBuild ? [] : findDisallowedExtensionBlockRuntimes(
@@ -2890,12 +2899,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         );
         if (disallowedExtensionRuntimes.length > 0) {
             const summary = disallowedExtensionRuntimes
-                .map(item => `${item.blockType}（来自 ${item.ownerExtensionId}）`)
-                .join('、');
-            showToast('工程包含其他板卡包的积木，已阻止构建', 'error');
+                .map(item => uiText(`${item.blockType}（来自 ${item.ownerExtensionId}）`, `${item.blockType} (from ${item.ownerExtensionId})`))
+                .join(uiText('、', ', '));
+            showToast(uiText('工程包含其他板卡包的积木，已阻止构建', 'Project contains blocks from another board package; build blocked'), 'error');
             appendCompileLog(
-                `\n[积木运行时门禁] 已阻止构建：${summary}\n`
-                + '[积木运行时门禁] 请切回对应的精确板卡包，或移除/替换这些积木；同 FQBN 不代表扩展可以混用。\n',
+                uiText(
+                    `\n[积木运行时门禁] 已阻止构建：${summary}\n[积木运行时门禁] 请切回对应的精确板卡包，或移除/替换这些积木；同 FQBN 不代表扩展可以混用。\n`,
+                    `\n[Block Runtime Gate] Build blocked: ${summary}\n[Block Runtime Gate] Switch back to the owning board package or replace those blocks.\n`,
+                ),
             );
             setConsoleOpen(true);
             setConsoleTab('compile');
@@ -2927,12 +2938,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (!nextPinPreflight.canCompile) {
             const blockerSummary = nextPinPreflight.blockers
                 .map(issue => issue.title)
-                .join('；');
-            const blockedLog = `[引脚体检] 已阻止${isUpload ? '上传' : '编译'}：${blockerSummary}\n`;
+                .join(uiText('；', '; '));
+            const blockedLog = uiText(`[引脚体检] 已阻止${isUpload ? '上传' : '编译'}：${blockerSummary}\n`, `[Pin Preflight] Blocked ${isUpload ? 'upload' : 'build'}: ${blockerSummary}\n`);
             replaceCompileLog(blockedLog);
             setCompileIssues([]);
             openEngineeringHealth();
-            showToast('引脚体检发现确定错误，请先修正', 'error');
+            showToast(uiText('引脚体检发现确定错误，请先修正', 'Pin preflight found blocking errors; fix them first'), 'error');
             return false;
         }
 
@@ -2988,15 +2999,15 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (isCompilingRef.current || projectLoadingRef.current) return false;
         if (workspaceRef.current && getWorkspaceSource(workspaceRef.current)) {
             try { syncWorkspaceSource(workspaceRef.current, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspaceRef.current))); }
-            catch (error) { showToast(`源码同步失败：${String(error)}`, 'error'); return false; }
+            catch (error) { showToast(uiText(`源码同步失败：${String(error)}`, `Source sync failed: ${String(error)}`), 'error'); return false; }
         }
         const sourceBuild = workspaceSourceRef.current?.mode === 'source';
         if (sourceBuild && workspaceSourceRef.current?.pendingGenerated !== undefined) {
-            showToast('积木与手写源码有冲突，请先在源码上方处理同步。', 'info');
+            showToast(uiText('积木与手写源码有冲突，请先在源码上方处理同步。', 'Resolve block/source sync conflicts at the top of the source editor first.'), 'info');
             return false;
         }
         if (sourceBuild && (options.uploadMode === 'debug' || options.uploadMode === 'trace')) {
-            showToast('积木断点与运行轨迹仅用于积木模式，请先切回积木', 'info');
+            showToast(uiText('积木断点与运行轨迹仅用于积木模式，请先切回积木', 'Block breakpoints and trace are only available in Blocks mode'), 'info');
             return false;
         }
         if (!checkBuildTarget(isUpload, options, sourceBuild)) return false;
@@ -3014,8 +3025,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             );
         } catch (error) {
             console.error('[Workspace] Failed to generate current compile source', error);
-            showToast('\u5f53\u524d\u79ef\u6728\u65e0\u6cd5\u751f\u6210\u4ee3\u7801\uff0c\u7f16\u8bd1\u5c1a\u672a\u5f00\u59cb', 'error');
-            appendCompileLog(`\n[\u9519\u8bef] \u751f\u6210\u5f53\u524d\u79ef\u6728\u6e90\u7801\u5931\u8d25\uff1a${String(error)}\n`);
+            showToast(uiText('当前积木无法生成代码，编译尚未开始', 'Failed to generate code from blocks; build did not start'), 'error');
+            appendCompileLog(uiText(`\n[错误] 生成当前积木源码失败：${String(error)}\n`, `\n[Error] Failed to generate source from blocks: ${String(error)}\n`));
             setConsoleOpen(true);
             setConsoleTab('compile');
             return false;
@@ -3044,7 +3055,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const frozenCompileSourceMap = freezeCompileSourceMap(compileCode, { file: 'sketch.ino' });
         if(options.aiUpload){
             options.aiUpload.check();
-            if(frozenCompileSourceMap.codeSha256!==options.aiUpload.source)throw Error('当前主程序与通过验证的候选不同，未上传');
+            if(frozenCompileSourceMap.codeSha256!==options.aiUpload.source)throw Error(uiText('当前主程序与通过验证的候选不同，未上传', 'Current sketch differs from verified AI candidate; upload aborted'));
         }
         sourceBuildCodeRef.current = sourceBuild ? compileCode : null;
         compileSourceMapSessionRef.current = sourceBuild ? null : {
@@ -3100,7 +3111,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 };
             } catch (error) {
                 console.warn('[LastWorkingVersion] Failed to capture project state', error);
-                lastWorkingCaptureWarning = `[上一个可用版本] 无法捕获当前完整工程，本次上传仍会继续：${String(error)}\n`;
+                lastWorkingCaptureWarning = uiText(`[上一个可用版本] 无法捕获当前完整工程，本次上传仍会继续：${String(error)}\n`, `[Last Working Version] Could not snapshot full project; upload will continue: ${String(error)}\n`);
             }
         }
 
@@ -3182,7 +3193,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const restoreBaud = options.serialBaudRate || monitorBaudRateRef.current || baudRateRef.current;
         setConsoleOpen(true);
         setConsoleTab('compile');
-        const initialLog = `${lastWorkingCaptureWarning}正在初始化编译环境...\n`;
+        const initialLog = `${lastWorkingCaptureWarning}${uiText('正在初始化编译环境...', 'Initializing build environment...')}\n`;
         replaceCompileLog(initialLog);
         setCompileIssues([]);
         setCompileLogViewMode('key');
@@ -3190,7 +3201,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         setBuildProgress(isForceRebuild
             ? {
                 ...initialProgress,
-                message: '正在强制重建当前配置',
+                message: uiText('正在强制重建当前配置', 'Forcing a rebuild of the current configuration'),
+                messageCode: 'progress.message.forcedRebuild',
                 stage: 'full-build',
                 indeterminate: true,
                 fullBuildKind: 'rebuild',
@@ -3198,8 +3210,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             : {
                 ...initialProgress,
                 message: isUpload
-                    ? '正在保存上传前安全检查点'
+                    ? uiText('正在保存上传前安全检查点', 'Saving pre-upload safety checkpoint')
                     : initialProgress.message,
+                messageCode: isUpload ? null : initialProgress.messageCode,
             });
 
         if (compileTimerRef.current) {
@@ -3226,7 +3239,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             ? createProjectCheckpoint(checkpointInput)
             : Promise.resolve(null);
         const reportCheckpointFailure = (error: unknown) => {
-            const warning = `[检查点警告] 自动保存失败，本次操作仍会继续：${String(error)}\n`;
+            const warning = uiText(`[检查点警告] 自动保存失败，本次操作仍会继续：${String(error)}\n`, `[Checkpoint Warning] Auto-save failed; operation will continue: ${String(error)}\n`);
             console.warn('[ProjectCheckpoints] Failed to create automatic checkpoint', error);
             if (isCurrentSession()) appendCompileLog(warning);
         };
@@ -3266,12 +3279,15 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         run.uploadSerialSettingsSeq = serialSettingsSeqRef.current;
         clearSerialReconnectTimer();
         if (serialMonitorWasOpen) {
-            appendCompileLog(`\n${uploadLabel}上传前自动关闭串口监视器...\n`);
+            appendCompileLog(uiText(`\n${uploadLabel}上传前自动关闭串口监视器...\n`, `\nClosing serial monitor automatically before uploading ${uploadLabel}...\n`));
             try {
                 const serialCloseStarted = performance.now();
                 await invoke('close_serial_monitor');
                 appendCompileLog(
-                    `[Timing] 串口监视器已同步关闭并释放端口：${Math.round(performance.now() - serialCloseStarted)}ms\n`,
+                    uiText(
+                        `[Timing] 串口监视器已同步关闭并释放端口：${Math.round(performance.now() - serialCloseStarted)}ms\n`,
+                        `[Timing] Serial monitor closed and port released in ${Math.round(performance.now() - serialCloseStarted)}ms\n`,
+                    ),
                 );
             } catch (e) {
                 console.warn('Failed to close serial monitor', e);
@@ -3300,7 +3316,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 restorePort, restoreBaud, 'restore', uploadSerialSettingsSeq,
             ));
             if (restored && ownsPort()) appendCompileLog(
-                `\n${uploadLabel}上传结束后已恢复串口监视器（${Math.round(performance.now() - started)}ms）。\n`,
+                uiText(
+                    `\n${uploadLabel}上传结束后已恢复串口监视器（${Math.round(performance.now() - started)}ms）。\n`,
+                    `\nSerial monitor restored after uploading ${uploadLabel} (${Math.round(performance.now() - started)}ms).\n`,
+                ),
             );
         } catch (error) {
             if (!ownsPort()) return;
@@ -3309,7 +3328,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             monitorBaudRateRef.current = null;
             setMonitorPort(null);
             setMonitorBaudRate(null);
-            appendCompileLog(`\n${uploadLabel}上传结束后恢复串口监视器失败: ${String(error)}\n`);
+            appendCompileLog(uiText(`\n${uploadLabel}上传结束后恢复串口监视器失败: ${String(error)}\n`, `\nFailed to restore serial monitor after uploading ${uploadLabel}: ${String(error)}\n`));
         }
     };
 
@@ -3322,7 +3341,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (cancelRequestedBuildRunIdsRef.current.has(buildRunId)) throw new Error('CK_FRONTEND_BUILD_CANCELED');
         if (options.aiUpload) {
             options.aiUpload.check();
-            if (!runEvidenceIsCurrent() || memberFiles.current?.pending()) throw Error('工程已变化，未启动 AI 上传');
+            if (!runEvidenceIsCurrent() || memberFiles.current?.pending()) throw Error(uiText('工程已变化，未启动 AI 上传', 'Project changed; AI upload aborted'));
         }
         const uploadResult = await uploadProject(input.request, {port: buildEvidence.port, probeMemory: !isInstrumentedUpload,
             lastWorkingVersion: lastWorkingVersionCapture, expectedMemberIdentity: options.aiUpload?.members});
@@ -3345,7 +3364,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             operationResultCode,
         );
         if (isInstrumentedUpload) {
-            appendCompileLog('[信息] 调试/轨迹运行时的资源开销不写入项目 Flash/RAM 基线。\n');
+            appendCompileLog(uiText('[信息] 调试/轨迹运行时的资源开销不写入项目 Flash/RAM 基线。\n', '[Info] Debug/trace runtime overhead is not recorded in project Flash/RAM baselines.\n'));
         } else {
             publishCompileDoctor(true, null, performance.now() - startTime, evidenceLog);
             publishCompileResources(evidenceLog, true, uploadResult.fqbn);
@@ -3454,7 +3473,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const {input, isCurrentSession, startTime} = run;
         const {sourceBuild, options} = input;
         const {publishCompileDoctor, publishCompileResources} = run.reports;
-        appendCompileLog(`\n[信息] 目标 FQBN: ${effectiveCompileFqbn}\n`);
+        appendCompileLog(uiText(`\n[信息] 目标 FQBN: ${effectiveCompileFqbn}\n`, `\n[INFO] Target Board: ${effectiveCompileFqbn}\n`));
         productionResourceAnalysisRef.current = null;
         compilerResourcePresentationRef.current = null;
         compilerObservationAttemptRef.current = null;
@@ -3499,12 +3518,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     const reportBuildFailure = (run: BuildSession, e: unknown, cancelled: boolean) => {
         const {input: {isUpload}, startTime, runEvidenceIsCurrent, reports: {publishCompileDoctor, publishCompileIssues}} = run;
         if (cancelled) {
-            appendCompileLog('\n[信息] 后端已确认本次构建取消，正在恢复串口和界面状态。\n');
+            appendCompileLog(uiText('\n[信息] 后端已确认本次构建取消，正在恢复串口和界面状态。\n', '\n[Info] Backend confirmed build cancellation; restoring serial and UI state.\n'));
             return;
         }
         console.error(e);
         showToast(buildT('result.operationFailed'), 'error');
-        appendCompileLog(`\n失败: ${e}\n`);
+        appendCompileLog(uiText(`\n失败: ${e}\n`, `\nFailed: ${e}\n`));
         if (!isUpload) {
             const report = publishCompileDoctor(
                 false,
@@ -3532,9 +3551,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         buildCancelInFlightRef.current = false;
         if (operationResultCode === 'cancelled') {
             pendingForceRebuildRef.current = false;
-            appendCompileLog('[信息] 编译或上传已安全取消。\n', operationResultCode);
-            serialMonitorRef.current?.write('\r\n[系统] 操作已被用户安全取消。\r\n');
-            showToast('编译或上传已安全取消', 'info');
+            appendCompileLog(uiText('[信息] 编译或上传已安全取消。\n', '[Info] Build or upload cancelled safely.\n'), operationResultCode);
+            serialMonitorRef.current?.write(uiText('\r\n[系统] 操作已被用户安全取消。\r\n', '\r\n[System] Operation cancelled safely by user.\r\n'));
+            showToast(uiText('编译或上传已安全取消', 'Build or upload cancelled safely'), 'info');
         }
         if (isBuildOperationSuccessful(operationResultCode)) {
             // Serial restoration and other post-success awaits may have
@@ -3555,7 +3574,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const members = memberFiles.current;
         if (options.aiUpload && (members?.pending() || boardOptionsStatus === 'loading')) return false;
         if (members?.pending() && !await members.saveAll()) {
-            showToast('附带源码尚未保存，请先处理文件编辑器中的提示', 'error');
+            showToast(uiText('附带源码尚未保存，请先处理文件编辑器中的提示', 'Project source files have unsaved changes; resolve them first'), 'error');
             return false;
         }
         if (reloadTriggerRef.current !== load || currentPathRef.current !== currentPath || effectiveCompileFqbnRef.current !== effectiveCompileFqbn) return false;
@@ -3596,17 +3615,17 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             setToast(previous => previous.type === 'loading'
                 ? { ...previous, show: false }
                 : previous);
-            appendCompileLog('\n[准备] 板卡已变化，已取消上一块板卡等待中的构建请求。\n');
+            appendCompileLog(uiText('\n[准备] 板卡已变化，已取消上一块板卡等待中的构建请求。\n', '\n[Prepare] Board changed; cancelled queued build for previous board.\n'));
             return;
         }
         if (boardOptionsStatus === 'unverified') {
-            showToast('板卡选项校验失败，未启动构建', 'error');
-            appendCompileLog('\n[错误] 板卡选项校验失败；等待中的编译/上传没有启动，也没有静默改用默认值。\n');
+            showToast(uiText('板卡选项校验失败，未启动构建', 'Board option validation failed; build not started'), 'error');
+            appendCompileLog(uiText('\n[错误] 板卡选项校验失败；等待中的编译/上传没有启动，也没有静默改用默认值。\n', '\n[Error] Board option validation failed; queued build/upload was not started.\n'));
             return;
         }
 
         const waitedSeconds = Math.max(0, (Date.now() - pending.queuedAt) / 1000).toFixed(1);
-        appendCompileLog(`[准备] 板卡选项校验完成（等待 ${waitedSeconds} 秒），现在自动开始${pending.isUpload ? '上传' : '编译'}。\n`);
+        appendCompileLog(uiText(`[准备] 板卡选项校验完成（等待 ${waitedSeconds} 秒），现在自动开始${pending.isUpload ? '上传' : '编译'}。\n`, `[Prepare] Board options validated (${waitedSeconds}s); starting ${pending.isUpload ? 'upload' : 'build'} automatically.\n`));
         const timer = window.setTimeout(() => {
             void handleCompileAndUpload(pending.isUpload, pending.options);
         }, 0);
@@ -3630,7 +3649,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (action.kind === 'rescan_ports') {
             const scanSucceeded = await scanPorts();
             showToast(
-                scanSucceeded ? '串口列表已重新扫描' : '串口扫描失败，请检查设备连接或驱动',
+                scanSucceeded ? uiText('串口列表已重新扫描', 'Serial port list refreshed') : uiText('串口扫描失败，请检查设备连接或驱动', 'Failed to scan serial ports; check USB connection or drivers'),
                 scanSucceeded ? 'success' : 'error',
             );
             return;
@@ -3640,22 +3659,22 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             const familyName = action.boardFamily === 'esp8266' ? 'ESP8266' : 'ESP32';
             const steps = action.boardFamily === 'esp8266'
                 ? [
-                    '1. 关闭其他占用串口的软件，并确认 USB 数据线可传输数据。',
-                    '2. 按住 FLASH/BOOT，短按一下 RESET。',
-                    '3. 保持按住 FLASH/BOOT，重新点击上传；出现 Connecting 后再松开。',
-                    '4. 若开发板带自动下载电路仍失败，请重新插拔设备并重新扫描串口。',
+                    uiText('1. 关闭其他占用串口的软件，并确认 USB 数据线可传输数据。', '1. Close any other apps using the serial port and confirm the USB cable supports data.'),
+                    uiText('2. 按住 FLASH/BOOT，短按一下 RESET。', '2. Hold FLASH/BOOT and briefly press RESET.'),
+                    uiText('3. 保持按住 FLASH/BOOT，重新点击上传；出现 Connecting 后再松开。', '3. Keep holding FLASH/BOOT, click Upload again, and release once "Connecting" appears.'),
+                    uiText('4. 若开发板带自动下载电路仍失败，请重新插拔设备并重新扫描串口。', '4. If auto-download still fails, reconnect the USB cable and refresh serial ports.'),
                 ]
                 : [
-                    '1. 关闭其他占用串口的软件，并确认 USB 数据线可传输数据。',
-                    '2. 按住 BOOT，短按一下 EN/RESET。',
-                    '3. 保持按住 BOOT，重新点击上传；出现 Connecting 后再松开。',
-                    '4. 若开发板带自动下载电路仍失败，请重新插拔设备并重新扫描串口。',
+                    uiText('1. 关闭其他占用串口的软件，并确认 USB 数据线可传输数据。', '1. Close any other apps using the serial port and confirm the USB cable supports data.'),
+                    uiText('2. 按住 BOOT，短按一下 EN/RESET。', '2. Hold BOOT and briefly press EN/RESET.'),
+                    uiText('3. 保持按住 BOOT，重新点击上传；出现 Connecting 后再松开。', '3. Keep holding BOOT, click Upload again, and release once "Connecting" appears.'),
+                    uiText('4. 若开发板带自动下载电路仍失败，请重新插拔设备并重新扫描串口。', '4. If auto-download still fails, reconnect the USB cable and refresh serial ports.'),
                 ];
             await dialog.alert({
-                title: `${familyName} 上传握手帮助`,
+                title: uiText(`${familyName} 上传握手帮助`, `${familyName} Upload Handshake Help`),
                 message: steps.join('\n'),
                 type: 'info',
-                confirmLabel: '知道了',
+                confirmLabel: uiText('知道了', 'Got it'),
             });
             return;
         }
@@ -3664,8 +3683,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             openEngineeringHealth();
             showToast(
                 compileResourceReport
-                    ? '资源面板显示最近一次成功结果；本次失败请结合溢出日志判断'
-                    : '本次失败没有生成资源统计，请核对分区设置与链接器日志',
+                    ? uiText('资源面板显示最近一次成功结果；本次失败请结合溢出日志判断', 'The resource panel shows the last successful build; inspect the overflow log for this failure')
+                    : uiText('本次失败没有生成资源统计，请核对分区设置与链接器日志', 'No resource usage was generated for this failure; check partition settings and linker logs'),
                 'info',
             );
             return;
@@ -3679,40 +3698,43 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         cacheMode: 'safe' | 'deep' = 'safe',
     ): Promise<boolean> => {
         if (isCompilingRef.current) {
-            showToast('请等待当前编译结束', 'error');
+            showToast(uiText('请等待当前编译结束', 'Please wait for the current build to finish'), 'error');
             return false;
         }
         if (nextAction === 'upload' && !activePort) {
-            showToast('重新烧录前请先选择串口', 'error');
+            showToast(uiText('重新烧录前请先选择串口', 'Select a serial port before rebuilding and uploading'), 'error');
             return false;
         }
 
         const isDeepRefresh = cacheMode === 'deep';
         const actionText = isDeepRefresh
-            ? '将清除当前完整板卡配置的全部构建产物，并让下一次编译忽略已有编译器内容缓存。仅在怀疑缓存损坏、Core 升级异常或普通重建仍有问题时使用；ESP32 可能需要数分钟。'
+            ? uiText('将清除当前完整板卡配置的全部构建产物，并让下一次编译忽略已有编译器内容缓存。仅在怀疑缓存损坏、Core 升级异常或普通重建仍有问题时使用；ESP32 可能需要数分钟。', 'Clears all build artifacts for this board configuration and bypasses the compiler content cache on the next build. Use only if cache corruption is suspected; ESP32 may take several minutes.')
             : nextAction === 'upload'
-                ? '将清除当前板卡配置的工程构建产物，保留按源码内容校验的编译器缓存，然后重新生成固件并烧录。烧录期间会暂时关闭串口监视器。'
+                ? uiText('将清除当前板卡配置的工程构建产物，保留按源码内容校验的编译器缓存，然后重新生成固件并烧录。烧录期间会暂时关闭串口监视器。', 'Clears project build artifacts for this board configuration while preserving content-hashed compiler cache, then rebuilds and uploads. The serial monitor will pause during upload.')
                 : nextAction === 'compile'
-                    ? '将清除当前板卡配置的工程构建产物，保留按源码内容校验的编译器缓存，然后重新生成固件。'
-                    : '将清除当前板卡配置的工程构建产物，并保留按源码内容校验的编译器缓存。下次编译会重新生成固件。';
+                    ? uiText('将清除当前板卡配置的工程构建产物，保留按源码内容校验的编译器缓存，然后重新生成固件。', 'Clears project build artifacts for this board configuration while preserving content-hashed compiler cache, then rebuilds.')
+                    : uiText('将清除当前板卡配置的工程构建产物，并保留按源码内容校验的编译器缓存。下次编译会重新生成固件。', 'Clears project build artifacts for this board configuration while preserving content-hashed compiler cache. The next build will regenerate firmware.');
         const confirmed = await dialog.confirm({
             title: isDeepRefresh
-                ? '彻底刷新编译缓存？'
+                ? uiText('彻底刷新编译缓存？', 'Deep Refresh Build Cache?')
                 : nextAction === 'upload'
-                ? '清除缓存并重新烧录？'
+                ? uiText('清除缓存并重新烧录？', 'Clear Cache & Rebuild Upload?')
                 : nextAction === 'compile'
-                    ? '清除缓存并重新编译？'
-                    : '清除当前编译缓存？',
-            message: `${actionText}\n\n板卡：${getBoardName()}\n配置：${effectiveCompileFqbn}\n\n不会删除工程源码、积木、库文件或板卡核心。`,
+                    ? uiText('清除缓存并重新编译？', 'Clear Cache & Rebuild?')
+                    : uiText('清除当前编译缓存？', 'Clear Build Cache?'),
+            message: uiText(
+                `${actionText}\n\n板卡：${getBoardName()}\n配置：${effectiveCompileFqbn}\n\n不会删除工程源码、积木、库文件或板卡核心。`,
+                `${actionText}\n\nBoard: ${getBoardName()}\nTarget: ${effectiveCompileFqbn}\n\nProject source, blocks, libraries, and board cores will not be deleted.`,
+            ),
             tone: 'warning',
             confirmLabel: isDeepRefresh
-                ? '彻底刷新（较慢）'
+                ? uiText('彻底刷新（较慢）', 'Deep Refresh (Slower)')
                 : nextAction === 'upload'
-                ? '清除并重新烧录'
+                ? uiText('清除并重新烧录', 'Clear & Upload')
                 : nextAction === 'compile'
-                    ? '清除并重新编译'
-                    : '确认清除缓存',
-            cancelLabel: '取消',
+                    ? uiText('清除并重新编译', 'Clear & Rebuild')
+                    : uiText('确认清除缓存', 'Clear Cache'),
+            cancelLabel: uiText('取消', 'Cancel'),
         });
         if (!confirmed) return false;
 
@@ -3729,17 +3751,20 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             setConsoleOpen(true);
             setConsoleTab('compile');
             appendCompileLog(
-                `\n[信息] 已清除 ${effectiveCompileFqbn} 的编译缓存：${removedEntries} 项，${removedMiB.toFixed(1)} MiB。\n` +
+                uiText(
+                    `\n[信息] 已清除 ${effectiveCompileFqbn} 的编译缓存：${removedEntries} 项，${removedMiB.toFixed(1)} MiB。\n`,
+                    `\n[Info] Cleared build cache for ${effectiveCompileFqbn}: ${removedEntries} entries (${removedMiB.toFixed(1)} MiB).\n`,
+                ) +
                 (isDeepRefresh
-                    ? '[信息] 下一次编译将忽略已有 ccache 命中并重新生成核心与依赖；ESP32 可能需要数分钟。\n'
-                    : '[信息] 已保留按源码内容校验的共享 ccache；下一次编译会重新生成当前配置的固件产物。\n'),
+                    ? uiText('[信息] 下一次编译将忽略已有 ccache 命中并重新生成核心与依赖；ESP32 可能需要数分钟。\n', '[Info] Next build will bypass ccache and recompile core and dependencies; ESP32 may take several minutes.\n')
+                    : uiText('[信息] 已保留按源码内容校验的共享 ccache；下一次编译会重新生成当前配置的固件产物。\n', '[Info] Shared content-hashed ccache preserved; next build will regenerate firmware artifacts for this config.\n')),
             );
-            showToast(isDeepRefresh ? '已安排彻底刷新，下一次编译会较慢' : '当前配置将在保留内容缓存的情况下重建', 'success');
+            showToast(isDeepRefresh ? uiText('已安排彻底刷新，下一次编译会较慢', 'Deep refresh scheduled; next build will be slower') : uiText('当前配置将在保留内容缓存的情况下重建', 'Build cache cleared; next build will regenerate artifacts'), 'success');
             return true;
         } catch (error) {
             console.error('Failed to clear board compile cache', error);
-            showToast('清除编译缓存失败', 'error');
-            appendCompileLog(`\n[错误] 清除编译缓存失败：${String(error)}\n`);
+            showToast(uiText('清除编译缓存失败', 'Failed to clear build cache'), 'error');
+            appendCompileLog(uiText(`\n[错误] 清除编译缓存失败：${String(error)}\n`, `\n[Error] Failed to clear build cache: ${String(error)}\n`));
             return false;
         }
     };
@@ -3760,8 +3785,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     useEffect(() => {
         const registry = Blockly.ContextMenuRegistry.registry;
         const entries = [
-            { id: 'ckAiEditBlock', kind: 'edit' as const, label: '让 AI 修改这段积木' },
-            { id: 'ckAiExplainBlock', kind: 'explain' as const, label: '让 AI 解释这段积木' },
+            { id: 'ckAiEditBlock', kind: 'edit' as const, label: () => uiText('让 AI 修改这段积木', 'Ask AI to edit this block') },
+            { id: 'ckAiExplainBlock', kind: 'explain' as const, label: () => uiText('让 AI 解释这段积木', 'Ask AI to explain this block') },
         ];
         for (const entry of entries) {
             if (registry.getItem(entry.id)) registry.unregister(entry.id);
@@ -3815,16 +3840,16 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         try {
             const selectedPath = await save({
                 defaultPath: 'CK-renderer-recovery-snapshot.json',
-                filters: [{ name: 'CK 工作区恢复快照', extensions: ['json'] }],
+                filters: [{ name: uiText('CK 工作区恢复快照', 'CK Workspace Recovery Snapshot'), extensions: ['json'] }],
             });
             if (!selectedPath) return;
             // Export the existing Blockly serialization directly. This is a
             // recovery copy, not a new CK schema or contract/version axis.
             await writeTextFile(selectedPath, JSON.stringify(transition.state, null, 2));
-            showToast('恢复快照已导出', 'success');
+            showToast(uiText('恢复快照已导出', 'Recovery snapshot exported'), 'success');
         } catch (error) {
             console.error('[Blockly] Failed to export renderer recovery snapshot', error);
-            showToast('恢复快照导出失败', 'error');
+            showToast(uiText('恢复快照导出失败', 'Failed to export recovery snapshot'), 'error');
         }
     }, []);
 
@@ -3982,7 +4007,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     useEffect(() => () => {
         if (dirtyCompareTimerRef.current) clearTimeout(dirtyCompareTimerRef.current);
     }, []);
-    const [generatedCode, setGeneratedCode] = useState('// 正在生成代码...');
+    const [generatedCode, setGeneratedCode] = useState(() => uiText('// 正在生成代码...', '// Generating code...'));
     const userReadableCode = useMemo(() => codeViewOpen ? stripBlockMarkers(generatedCode) : '', [generatedCode, codeViewOpen]);
     const [buildProgress, setBuildProgress] = useState<BuildProgressState>(createIdleBuildProgress);
     const [extensionXml, setExtensionXml] = useState('');
@@ -4194,7 +4219,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     const applyProjectCheckpointState = useCallback((checkpoint: ProjectCheckpoint) => {
         const workspace = workspaceRef.current;
-        if (!workspace) throw new Error('积木工作区尚未就绪');
+        if (!workspace) throw new Error(uiText('积木工作区尚未就绪', 'Blockly workspace is not ready'));
 
         const inspection = inspectSerializedBlocklyWorkspace(
             checkpoint.workspaceJson,
@@ -4203,7 +4228,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         );
         if (!inspection.canDeserializeIntoBlockly) {
             throw new Error(
-                `检查点包含 ${inspection.unknownBlockCount} 个当前未注册积木（${inspection.unknownTypeNames.join('、')}）。原始检查点已保留；请先安装或启用对应积木包。`,
+                uiText(
+                    `检查点包含 ${inspection.unknownBlockCount} 个当前未注册积木（${inspection.unknownTypeNames.join('、')}）。原始检查点已保留；请先安装或启用对应积木包。`,
+                    `Checkpoint contains ${inspection.unknownBlockCount} unregistered block(s) (${inspection.unknownTypeNames.join(', ')}). Original checkpoint preserved; install or enable the matching block package first.`,
+                ),
             );
         }
         const parseable = checkpoint.workspaceJson.startsWith('\uFEFF')
@@ -4235,14 +4263,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         dirtyTrackingReadyRef.current = true;
         setIsProjectDirty(true);
 
-        showToast('检查点已完整恢复，可确认后保存工程', 'success');
+        showToast(uiText('检查点已完整恢复，可确认后保存工程', 'Checkpoint restored; review and save the project'), 'success');
     // showToast is stable for this component lifecycle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setBoardOptions]);
 
     const handleRestoreProjectCheckpoint = useCallback(async (checkpoint: ProjectCheckpoint) => {
         if (isCompilingRef.current) {
-            throw new Error('请等待当前编译或上传结束后再恢复检查点');
+            throw new Error(uiText('请等待当前编译或上传结束后再恢复检查点', 'Wait for the current build or upload to finish before restoring a checkpoint'));
         }
 
         // Restoring is destructive to the current in-memory workspace. Refuse
@@ -4257,7 +4285,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             || extensionsLoadedBoardPackageId !== targetBoardPackageId) {
             pendingCheckpointRestoreRef.current = checkpoint;
             setActiveBoard(targetBoard, targetBoardPackageId);
-            showToast(`正在切换到检查点板卡：${targetBoard}`, 'info');
+            showToast(uiText(`正在切换到检查点板卡：${targetBoard}`, `Switching to checkpoint board: ${targetBoard}`), 'info');
             return;
         }
 
@@ -4280,7 +4308,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             applyProjectCheckpointState(checkpoint);
         } catch (error) {
             console.error('[ProjectCheckpoints] Deferred restore failed', error);
-            showToast(`检查点恢复失败：${String(error)}`, 'error');
+            showToast(uiText(`检查点恢复失败：${String(error)}`, `Checkpoint restore failed: ${String(error)}`), 'error');
         }
     // showToast is stable for this component lifecycle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -4288,7 +4316,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     const getCurrentLastWorkingVersionState = useCallback((): CurrentWorkingVersionState => {
         const workspace = workspaceRef.current;
-        if (!workspace) throw new Error('积木工作区尚未就绪');
+        if (!workspace) throw new Error(uiText('积木工作区尚未就绪', 'Blockly workspace is not ready'));
         const workspaceJson = JSON.stringify(Blockly.serialization.workspaces.save(workspace));
         const code = workspaceCompileCode(workspace, ws => arduinoGenerator.workspaceToCode(ws));
         const profile = String(compileDoctorReport?.profile || compileEnvironmentSnapshot?.profile || '');
@@ -4360,9 +4388,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     }, [handleRestoreProjectCheckpoint, lastWorkingVersionAsCheckpoint]);
 
     const handleRestoreLastWorkingFirmware = useCallback(async (_version: LastWorkingVersion) => {
-        if (isCompilingRef.current) throw new Error('请等待当前编译或上传结束');
+        if (isCompilingRef.current) throw new Error(uiText('请等待当前编译或上传结束', 'Wait for the current build or upload to finish'));
         const uploadPort = activePortRef.current;
-        if (!uploadPort) throw new Error('请先选择当前真机串口');
+        if (!uploadPort) throw new Error(uiText('请先选择当前真机串口', 'Select the connected serial port first'));
 
         isCompilingRef.current = true;
         setIsCompiling(true);
@@ -4373,20 +4401,21 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const serialSequence = serialSettingsSeqRef.current;
         setConsoleOpen(true);
         setConsoleTab('compile');
-        const initialLog = '正在准备恢复上一个可用固件…\n';
+        const initialLog = uiText('正在准备恢复上一个可用固件…\n', 'Preparing to restore Last Working firmware…\n');
         replaceCompileLog(initialLog);
         setCompileIssues([]);
         setBuildProgress({
             ...createBuildProgressState('upload'),
-            message: '正在重新校验真机与可用固件',
+            message: uiText('正在重新校验真机与可用固件', 'Revalidating hardware and firmware artifacts'),
+            messageCode: null,
             indeterminate: true,
         });
-        showToast('正在安全恢复固件…', 'loading');
+        showToast(uiText('正在安全恢复固件…', 'Safely restoring firmware…'), 'loading');
 
         try {
             clearSerialReconnectTimer();
             if (monitorPortRef.current !== null) {
-                appendCompileLog('恢复固件前自动关闭串口监视器…\n');
+                appendCompileLog(uiText('恢复固件前自动关闭串口监视器…\n', 'Closing serial monitor before restoring firmware…\n'));
                 await invoke('close_serial_monitor');
                 monitorPortRef.current = null;
                 monitorBaudRateRef.current = null;
@@ -4399,11 +4428,11 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             if (cleaned && (!compileStreamSeenRef.current || !compileLogRef.current.includes(cleaned))) {
                 appendCompileLog(`${compileLogRef.current.endsWith('\n') ? '' : '\n'}${cleaned}\n`);
             }
-            appendCompileLog('\n上一个可用固件恢复成功。\n');
-            showToast('上一个可用固件已恢复', 'success');
+            appendCompileLog(uiText('\n上一个可用固件恢复成功。\n', '\nLast Working firmware restored successfully.\n'));
+            showToast(uiText('上一个可用固件已恢复', 'Last Working firmware restored'), 'success');
         } catch (error) {
-            appendCompileLog(`\n恢复失败：${String(error)}\n`);
-            showToast('恢复固件失败', 'error');
+            appendCompileLog(uiText(`\n恢复失败：${String(error)}\n`, `\nRestore failed: ${String(error)}\n`));
+            showToast(uiText('恢复固件失败', 'Firmware restore failed'), 'error');
             throw error;
         } finally {
             if (serialWasOpen) {
@@ -4427,7 +4456,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 }
                 if (!restored) {
                     desiredSerialOpenRef.current = false;
-                    appendCompileLog(`\n固件已处理，但串口监视器恢复失败：${String(lastError)}\n`);
+                    appendCompileLog(uiText(`\n固件已处理，但串口监视器恢复失败：${String(lastError)}\n`, `\nFirmware handled, but failed to restore serial monitor: ${String(lastError)}\n`));
                 }
             }
             isCompilingRef.current = false;
@@ -4439,23 +4468,24 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     }, [appendCompileLog, clearSerialReconnectTimer]);
 
     const handleRebuildLastWorkingVersionLocked = useCallback(async (_version: LastWorkingVersion) => {
-        if (isCompilingRef.current) throw new Error('请等待当前编译或上传结束');
-        if (!currentPathRef.current) throw new Error('当前工程尚未保存，无法读取可用版本锁');
+        if (isCompilingRef.current) throw new Error(uiText('请等待当前编译或上传结束', 'Wait for the current build or upload to finish'));
+        if (!currentPathRef.current) throw new Error(uiText('当前工程尚未保存，无法读取可用版本锁', 'Save the project first to read its dependency lock'));
 
         isCompilingRef.current = true;
         setIsCompiling(true);
         compileStreamSeenRef.current = false;
         setConsoleOpen(true);
         setConsoleTab('compile');
-        const initialLog = '正在验证 ck.lock 并准备锁定依赖复编译…\n';
+        const initialLog = uiText('正在验证 ck.lock 并准备锁定依赖复编译…\n', 'Validating ck.lock and preparing locked-dependency rebuild…\n');
         replaceCompileLog(initialLog);
         setCompileIssues([]);
         setBuildProgress({
             ...createBuildProgressState('compile'),
-            message: '正在准备隔离构建根',
+            message: uiText('正在准备隔离构建根', 'Preparing isolated build root'),
+            messageCode: null,
             indeterminate: true,
         });
-        showToast('正在执行锁定依赖复编译…', 'loading');
+        showToast(uiText('正在执行锁定依赖复编译…', 'Running locked-dependency rebuild…'), 'loading');
 
         try {
             const report = await rebuildLastWorkingVersionLocked(currentPathRef.current);
@@ -4464,16 +4494,23 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 appendCompileLog(`${compileLogRef.current.endsWith('\n') ? '' : '\n'}${returnedLog}\n`);
             }
             appendCompileLog(
-                `\n[锁定依赖复编译] 通过：${report.dependencyCount} 个依赖，未读取全局 Arduino 库。\n`
-                + `[锁定依赖复编译] FQBN: ${report.fqbn}\n`
-                + `[锁定依赖复编译] ck.lock: ${report.lockSha256}\n`
-                + `[锁定依赖复编译] 产物证据: ${report.artifactGate}\n`
-                + `[锁定依赖复编译] 构建目录: ${report.buildPath}\n`,
+                uiText(
+                    `\n[锁定依赖复编译] 通过：${report.dependencyCount} 个依赖，未读取全局 Arduino 库。\n`
+                    + `[锁定依赖复编译] FQBN: ${report.fqbn}\n`
+                    + `[锁定依赖复编译] ck.lock: ${report.lockSha256}\n`
+                    + `[锁定依赖复编译] 产物证据: ${report.artifactGate}\n`
+                    + `[锁定依赖复编译] 构建目录: ${report.buildPath}\n`,
+                    `\n[Locked Rebuild] Passed: ${report.dependencyCount} dependencies, no global Arduino libraries used.\n`
+                    + `[Locked Rebuild] FQBN: ${report.fqbn}\n`
+                    + `[Locked Rebuild] ck.lock: ${report.lockSha256}\n`
+                    + `[Locked Rebuild] Artifact gate: ${report.artifactGate}\n`
+                    + `[Locked Rebuild] Build path: ${report.buildPath}\n`,
+                ),
             );
-            showToast('锁定依赖复编译通过', 'success');
+            showToast(uiText('锁定依赖复编译通过', 'Locked-dependency rebuild passed'), 'success');
         } catch (error) {
-            appendCompileLog(`\n锁定依赖复编译失败：${String(error)}\n`);
-            showToast('锁定依赖复编译未通过', 'error');
+            appendCompileLog(uiText(`\n锁定依赖复编译失败：${String(error)}\n`, `\nLocked-dependency rebuild failed: ${String(error)}\n`));
+            showToast(uiText('锁定依赖复编译未通过', 'Locked-dependency rebuild failed'), 'error');
             throw error;
         } finally {
             isCompilingRef.current = false;
@@ -4491,7 +4528,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             currentPathRef.current,
             activeCoreVersion,
         );
-        const dependencySummary = `[上一个可用版本] 依赖恢复完成：恢复 ${dependencyReport.restored.length} 个，已一致 ${dependencyReport.alreadyMatching.length} 个。\n`;
+        const dependencySummary = uiText(
+            `[上一个可用版本] 依赖恢复完成：恢复 ${dependencyReport.restored.length} 个，已一致 ${dependencyReport.alreadyMatching.length} 个。\n`,
+            `[Last Working Version] Dependencies restored: ${dependencyReport.restored.length} restored, ${dependencyReport.alreadyMatching.length} already matching.\n`,
+        );
         try {
             await handleRestoreLastWorkingFirmware(version);
         } catch (error) {
@@ -4861,9 +4901,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         updateBlockDebugSession(IDLE_BLOCK_DEBUG_SESSION);
         if (notifyUser) {
             const message = finishedMode === 'trace'
-                ? '运行轨迹已结束；板上仍是轨迹固件，正式使用请点“普通上传”'
-                : '调试已结束；板上仍是调试固件，正式使用请点“普通上传”';
-            serialMonitorRef.current?.write(`\r\n[调试] ${message}。\r\n`);
+                ? uiText('运行轨迹已结束；板上仍是轨迹固件，正式使用请点“普通上传”', 'Execution trace ended; trace firmware is still on the board—use normal Upload for release firmware')
+                : uiText('调试已结束；板上仍是调试固件，正式使用请点“普通上传”', 'Debugging ended; debug firmware is still on the board—use normal Upload for release firmware');
+            serialMonitorRef.current?.write(uiText(`\r\n[调试] ${message}。\r\n`, `\r\n[Debug] ${message}.\r\n`));
             showToast(message, 'info');
         }
     // showToast is stable for this component lifecycle.
@@ -4905,9 +4945,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
             const traceMode = blockRunModeRef.current === 'trace';
             const message = traceMode
-                ? '轨迹附加超时，尚未收到采样；板上仍是轨迹固件，可重置后重试或普通上传'
-                : '调试附加超时，断点未启用；板上仍是调试固件，可重置后重试或普通上传';
-            serialMonitorRef.current?.write(`\r\n[${traceMode ? '轨迹' : '调试'}] ${message}。\r\n`);
+                ? uiText('轨迹附加超时，尚未收到采样；板上仍是轨迹固件，可重置后重试或普通上传', 'Trace attach timed out with no samples; reset board to retry or use normal Upload')
+                : uiText('调试附加超时，断点未启用；板上仍是调试固件，可重置后重试或普通上传', 'Debug attach timed out; reset board to retry or use normal Upload');
+            serialMonitorRef.current?.write(uiText(`\r\n[${traceMode ? '轨迹' : '调试'}] ${message}。\r\n`, `\r\n[${traceMode ? 'Trace' : 'Debug'}] ${message}.\r\n`));
             finishBlockDebugSession(false);
             showToast(message, 'error');
         }, INITIAL_DEBUG_ATTACH_TIMEOUT_MS);
@@ -4976,9 +5016,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     const handleAbandonBlockDebug = useCallback(() => {
         if (blockDebugSessionRef.current.phase !== 'unresponsive') return;
         finishBlockDebugSession(false);
-        const notice = '仅退出桌面会话：设备尚未确认停止，板上仍是调试/轨迹固件；请普通上传或复位设备。';
+        const notice = uiText('仅退出桌面会话：设备尚未确认停止，板上仍是调试/轨迹固件；请普通上传或复位设备。', 'Exited desktop session only: board did not confirm stop; upload release firmware or reset device.');
         setDebugRecoveryNotice(notice);
-        serialMonitorRef.current?.write(`\r\n[调试] ${notice}\r\n`);
+        serialMonitorRef.current?.write(uiText(`\r\n[调试] ${notice}\r\n`, `\r\n[Debug] ${notice}\r\n`));
     }, [finishBlockDebugSession]);
 
     const handleDebugFrame = useCallback((frame: CkDebugFrame) => {
@@ -5078,8 +5118,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 });
                 publishBlockTraceSnapshot(true);
                 if (wasAwaitingAttach) {
-                    serialMonitorRef.current?.write('\r\n[轨迹] 已附加轨迹固件，正在非暂停采样。\r\n');
-                    showToast('运行轨迹已连接，程序继续运行并采样积木路径', 'success');
+                    serialMonitorRef.current?.write(uiText('\r\n[轨迹] 已附加轨迹固件，正在非暂停采样。\r\n', '\r\n[Trace] Attached to trace firmware; sampling live.\r\n'));
+                    showToast(uiText('运行轨迹已连接，程序继续运行并采样积木路径', 'Execution trace connected; sampling block execution'), 'success');
                 }
                 return;
             }
@@ -5103,9 +5143,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 pendingCommand: null,
             });
             if (wasAwaitingAttach) {
-                serialMonitorRef.current?.write('\r\n[调试] 已附加调试固件，断点现已生效。\r\n');
+                serialMonitorRef.current?.write(uiText('\r\n[调试] 已附加调试固件，断点现已生效。\r\n', '\r\n[Debug] Attached to debug firmware; breakpoints active.\r\n'));
                 showToast(
-                    pausedBlockId ? '断点调试已重新连接，程序仍在断点暂停' : '断点调试已连接，程序正在运行',
+                    pausedBlockId ? uiText('断点调试已重新连接，程序仍在断点暂停', 'Debugger reconnected; program paused at breakpoint') : uiText('断点调试已连接，程序正在运行', 'Debugger connected; program running'),
                     'success',
                 );
             }
@@ -5169,8 +5209,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 weight: 0,
                 displayText: (scope) => {
                     const block = scope.block;
-                    if (!block) return '添加断点';
-                    return hasBlockBreakpoint(block.workspace, block.id) ? '取消断点' : '添加断点';
+                    if (!block) return uiText('添加断点', 'Add Breakpoint');
+                    return hasBlockBreakpoint(block.workspace, block.id) ? uiText('取消断点', 'Remove Breakpoint') : uiText('添加断点', 'Add Breakpoint');
                 },
                 preconditionFn: (scope) => {
                     const block = scope.block;
@@ -5184,7 +5224,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     if (!block || block.workspace !== workspaceRef.current) return;
                     const enabled = toggleBlockBreakpoint(block.workspace, block.id);
                     refreshDebugVisuals(null);
-                    showToast(enabled ? '已添加积木断点' : '已取消积木断点', 'info');
+                    showToast(enabled ? uiText('已添加积木断点', 'Breakpoint added') : uiText('已取消积木断点', 'Breakpoint removed'), 'info');
                 },
             });
         } catch (error) {
@@ -5215,19 +5255,19 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const workspace = workspaceRef.current;
         if (!workspace || isCompilingRef.current) return;
         if (deviceHealthRunningRef.current) {
-            showToast('请等待真机体检结束后再启动积木调试', 'info');
+            showToast(uiText('请等待真机体检结束后再启动积木调试', 'Wait for device check to finish before starting block debug'), 'info');
             return;
         }
         if (blockDebugSessionRef.current.active) {
-            showToast('积木调试已经在运行', 'info');
+            showToast(uiText('积木调试已经在运行', 'Block debug is already running'), 'info');
             return;
         }
         if (!activePort) {
-            showToast('积木调试需要先选择串口', 'error');
+            showToast(uiText('积木调试需要先选择串口', 'Select a serial port before starting block debug'), 'error');
             return;
         }
         if (!/^(?:esp32:esp32:|esp8266:esp8266:|arduino:avr:)/i.test(effectiveCompileFqbn)) {
-            showToast('积木断点当前支持 ESP32、ESP8266 与 Arduino AVR', 'error');
+            showToast(uiText('积木断点当前支持 ESP32、ESP8266 与 Arduino AVR', 'Block breakpoints currently support ESP32, ESP8266, and Arduino AVR'), 'error');
             return;
         }
 
@@ -5236,7 +5276,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 .filter((blockId) => Boolean(workspace.getBlockById(blockId))),
         );
         if (breakpoints.size === 0) {
-            showToast('请先右键积木添加断点', 'error');
+            showToast(uiText('请先右键积木添加断点', 'Right-click a block to add a breakpoint first'), 'error');
             return;
         }
         // Worker previews do not publish the compiler's global source map.
@@ -5255,11 +5295,11 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const usableBreakpoints = Array.from(breakpoints)
             .filter((blockId) => debugSketch.instrumentedBlockIds.has(blockId));
         if (usableBreakpoints.length === 0) {
-            showToast('所选积木没有可安全插入的语句边界，暂不支持运行断点；普通上传不受影响', 'error');
+            showToast(uiText('所选积木没有可安全插入的语句边界，暂不支持运行断点；普通上传不受影响', 'Selected blocks have no safe statement boundary for breakpoints; normal upload is unaffected'), 'error');
             return;
         }
         if (debugSketch.missingBreakpointIds.length > 0) {
-            showToast(`已跳过 ${debugSketch.missingBreakpointIds.length} 个没有安全插桩位置的断点`, 'info');
+            showToast(uiText(`已跳过 ${debugSketch.missingBreakpointIds.length} 个没有安全插桩位置的断点`, `Skipped ${debugSketch.missingBreakpointIds.length} breakpoint(s) without safe instrumentation boundaries`), 'info');
         }
 
         updateBlockRunMode('breakpoint');
@@ -5297,10 +5337,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             desiredSerialOpenRef.current = true;
             baudRateRef.current = debugSketch.baudRate;
             updateBlockDebugSession((previous) => markBlockDebugSessionConnecting(previous));
-            scheduleSerialReconnect('调试固件上传后串口尚未就绪', activePort, debugSketch.baudRate);
+            scheduleSerialReconnect(uiText('调试固件上传后串口尚未就绪', 'Serial port not ready after debug firmware upload'), activePort, debugSketch.baudRate);
             setConsoleOpen(true);
             setConsoleTab('serial');
-            showToast('调试固件已上传，正在自动连接调试串口', 'info');
+            showToast(uiText('调试固件已上传，正在自动连接调试串口', 'Debug firmware uploaded; connecting serial port automatically'), 'info');
             return;
         }
 
@@ -5311,7 +5351,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
         updateBlockDebugSession((previous) => markBlockDebugSessionConnecting(previous));
         void attachCurrentBlockDebugSession();
-        showToast('调试固件已上传，正在附加断点调试会话', 'info');
+        showToast(uiText('调试固件已上传，正在附加断点调试会话', 'Debug firmware uploaded; attaching breakpoint session'), 'info');
     };
 
     const handleStartBlockTrace = async () => {
@@ -5320,19 +5360,19 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (!workspace || isCompilingRef.current) return;
         generatedCodeRef.current = arduinoGenerator.workspaceToCode(workspace);
         if (deviceHealthRunningRef.current) {
-            showToast('请等待真机体检结束后再启动运行轨迹', 'info');
+            showToast(uiText('请等待真机体检结束后再启动运行轨迹', 'Wait for device check to finish before starting execution trace'), 'info');
             return;
         }
         if (blockDebugSessionRef.current.active) {
-            showToast('已有积木调试或运行轨迹会话正在进行', 'info');
+            showToast(uiText('已有积木调试或运行轨迹会话正在进行', 'A block debug or trace session is already active'), 'info');
             return;
         }
         if (!activePort) {
-            showToast('运行轨迹需要先选择串口', 'error');
+            showToast(uiText('运行轨迹需要先选择串口', 'Select a serial port before starting execution trace'), 'error');
             return;
         }
         if (!/^(?:esp32:esp32:|esp8266:esp8266:|arduino:avr:)/i.test(effectiveCompileFqbn)) {
-            showToast('运行轨迹当前支持 ESP32、ESP8266 与 Arduino AVR', 'error');
+            showToast(uiText('运行轨迹当前支持 ESP32、ESP8266 与 Arduino AVR', 'Execution trace currently supports ESP32, ESP8266, and Arduino AVR'), 'error');
             return;
         }
 
@@ -5353,14 +5393,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             })
             .filter((item): item is { blockId: string; label: string } => Boolean(item));
         if (trackedBlocks.length === 0) {
-            showToast('当前工程没有可执行、可采样的积木', 'error');
+            showToast(uiText('当前工程没有可执行、可采样的积木', 'No executable, traceable blocks in this project'), 'error');
             return;
         }
         if (traceSketch.omittedTraceBlockIds.length > 0) {
-            showToast(`轨迹固件上限为 ${traceSketch.traceLimits.maxTrackedBlocks} 个积木，已跳过 ${traceSketch.omittedTraceBlockIds.length} 个`, 'info');
+            showToast(uiText(`轨迹固件上限为 ${traceSketch.traceLimits.maxTrackedBlocks} 个积木，已跳过 ${traceSketch.omittedTraceBlockIds.length} 个`, `Trace limit is ${traceSketch.traceLimits.maxTrackedBlocks} blocks; skipped ${traceSketch.omittedTraceBlockIds.length}`), 'info');
         }
 
-        if (traceSketch.unsupportedBlockIds.length > 0) showToast(`有 ${traceSketch.unsupportedBlockIds.length} 个积木没有安全插桩位置，已从轨迹中排除并记录`, 'info');
+        if (traceSketch.unsupportedBlockIds.length > 0) showToast(uiText(`有 ${traceSketch.unsupportedBlockIds.length} 个积木没有安全插桩位置，已从轨迹中排除并记录`, `Excluded ${traceSketch.unsupportedBlockIds.length} block(s) without safe trace boundaries`), 'info');
         const aggregator = new BlockTraceAggregator(trackedBlocks, {
             maxTrackedBlocks: traceSketch.traceLimits.maxTrackedBlocks,
             omittedTrackedBlockCount: traceSketch.omittedTraceBlockIds.length + traceSketch.unsupportedBlockIds.length,
@@ -5402,10 +5442,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             desiredSerialOpenRef.current = true;
             baudRateRef.current = traceSketch.baudRate;
             updateBlockDebugSession((previous) => markBlockDebugSessionConnecting(previous));
-            scheduleSerialReconnect('轨迹固件上传后串口尚未就绪', activePort, traceSketch.baudRate);
+            scheduleSerialReconnect(uiText('轨迹固件上传后串口尚未就绪', 'Serial port not ready after trace firmware upload'), activePort, traceSketch.baudRate);
             setConsoleOpen(true);
             setConsoleTab('serial');
-            showToast('轨迹固件已上传，正在自动连接轨迹串口', 'info');
+            showToast(uiText('轨迹固件已上传，正在自动连接轨迹串口', 'Trace firmware uploaded; connecting serial port automatically'), 'info');
             return;
         }
 
@@ -5416,7 +5456,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
         updateBlockDebugSession((previous) => markBlockDebugSessionConnecting(previous));
         void attachCurrentBlockDebugSession();
-        showToast('轨迹固件已上传，正在附加非暂停运行轨迹', 'info');
+        showToast(uiText('轨迹固件已上传，正在附加非暂停运行轨迹', 'Trace firmware uploaded; attaching live execution trace'), 'info');
     };
 
     // Warm the exact generated sketch after project hydration and after real
@@ -6187,7 +6227,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
                 if (codeChanged && blockDebugSessionRef.current.active) {
                     void handleStopBlockDebug();
-                    showToast('工程已修改，正在等待开发板结束调试', 'info');
+                    showToast(uiText('工程已修改，正在等待开发板结束调试', 'Project modified; waiting for board to stop debugging'), 'info');
                 }
                 setGeneratedCode(code);
                 setResourcePreflightRevision(previous => previous + 1);
@@ -6341,7 +6381,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         targetBlocklyLocale: rendererTransition.originBlocklyLocale,
                     };
                     setBlocklyRendererRevision(revision => revision + 1);
-                    showToast('积木语言切换失败，正在恢复原语言', 'error');
+                    showToast(uiText('积木语言切换失败，正在恢复原语言', 'Block language switch failed; restoring previous language'), 'error');
                 } else if (!rendererTransition.revertAttempted
                     && rendererTransition.originStyle !== blocklyVisualStyle) {
                     rendererTransitionRef.current = {
@@ -6353,15 +6393,15 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         getBrowserBlocklyVisualStyleStorage(),
                     );
                     setBlocklyVisualStyle(rendererTransition.originStyle);
-                    showToast('新积木外观无法安全载入，正在恢复原外观', 'error');
+                    showToast(uiText('新积木外观无法安全载入，正在恢复原外观', 'New block skin could not load safely; restoring previous skin'), 'error');
                 } else {
                     try { ws.setIsReadOnly(true); } catch { }
                     setRendererRecoveryFailure({
-                        message: '新旧积木外观都未能安全恢复当前工作区。为避免空工作区覆盖工程，编辑、保存、编译和上传已锁定。',
+                        message: uiText('新旧积木外观都未能安全恢复当前工作区。为避免空工作区覆盖工程，编辑、保存、编译和上传已锁定。', 'Neither block skin could safely restore the workspace. Editing, saving, building, and uploading are locked to protect your project.'),
                         originStyle: rendererTransition.originStyle,
                     });
                     setIsBlocklyVisualStyleSwitching(false);
-                    showToast('积木外观恢复失败，工程已锁定保护', 'error');
+                    showToast(uiText('积木外观恢复失败，工程已锁定保护', 'Block skin recovery failed; project locked for safety'), 'error');
                 }
             } finally {
                 if (eventsWereEnabled) Blockly.Events.enable();
@@ -6637,7 +6677,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     if (targetBoard !== activeBoard || targetBoardPackageId !== activeBoardPackageId) {
                         console.log(`Auto-switching board from ${activeBoard} to ${targetBoard} `);
                         setActiveBoard(targetBoard, targetBoardPackageId);
-                        showToast(`环境已切换为: ${matchedBoard?.name || targetBoard}`, 'success');
+                        showToast(uiText(`环境已切换为: ${matchedBoard?.name || targetBoard}`, `Switched board to ${matchedBoard?.name || targetBoard}`), 'success');
                         return;
                     }
                     if (extensionsLoadedBoard !== targetBoard
@@ -6673,11 +6713,11 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 setProjectLoadSafetyError(null);
                                 setUnknownBlockProtection({
                                     projectPath: currentPath,
-                                    projectName: data.name || currentPath.split(/[\\/]/).pop() || '当前工程',
+                                    projectName: data.name || currentPath.split(/[\\/]/).pop() || uiText('当前工程', 'Current project'),
                                     inspection,
                                 });
                                 projectLoadedKeyRef.current = loadKey;
-                                showToast(`工程已进入只读保护：保留 ${inspection.unknownBlockCount} 个未知积木`, 'error');
+                                showToast(uiText(`工程已进入只读保护：保留 ${inspection.unknownBlockCount} 个未知积木`, `Read-only protection active: preserved ${inspection.unknownBlockCount} unknown block(s)`), 'error');
                                 return;
                             }
 
@@ -6727,15 +6767,15 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             setUnknownBlockProtection(null);
                             setProjectLoadSafetyError(loadController.signal.aborted
                                 ? appI18n.t('workspacePerformance.loadCancelled')
-                                : '工程数据无法安全解析。CK 已停止载入并禁止覆盖保存；原工程文件保持不变。');
-                            showToast('工程数据无法安全解析，已停止载入并保护原文件', 'error');
+                                : uiText('工程数据无法安全解析。CK 已停止载入并禁止覆盖保存；原工程文件保持不变。', 'Project data could not be safely parsed. Loading stopped and overwriting is disabled; the original file is untouched.'));
+                            showToast(uiText('工程数据无法安全解析，已停止载入并保护原文件', 'Failed to parse project; original file protected'), 'error');
                             parseFailed = true;
                         }
 
                         if (parseFailed) {
                             // Keep error toast only when parsing fails.
                         } else {
-                            showToast('加载成功', 'success');
+                            showToast(uiText('加载成功', 'Project loaded'), 'success');
                         }
 
                     } else {
@@ -6745,7 +6785,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         workspaceRef.current.clear();
                         setUnknownBlockProtection(null);
                         setProjectLoadSafetyError(null);
-                        showToast('已加载（空项目）', 'success');
+                        showToast(uiText('已加载（空项目）', 'Loaded (empty project)'), 'success');
                     }
 
                     if (parseFailed) {
@@ -6802,8 +6842,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     setUnknownBlockProtection(null);
                     setProjectLoadSafetyError(loadController.signal.aborted
                         ? appI18n.t('workspacePerformance.loadCancelled')
-                        : '工程读取失败。CK 已禁止覆盖保存，原工程文件保持不变。');
-                    showToast('加载项目失败，已保护原工程文件', 'error');
+                        : uiText('工程读取失败。CK 已禁止覆盖保存，原工程文件保持不变。', 'Failed to read project. Overwriting is disabled and the original file is untouched.'));
+                    showToast(uiText('加载项目失败，已保护原工程文件', 'Failed to load project; original file protected'), 'error');
                     dirtyTrackingReadyRef.current = false;
                     cleanProjectFingerprintRef.current = null;
                     projectLoadedKeyRef.current = loadKey;
@@ -6902,25 +6942,25 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     const performFormalSave = useCallback(async (ownerToken: number): Promise<boolean> => {
         const formalSaveSession = currentRecoveryProjectSession();
         if (projectLoadingRef.current || !workspaceRef.current || !formalSaveSession) {
-            showToast('工程仍在加载，请等待加载完成后再保存', 'error');
+            showToast(uiText('工程仍在加载，请等待加载完成后再保存', 'Project is still loading; please wait before saving'), 'error');
             return false;
         }
         if (unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure) {
             await dialog.alert({
-                title: rendererRecoveryFailure ? '积木外观恢复失败，工程已锁定' : '当前工程处于保护模式',
+                title: rendererRecoveryFailure ? uiText('积木外观恢复失败，工程已锁定', 'Block skin recovery failed; project locked') : uiText('当前工程处于保护模式', 'Project is in protection mode'),
                 message: rendererRecoveryFailure
-                    ? `${rendererRecoveryFailure.message} 请先在工作区提示中重试恢复，或导出恢复快照。`
+                    ? uiText(`${rendererRecoveryFailure.message} 请先在工作区提示中重试恢复，或导出恢复快照。`, `${rendererRecoveryFailure.message} Retry recovery or export the recovery snapshot first.`)
                     : unknownBlockProtection
-                    ? '工程含有尚未注册的第三方积木。CK 不会用删减后的工作区覆盖原文件；请先安装或启用对应积木包，再重新检查。'
-                    : '工程数据尚未安全载入。为避免覆盖原文件，普通保存和另存为已被停止。',
+                    ? uiText('工程含有尚未注册的第三方积木。CK 不会用删减后的工作区覆盖原文件；请先安装或启用对应积木包，再重新检查。', 'This project contains unregistered blocks. CK will not overwrite the file with a partial workspace; install or enable the required library and re-check.')
+                    : uiText('工程数据尚未安全载入。为避免覆盖原文件，普通保存和另存为已被停止。', 'Project data was not safely loaded. Saving and Save As are disabled to protect the original file.'),
                 type: 'warning',
             });
             return false;
         }
         if (enabledBlockPackageInventoryErrorRef.current) {
             await dialog.alert({
-                title: '积木包证据尚未就绪',
-                message: `${enabledBlockPackageInventoryErrorRef.current}。为避免写入错误的来源版本，CK 已停止保存；请重新检查积木包或切换板卡后重试。`,
+                title: uiText('积木包证据尚未就绪', 'Block library inventory not ready'),
+                message: uiText(`${enabledBlockPackageInventoryErrorRef.current}。为避免写入错误的来源版本，CK 已停止保存；请重新检查积木包或切换板卡后重试。`, `${enabledBlockPackageInventoryErrorRef.current}. Saving was stopped to avoid recording invalid library versions; re-check libraries and retry.`),
                 type: 'warning',
             });
             return false;
@@ -6942,7 +6982,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         try {
             const savedBuildTarget = captureBuildTarget();
             const savedTargetBefore = recordedBuildTargetRef.current;
-            showToast('正在保存...', 'loading');
+            showToast(uiText('正在保存...', 'Saving...'), 'loading');
             // @ts-ignore
             if (getWorkspaceSource(workspaceRef.current)) syncWorkspaceSource(workspaceRef.current, stripBlockMarkers(arduinoGenerator.workspaceToCode(workspaceRef.current)));
         const state = Blockly.serialization.workspaces.save(workspaceRef.current);
@@ -6980,11 +7020,11 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     });
                 }
 
-                showToast('保存成功', 'success');
+                showToast(uiText('保存成功', 'Saved'), 'success');
             } else {
                 console.log("Simulation Mode: Saved project to memory", { path: formalSaveProjectPath, json });
                 localStorage.setItem(`ck_project_${formalSaveProjectPath} `, json);
-                showToast('保存成功（仿真模式）', 'success');
+                showToast(uiText('保存成功（仿真模式）', 'Saved (simulation mode)'), 'success');
             }
             const saveSessionStillCurrent = recoveryProjectSessionIsCurrent(formalSaveSession);
             if (saveSessionStillCurrent) {
@@ -7040,7 +7080,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             return true;
         } catch (e) {
             console.error(e);
-            showToast('保存失败', 'error');
+            showToast(uiText('保存失败', 'Save failed'), 'error');
             return false;
         }
     }, [activeBoard, activeBoardPackageId, boardOptions, cancelRecoveryDraftTimer, currentRecoveryProjectSession, dialog, projectLoadSafetyError, recoveryProjectSessionIsCurrent, rendererRecoveryFailure, scheduleProjectDirtyComparison, unknownBlockProtection, waitForRecoveryDraftWrite]);
@@ -7068,7 +7108,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     const handleSave = useCallback(async (): Promise<boolean> => {
         if (memberFiles.current?.pending() && !await memberFiles.current.saveAll()) {
-            showToast('附带源码尚未保存，请先处理文件编辑器中的提示', 'error'); return false;
+            showToast(uiText('附带源码尚未保存，请先处理文件编辑器中的提示', 'Additional source files have unsaved changes; resolve them in the file editor first'), 'error'); return false;
         }
         return formalSaveQueueRef.current!.request();
     }, []);
@@ -7101,7 +7141,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 const generated = stripBlockMarkers(arduinoGenerator.workspaceToCode(workspace));
                 updateProjectSource(selectSourceMode(previous, generated));
             } else if (previous) updateProjectSource({ ...previous, mode });
-        } catch (error) { showToast(`切换失败：${String(error)}`, 'error'); }
+        } catch (error) { showToast(uiText(`切换失败：${String(error)}`, `Mode switch failed: ${String(error)}`), 'error'); }
     };
     // Hide the entire Blockly DOM tree before paint. Descendants can override
     // inherited visibility, so visibility:hidden alone is insufficient here.
@@ -7119,8 +7159,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (!workspace || editorSwitchBlocked) return;
         const previous = getWorkspaceSource(workspace);
         const generated = stripBlockMarkers(arduinoGenerator.workspaceToCode(workspace));
-        if (previous?.code !== generated && !await dialog.confirm({ title: '用积木重新生成源码？',
-            message: '这会替换当前手写源码。取消可继续保留源码；积木内容不会改变。', type: 'warning' })) return;
+        if (previous?.code !== generated && !await dialog.confirm({ title: uiText('用积木重新生成源码？', 'Regenerate source from blocks?'),
+            message: uiText('这会替换当前手写源码。取消可继续保留源码；积木内容不会改变。', 'This replaces your current handwritten source. Cancel to keep it; blocks remain unchanged.'), type: 'warning' })) return;
         if (workspaceRef.current !== workspace || getWorkspaceSource(workspace) !== previous || isCompilingRef.current) return;
         updateProjectSource(selectSourceMode(null, generated));
     };
@@ -7132,7 +7172,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         try {
             const next = resolveWorkspaceSource(previous, choices);
             updateProjectSource(next);
-            showToast('源码冲突已处理，其他积木修改已合并', 'success');
+            showToast(uiText('源码冲突已处理，其他积木修改已合并', 'Source conflicts resolved and block edits merged'), 'success');
         } catch (error) { showToast(String(error), 'error'); }
     };
     const exportProjectSource = async () => {
@@ -7140,9 +7180,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             const code = workspaceSourceRef.current?.code;
             if (code === undefined) return;
             const contents = sourceWithBuildTarget(code, captureBuildTarget());
-            const path = await save({ defaultPath: 'sketch.ino', filters: [{ name: 'Arduino 源码', extensions: ['ino'] }] });
-            if (path) { await writeTextFile(path, contents); showToast('源码已导出，包含板卡配置注释', 'success'); }
-        } catch (error) { showToast(`导出失败：${String(error)}`, 'error'); }
+            const path = await save({ defaultPath: 'sketch.ino', filters: [{ name: uiText('Arduino 源码', 'Arduino Source'), extensions: ['ino'] }] });
+            if (path) { await writeTextFile(path, contents); showToast(uiText('源码已导出，包含板卡配置注释', 'Source exported with board configuration header'), 'success'); }
+        } catch (error) { showToast(uiText(`导出失败：${String(error)}`, `Export failed: ${String(error)}`), 'error'); }
     };
     const importProjectSource = async () => {
         const workspace = workspaceRef.current;
@@ -7150,12 +7190,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         const previous = getWorkspaceSource(workspace);
         if (!workspace || editorSwitchBlocked) return;
         try {
-            const selected = await open({ multiple: false, filters: [{ name: 'Arduino 源码', extensions: ['ino'] }] });
+            const selected = await open({ multiple: false, filters: [{ name: uiText('Arduino 源码', 'Arduino Source'), extensions: ['ino'] }] });
             if (typeof selected !== 'string') return;
             const loaded = await invoke<{ document: { code: string; target: ProjectBuildTarget | null } }>('open_source_project', { path: selected });
             const target = loaded.document.target;
-            if (!await dialog.confirm({ title: '导入源码到当前工程？', message: '当前源码将被替换，积木继续保留。'
-                + (target ? ` 同时恢复文件记录的板卡配置：${target.fqbn}（Core ${target.coreVersion || '未记录'}）。` : ' 沿用当前工程的板卡配置。'), type: 'warning' })) return;
+            if (!await dialog.confirm({ title: uiText('导入源码到当前工程？', 'Import source into current project?'), message: uiText('当前源码将被替换，积木继续保留。', 'Current source code will be replaced while blocks remain unchanged.')
+                + (target ? uiText(` 同时恢复文件记录的板卡配置：${target.fqbn}（Core ${target.coreVersion || '未记录'}）。`, ` Board configuration from file will also be restored: ${target.fqbn} (Core ${target.coreVersion || 'unrecorded'}).`) : uiText(' 沿用当前工程的板卡配置。', ' Current project board settings will be kept.')), type: 'warning' })) return;
             if (currentPathRef.current !== pathAtStart || workspaceRef.current !== workspace || getWorkspaceSource(workspace) !== previous || isCompilingRef.current) return;
             updateProjectSource({ version: 1, mode: 'source', code: loaded.document.code,
                 generatedBase: stripBlockMarkers(arduinoGenerator.workspaceToCode(workspace)) });
@@ -7164,8 +7204,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 setActiveBoard(target.board, target.boardPackageId);
                 setBoardOptions(target.options);
             }
-            showToast('源码已导入，保存工程即可一并保留', 'success');
-        } catch (error) { showToast(`导入失败：${String(error)}`, 'error'); }
+            showToast(uiText('源码已导入，保存工程即可一并保留', 'Source imported; save the project to persist'), 'success');
+        } catch (error) { showToast(uiText(`导入失败：${String(error)}`, `Import failed: ${String(error)}`), 'error'); }
     };
 
     // Keyboard Shortcuts
@@ -7225,31 +7265,31 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
 
     const handleSaveAs = async () => {
         if (memberFiles.current?.pending() && !await memberFiles.current.saveAll()) {
-            showToast('附带源码尚未保存，无法另存为', 'error'); return;
+            showToast(uiText('附带源码尚未保存，无法另存为', 'Additional source files have unsaved changes; cannot Save As'), 'error'); return;
         }
         if (saveAsBusyRef.current) {
-            showToast('另存为正在进行，请等待当前操作完成', 'error');
+            showToast(uiText('另存为正在进行，请等待当前操作完成', 'Save As is already in progress'), 'error');
             return;
         }
         const saveAsSession = currentRecoveryProjectSession();
         if (projectLoadingRef.current || !workspaceRef.current || !saveAsSession) {
-            showToast('工程仍在加载，请等待加载完成后再另存为', 'error');
+            showToast(uiText('工程仍在加载，请等待加载完成后再另存为', 'Project is still loading; please wait before Save As'), 'error');
             return;
         }
         if (unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure) {
             await dialog.alert({
-                title: rendererRecoveryFailure ? '积木外观恢复失败，工程已锁定' : '当前工程处于保护模式',
+                title: rendererRecoveryFailure ? uiText('积木外观恢复失败，工程已锁定', 'Block skin recovery failed; project locked') : uiText('当前工程处于保护模式', 'Project is in protection mode'),
                 message: rendererRecoveryFailure
-                    ? `${rendererRecoveryFailure.message} 请先重试恢复或导出恢复快照。`
-                    : '为避免把未知或损坏的积木数据替换成空工作区，普通另存为已停止。请使用保护面板中的“导出原始积木数据”，或先修复依赖后重新检查。',
+                    ? uiText(`${rendererRecoveryFailure.message} 请先重试恢复或导出恢复快照。`, `${rendererRecoveryFailure.message} Retry recovery or export the recovery snapshot first.`)
+                    : uiText('为避免把未知或损坏的积木数据替换成空工作区，普通另存为已停止。请使用保护面板中的“导出原始积木数据”，或先修复依赖后重新检查。', 'Standard Save As is disabled to avoid replacing unknown or damaged block data with an empty workspace. Use "Export raw block data" or fix missing libraries first.'),
                 type: 'warning',
             });
             return;
         }
         if (enabledBlockPackageInventoryErrorRef.current) {
             await dialog.alert({
-                title: '积木包证据尚未就绪',
-                message: `${enabledBlockPackageInventoryErrorRef.current}。为避免把未经验证的包版本写入新工程，CK 已停止另存为；请重新检查积木包后重试。`,
+                title: uiText('积木包证据尚未就绪', 'Block library inventory not ready'),
+                message: uiText(`${enabledBlockPackageInventoryErrorRef.current}。为避免把未经验证的包版本写入新工程，CK 已停止另存为；请重新检查积木包后重试。`, `${enabledBlockPackageInventoryErrorRef.current}. Save As was stopped to avoid writing unverified library versions; re-check libraries and retry.`),
                 type: 'warning',
             });
             return;
@@ -7259,14 +7299,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             const selectedPath = await save({
                 defaultPath: defaultDir || undefined,
                 filters: [{
-                    name: 'CK 工程文件',
+                    name: uiText('CK 工程文件', 'CK Project File'),
                     extensions: ['ck', 'maker']
                 }]
             });
 
             if (selectedPath) {
                 if (!recoveryProjectSessionIsCurrent(saveAsSession) || !workspaceRef.current) {
-                    showToast('工程已切换或仍在加载，本次另存为已取消', 'error');
+                    showToast(uiText('工程已切换或仍在加载，本次另存为已取消', 'Project switched or still loading; Save As cancelled'), 'error');
                     return;
                 }
                 // Capture after the native picker returns, only while the same
@@ -7290,7 +7330,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     capturedBoardPackageId,
                     capturedRecordedTarget,
                 );
-                showToast('正在另存为...', 'loading');
+                showToast(uiText('正在另存为...', 'Saving copy...'), 'loading');
                 const savedCopy = await invoke<{path: string}>('save_project_as', {
                     targetPath: selectedPath,
                     sourcePath: /\.(?:ck|maker)$/i.test(saveAsSession.projectPath)
@@ -7305,7 +7345,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     blockPackageInventory: enabledBlockPackageInventoryRef.current,
                 });
                 if (!recoveryProjectSessionIsCurrent(saveAsSession) || !workspaceRef.current) {
-                    showToast('新文件已写入，但当前工程已切换；未自动打开该文件', 'error');
+                    showToast(uiText('新文件已写入，但当前工程已切换；未自动打开该文件', 'New file was saved, but the active project changed; did not switch to it'), 'error');
                     return;
                 }
                 const latestState = Blockly.serialization.workspaces.save(workspaceRef.current);
@@ -7317,7 +7357,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     recordedBuildTargetRef.current,
                 );
                 if (latestFingerprint !== savedCopyFingerprint) {
-                    showToast('副本已写入但期间有新修改，当前工程未切换，请再次另存', 'error');
+                    showToast(uiText('副本已写入但期间有新修改，当前工程未切换，请再次另存', 'Copy saved, but new edits occurred during save; staying on current project'), 'error');
                     return;
                 }
                 cancelRecoveryDraftTimer();
@@ -7327,7 +7367,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 cleanProjectFingerprintRef.current = savedCopyFingerprint;
                 dirtyTrackingReadyRef.current = true;
                 setIsProjectDirty(false);
-                showToast('另存成功', 'success');
+                showToast(uiText('另存成功', 'Saved as new project'), 'success');
                 try {
                     await discardProjectRecoveryDrafts(savedCopy.path);
                 } catch (error) {
@@ -7336,7 +7376,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             }
         } catch (e) {
             console.error(e);
-            showToast('另存失败: ' + e, 'error');
+            showToast(uiText('另存失败: ', 'Save As failed: ') + e, 'error');
         } finally {
             saveAsBusyRef.current = false;
         }
@@ -7352,7 +7392,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             await invoke('show_in_folder', { path: currentPath });
         } catch (error) {
             console.error('[Workspace] Failed to show protected project', error);
-            showToast('无法打开原工程所在目录', 'error');
+            showToast(uiText('无法打开原工程所在目录', 'Unable to open the original project folder'), 'error');
         }
     }, [currentPath]);
 
@@ -7365,16 +7405,16 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             const selectedPath = await save({
                 defaultPath: `${baseName}.unknown-blocks.${suffix}`,
                 filters: [{
-                    name: protection.inspection.format === 'xml' ? 'Blockly 原始 XML' : 'Blockly 原始 JSON',
+                    name: protection.inspection.format === 'xml' ? uiText('Blockly 原始 XML', 'Raw Blockly XML') : uiText('Blockly 原始 JSON', 'Raw Blockly JSON'),
                     extensions: [suffix],
                 }],
             });
             if (!selectedPath) return;
             await writeTextFile(selectedPath, protection.inspection.rawWorkspace.serialized);
-            showToast('原始积木数据已完整导出', 'success');
+            showToast(uiText('原始积木数据已完整导出', 'Raw block data exported'), 'success');
         } catch (error) {
             console.error('[Workspace] Failed to export protected workspace', error);
-            showToast('导出原始积木数据失败', 'error');
+            showToast(uiText('导出原始积木数据失败', 'Failed to export raw block data'), 'error');
         }
     }, [rendererRecoveryFailure, unknownBlockProtection]);
 
@@ -7571,7 +7611,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (!candidate) return;
         if (!recoveryProjectSessionIsCurrent(candidate.session)) {
             setRecoveryCandidate(null);
-            showToast('工程会话已经变化，未对旧恢复稿执行操作', 'error');
+            showToast(uiText('工程会话已经变化，未对旧恢复稿执行操作', 'Project session changed; old recovery draft untouched'), 'error');
             return;
         }
         setRecoveryBusy(true);
@@ -7582,9 +7622,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     previous?.metadata.id === candidate.metadata.id ? null : previous
                 ));
             }
-            showToast('恢复稿已放弃，正式工程未修改', 'success');
+            showToast(uiText('恢复稿已放弃，正式工程未修改', 'Recovery draft discarded; saved project unchanged'), 'success');
         } catch (error) {
-            showToast(`放弃恢复稿失败：${String(error)}`, 'error');
+            showToast(uiText(`放弃恢复稿失败：${String(error)}`, `Failed to discard recovery draft: ${String(error)}`), 'error');
         } finally {
             setRecoveryBusy(false);
         }
@@ -7596,7 +7636,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (!candidate || !workspace) return;
         if (!recoveryProjectSessionIsCurrent(candidate.session)) {
             setRecoveryCandidate(null);
-            showToast('工程会话已经变化，已停止恢复旧稿', 'error');
+            showToast(uiText('工程会话已经变化，已停止恢复旧稿', 'Project session changed; stopped restoring old draft'), 'error');
             return;
         }
         setRecoveryBusy(true);
@@ -7605,21 +7645,21 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             const inspection = validateRecoveryDraftBlocks(candidate.draft);
             if (!inspection.canDeserializeIntoBlockly) {
                 await dialog.alert({
-                    title: '恢复稿包含缺失积木',
-                    message: `发现 ${inspection.unknownBlockCount} 个当前未注册积木：${inspection.unknownTypeNames.join('、')}。CK 没有修改当前工作区，恢复稿也仍完整保留。请先安装或启用对应积木包。`,
+                    title: uiText('恢复稿包含缺失积木', 'Recovery draft contains missing blocks'),
+                    message: uiText(`发现 ${inspection.unknownBlockCount} 个当前未注册积木：${inspection.unknownTypeNames.join('、')}。CK 没有修改当前工作区，恢复稿也仍完整保留。请先安装或启用对应积木包。`, `Found ${inspection.unknownBlockCount} unregistered block(s): ${inspection.unknownTypeNames.join(', ')}. Workspace was not modified and the recovery draft is preserved. Install or enable the required library first.`),
                     type: 'warning',
                 });
                 return;
             }
             if (candidate.draft.board !== activeBoard
                 || candidate.draft.boardPackageId !== activeBoardPackageId) {
-                throw new Error('恢复稿绑定的物理板卡包与当前工程不同；请先恢复为新工程并从外部打开。');
+                throw new Error(uiText('恢复稿绑定的物理板卡包与当前工程不同；请先恢复为新工程并从外部打开。', 'The recovery draft targets a different board package; restore it as a new project first.'));
             }
             const options = JSON.parse(candidate.draft.options || '{}');
             const state = JSON.parse(candidate.draft.workspaceJson);
             await captureWorkspaceCheckpoint('before_restore');
             if (!recoveryProjectSessionIsCurrent(candidate.session)) {
-                throw new Error('工程会话在建立恢复前检查点时发生变化，旧稿未载入。');
+                throw new Error(uiText('工程会话在建立恢复前检查点时发生变化，旧稿未载入。', 'Project session changed while creating safety checkpoint; draft not loaded.'));
             }
             recoveryRestoreInProgressRef.current = true;
             recoverySchedulingPaused = true;
@@ -7641,10 +7681,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             setRecoveryCandidate(previous => (
                 previous?.metadata.id === candidate.metadata.id ? null : previous
             ));
-            showToast('恢复稿已载入当前工作区；正式工程尚未覆盖', 'success');
+            showToast(uiText('恢复稿已载入当前工作区；正式工程尚未覆盖', 'Recovery draft loaded into workspace; saved file not overwritten yet'), 'success');
         } catch (error) {
             console.error('[RecoveryDrafts] Restore current failed', error);
-            showToast(`恢复失败：${String(error)}`, 'error');
+            showToast(uiText(`恢复失败：${String(error)}`, `Restore failed: ${String(error)}`), 'error');
         } finally {
             // clear/load can emit several semantic events. They are suppressed
             // through the current task; resume with the latest callback and at
@@ -7672,18 +7712,18 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
         if (!candidate) return;
         if (!recoveryProjectSessionIsCurrent(candidate.session)) {
             setRecoveryCandidate(null);
-            showToast('工程会话已经变化，未对旧恢复稿执行操作', 'error');
+            showToast(uiText('工程会话已经变化，未对旧恢复稿执行操作', 'Project session changed; old recovery draft untouched'), 'error');
             return;
         }
         setRecoveryBusy(true);
         try {
             const selectedPath = await save({
-                defaultPath: `${candidate.draft.projectName || 'recovered'}-恢复.ck`,
-                filters: [{ name: 'CK 工程文件', extensions: ['ck', 'maker'] }],
+                defaultPath: `${candidate.draft.projectName || 'recovered'}-${uiText('恢复', 'recovered')}.ck`,
+                filters: [{ name: uiText('CK 工程文件', 'CK Project File'), extensions: ['ck', 'maker'] }],
             });
             if (!selectedPath) return;
             if (!recoveryProjectSessionIsCurrent(candidate.session)) {
-                throw new Error('工程会话在选择保存位置时发生变化，旧稿仍完整保留。');
+                throw new Error(uiText('工程会话在选择保存位置时发生变化，旧稿仍完整保留。', 'Project session changed while selecting save path; draft preserved.'));
             }
             await invoke('save_project_as', {
                 targetPath: selectedPath,
@@ -7696,7 +7736,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 boardPackageId: candidate.draft.boardPackageId,
             });
             if (!recoveryProjectSessionIsCurrent(candidate.session)) {
-                throw new Error('新工程已写入，但当前会话已经变化；原恢复稿仍完整保留。');
+                throw new Error(uiText('新工程已写入，但当前会话已经变化；原恢复稿仍完整保留。', 'New project saved, but active session changed; recovery draft preserved.'));
             }
             await deleteRecoveryDraft(candidate.metadata.projectPath, candidate.metadata.id);
             if (!recoveryProjectSessionIsCurrent(candidate.session)) return;
@@ -7704,10 +7744,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 previous?.metadata.id === candidate.metadata.id ? null : previous
             ));
             beginProjectLoad(selectedPath);
-            showToast('恢复稿已保存为新工程，原工程未修改', 'success');
+            showToast(uiText('恢复稿已保存为新工程，原工程未修改', 'Recovery draft saved as new project; original untouched'), 'success');
         } catch (error) {
             console.error('[RecoveryDrafts] Restore as new failed', error);
-            showToast(`恢复为新工程失败：${String(error)}`, 'error');
+            showToast(uiText(`恢复为新工程失败：${String(error)}`, `Failed to restore as new project: ${String(error)}`), 'error');
         } finally {
             setRecoveryBusy(false);
         }
@@ -7718,14 +7758,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
     ): Promise<boolean> => {
         if (rendererRecoveryFailure) {
             await dialog.alert({
-                title: '工程恢复保护仍在生效',
-                message: `${rendererRecoveryFailure.message} 请先重试恢复；如需保留原始快照，可先在工作区提示中导出。`,
+                title: uiText('工程恢复保护仍在生效', 'Recovery protection is still active'),
+                message: uiText(`${rendererRecoveryFailure.message} 请先重试恢复；如需保留原始快照，可先在工作区提示中导出。`, `${rendererRecoveryFailure.message} Retry recovery or export the snapshot first.`),
                 type: 'warning',
             });
             return false;
         }
         if (isCompilingRef.current) {
-            showToast('请先等待当前编译或上传结束，再离开工程', 'error');
+            showToast(uiText('请先等待当前编译或上传结束，再离开工程', 'Wait for the current build or upload to finish before leaving'), 'error');
             return false;
         }
         if (!hasUnsavedProjectChanges() && !memberFiles.current?.pending()) return true;
@@ -7740,10 +7780,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             } catch (error) {
                 console.error('[ProjectCheckpoints] Failed to protect discarded changes', error);
                 await dialog.alert({
-                    title: '保护检查点创建失败',
-                    message: `为避免直接丢失修改，CK 已取消本次操作。\n\n${String(error)}`,
+                    title: uiText('保护检查点创建失败', 'Failed to create safety checkpoint'),
+                    message: uiText(`为避免直接丢失修改，CK 已取消本次操作。\n\n${String(error)}`, `Operation cancelled to avoid losing your changes.\n\n${String(error)}`),
                     type: 'error',
-                    confirmLabel: '知道了',
+                    confirmLabel: uiText('知道了', 'Got it'),
                 });
                 return false;
             }
@@ -7765,19 +7805,19 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 defaultPath: defaultDir || undefined,
                 multiple: false,
                 filters: [{
-                    name: 'CK 工程文件',
+                    name: uiText('CK 工程文件', 'CK Project File'),
                     extensions: ['ck', 'maker']
                 }]
             });
 
             if (selectedPath && typeof selectedPath === 'string') {
-                showToast('正在打开...', 'loading');
+                showToast(uiText('正在打开...', 'Opening...'), 'loading');
                 // Reload project data
                 beginProjectLoad(selectedPath);
             }
         } catch (e) {
             console.error(e);
-            showToast('打开失败: ' + e, 'error');
+            showToast(uiText('打开失败: ', 'Failed to open: ') + e, 'error');
         }
     };
 
@@ -7792,7 +7832,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             void (async () => {
                 try {
                     if (!await confirmUnsavedNavigation('open')) return;
-                    showToast(`正在打开 ${detail.target.name || 'CK 工程'}...`, 'loading');
+                    showToast(uiText(`正在打开 ${detail.target.name || 'CK 工程'}...`, `Opening ${detail.target.name || 'CK Project'}...`), 'loading');
                     if (projectPathsReferToSameFile(targetPath, currentPathRef.current)) {
                         // Setting the same parent route/key is a React no-op.
                         // Reload through the workspace's existing load trigger
@@ -7802,7 +7842,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     else beginProjectLoad(targetPath);
                 } catch (error) {
                     console.error('[ProjectOpen] Failed to complete workspace open request', error);
-                    showToast(`打开失败：${String(error)}`, 'error');
+                    showToast(uiText(`打开失败：${String(error)}`, `Failed to open: ${String(error)}`), 'error');
                 } finally {
                     // This completion callback is the acknowledgement boundary
                     // for the app-level queue and the native durable queue.
@@ -7934,7 +7974,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             {unsavedDialogContext && (
                 <UnsavedChangesDialog
                     context={unsavedDialogContext}
-                    projectName={currentPath.split(/[\\/]/).pop() || '未命名工程'}
+                    projectName={currentPath.split(/[\\/]/).pop() || uiText('未命名工程', 'Untitled Project')}
                     willCreateCheckpoint={isNativeCheckpointStorageAvailable()}
                     onChoose={finishUnsavedChoice}
                 />
@@ -7964,7 +8004,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             <BoardConfigModal
                 isOpen={isConfigOpen}
                 onClose={() => setIsConfigOpen(false)}
-                boardName={activeBoardPackage?.name || BOARDS.find(b => b.id === activeBoard)?.name || '未知开发板'}
+                boardName={activeBoardPackage?.name || BOARDS.find(b => b.id === activeBoard)?.name || uiText('未知开发板', 'Unknown Board')}
                 boardFqbn={effectiveCompileFqbn}
                 detailsFqbn={activeBoard}
                 displayMode={workspaceDisplayMode}
@@ -7996,9 +8036,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 onCreate={async () => {
                     const checkpoint = await captureWorkspaceCheckpoint('manual');
                     if (!checkpoint) {
-                        throw new Error('当前工程尚未准备好，无法保存检查点');
+                        throw new Error(uiText('当前工程尚未准备好，无法保存检查点', 'Project is not ready to save a checkpoint'));
                     }
-                    showToast('已保存当前工程检查点', 'success');
+                    showToast(uiText('已保存当前工程检查点', 'Saved project checkpoint'), 'success');
                 }}
                 onRestore={handleRestoreProjectCheckpoint}
             />
@@ -8020,9 +8060,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 isOpen={isDiagnosticBundleOpen}
                 onClose={() => setIsDiagnosticBundleOpen(false)}
                 exportData={createDiagnosticExportData}
-                suggestedFileName={`${currentPath.split(/[\\/]/).pop()?.replace(/\.(maker|ck)$/i, '') || 'CK工程'}-诊断包.zip`}
+                suggestedFileName={`${currentPath.split(/[\\/]/).pop()?.replace(/\.(maker|ck)$/i, '') || uiText('CK工程', 'CK-Project')}-${uiText('诊断包', 'diagnostic')}.zip`}
                 currentCoreVersions={installedCoreVersions}
-                onExported={(result) => showToast(`诊断包已保存：${result.includedFiles} 个文件`, 'success')}
+                onExported={(result) => showToast(uiText(`诊断包已保存：${result.includedFiles} 个文件`, `Diagnostic bundle saved (${result.includedFiles} files)`), 'success')}
             />
 
             <ProjectAcceptanceReportModal
@@ -8030,19 +8070,22 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 onClose={() => setIsProjectAcceptanceReportOpen(false)}
                 reportProvider={createAcceptanceReportData}
                 submissionMaterialProvider={createProjectSubmissionMaterial}
-                suggestedBaseName={currentPath.split(/[\\/]/).pop()?.replace(/\.(maker|ck)$/i, '') || 'CK工程'}
+                suggestedBaseName={currentPath.split(/[\\/]/).pop()?.replace(/\.(maker|ck)$/i, '') || uiText('CK工程', 'CK-Project')}
                 onExported={(path, format) => showToast(
-                    `${format === 'ckpkg' ? '工程提交包' : format === 'html' ? '可打印报告' : '结构化报告'}已保存：${path}`,
+                    uiText(
+                        `${format === 'ckpkg' ? '工程提交包' : format === 'html' ? '可打印报告' : '结构化报告'}已保存：${path}`,
+                        `${format === 'ckpkg' ? 'Submission package' : format === 'html' ? 'Printable report' : 'Structured report'} saved: ${path}`,
+                    ),
                     'success',
                 )}
             />
 
             {/* Header */}
             <header className="ck-workspace-header bg-[#fbfcfe] border-b border-[#dce3ec] shrink-0 relative z-[300] dark:border-slate-800 dark:bg-slate-900">
-                <div className="ck-project-tools flex items-center min-w-0" role="group" aria-label="工程操作">
-                    <button onClick={() => void handleBack()} className="h-9 px-2 flex items-center justify-center gap-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100" title="返回项目列表">
+                <div className="ck-project-tools flex items-center min-w-0" role="group" aria-label={uiText('工程操作', 'Project actions')}>
+                    <button onClick={() => void handleBack()} className="h-9 px-2 flex items-center justify-center gap-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100" title={uiText('返回项目列表', 'Back to projects')}>
                         <ArrowLeft size={19} />
-                        <span className="text-xs font-bold">返回</span>
+                        <span className="text-xs font-bold">{uiText('返回', 'Back')}</span>
                     </button>
                     <BrandLogo className="ck-workspace-brand h-8 w-[66px]" />
                     <WorkspaceModeSwitch source={sourceMode} disabled={editorSwitchBlocked} onChange={switchEditorMode} onPrepareSource={() => { void prepareSourcePane(); }} />
@@ -8050,9 +8093,9 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         <span className="flex items-center gap-1.5 font-bold text-sm text-slate-900 leading-4 whitespace-nowrap dark:text-slate-100">
                             CK
                             {isProjectDirty && (
-                                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-amber-600 dark:text-amber-300" title="当前工程有未保存修改">
+                                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-amber-600 dark:text-amber-300" title={uiText('当前工程有未保存修改', 'Unsaved project changes')}>
                                     <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                                    未保存
+                                    {uiText('未保存', 'Unsaved')}
                                 </span>
                             )}
                         </span>
@@ -8061,58 +8104,58 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             data-ck-code-fingerprint={computeCodeFingerprint(generatedCode)}
                             data-ck-include-signature={computeIncludeSignature(generatedCode)}
                             data-ck-project-dirty={String(isProjectDirty)}
-                            data-ck-project-name={currentPath.split(/[\\/]/).pop() || '未命名工程'}
+                            data-ck-project-name={currentPath.split(/[\\/]/).pop() || uiText('未命名工程', 'Untitled Project')}
                             className="hidden lg:block text-[10px] text-slate-400 leading-4 max-w-[150px] xl:max-w-[220px] truncate"
                             title={currentPath}
                         >
-                            {currentPath.split(/[\\/]/).pop() || '未命名工程'}
+                            {currentPath.split(/[\\/]/).pop() || uiText('未命名工程', 'Untitled Project')}
                         </span>
                     </div>
 
                     <div className="ck-workspace-file-group flex items-center relative">
-                        <button onClick={handleOpenFile} className="ck-file-command" title="打开工程" aria-label="打开工程">
-                            <FolderOpen size={16} /><span>打开</span>
+                        <button onClick={handleOpenFile} className="ck-file-command" title={uiText('打开工程', 'Open project')} aria-label={uiText('打开工程', 'Open project')}>
+                            <FolderOpen size={16} /><span>{uiText('打开', 'Open')}</span>
                         </button>
-                        <button onClick={handleSave} className="ck-file-command" title={isProjectDirty ? '保存项目（有未保存修改）' : '保存项目'} aria-label="保存项目" data-dirty={isProjectDirty}>
-                            <Save size={16} /><span>保存</span>
+                        <button onClick={handleSave} className="ck-file-command" title={isProjectDirty ? uiText('保存项目（有未保存修改）', 'Save project (unsaved changes)') : uiText('保存项目', 'Save project')} aria-label={uiText('保存项目', 'Save project')} data-dirty={isProjectDirty}>
+                            <Save size={16} /><span>{uiText('保存', 'Save')}</span>
                         </button>
-                        <button data-ck-role="file-menu-trigger" aria-label="文件操作" title="更多工程操作" onClick={() => setIsFileMenuOpen((value) => !value)} className="ck-file-command" aria-haspopup="menu" aria-expanded={isFileMenuOpen}>
-                            <span>更多</span><ChevronDown size={13} />
+                        <button data-ck-role="file-menu-trigger" aria-label={uiText('文件操作', 'File actions')} title={uiText('更多工程操作', 'More project actions')} onClick={() => setIsFileMenuOpen((value) => !value)} className="ck-file-command" aria-haspopup="menu" aria-expanded={isFileMenuOpen}>
+                            <span>{uiText('更多', 'More')}</span><ChevronDown size={13} />
                         </button>
                         {isFileMenuOpen && (
                             <>
                                 <div className="fixed inset-0 z-40" onClick={() => setIsFileMenuOpen(false)} />
-                                <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-40 bg-white border border-[#dce3ec] shadow-xl rounded-md p-1 dark:border-slate-700 dark:bg-slate-900" role="menu">
+                                <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-48 bg-white border border-[#dce3ec] shadow-xl rounded-md p-1 dark:border-slate-700 dark:bg-slate-900" role="menu">
                                     <button onClick={() => { void handleOpenFile(); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <FolderOpen size={15} /> 打开工程
+                                        <FolderOpen size={15} /> {uiText('打开工程', 'Open Project')}
                                     </button>
                                     <button onClick={() => { void handleSave(); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <Save size={15} /> 保存项目
+                                        <Save size={15} /> {uiText('保存项目', 'Save Project')}
                                     </button>
                                     <button onClick={() => { void handleSaveAs(); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <FilePlus size={15} /> 另存为
+                                        <FilePlus size={15} /> {uiText('另存为', 'Save As…')}
                                     </button>
                                     <button onClick={() => { setIsCheckpointsOpen(true); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <ArchiveRestore size={15} /> 工程检查点
+                                        <ArchiveRestore size={15} /> {uiText('工程检查点', 'Project Checkpoints')}
                                     </button>
                                     {healthCapabilities.lastWorkingVersion && <button onClick={() => { setIsLastWorkingVersionOpen(true); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <ShieldCheck size={15} /> 上一个可用版本
+                                        <ShieldCheck size={15} /> {uiText('上一个可用版本', 'Last Working Version')}
                                     </button>}
                                     <button onClick={() => { setIsDiagnosticBundleOpen(true); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <HeartPulse size={15} /> 工程诊断包
+                                        <HeartPulse size={15} /> {uiText('工程诊断包', 'Diagnostic Bundle')}
                                     </button>
                                     <button onClick={() => { setIsProjectAcceptanceReportOpen(true); setIsFileMenuOpen(false); }} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <CheckCircle size={15} /> 项目验收报告
+                                        <CheckCircle size={15} /> {uiText('项目验收报告', 'Acceptance Report')}
                                     </button>
                                 </div>
                             </>
                         )}
                     </div>
-                    <button type="button" data-ck-role="library-manager-trigger" className="ck-library-toolbar-button" onClick={() => setIsLibManagerOpen(true)} title="库管理器 · 安装、启用和管理积木库" aria-label="库管理器">
-                        <BookOpen size={16} /><span>库管理器</span>
+                    <button type="button" data-ck-role="library-manager-trigger" className="ck-library-toolbar-button" onClick={() => setIsLibManagerOpen(true)} title={uiText('库管理器 · 安装、启用和管理积木库', 'Library Manager · Install, enable, and manage block libraries')} aria-label={uiText('库管理器', 'Library Manager')}>
+                        <BookOpen size={16} /><span>{uiText('库管理器', 'Libraries')}</span>
                     </button>
                 </div>
-                    <div className="ck-device-tools flex items-center bg-white border border-[#dce3ec] relative dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="板卡与端口">
+                    <div className="ck-device-tools flex items-center bg-white border border-[#dce3ec] relative dark:border-slate-700 dark:bg-slate-800" role="group" aria-label={uiText('板卡与端口', 'Board and port')}>
                         <button
                             onClick={() => setIsConfigOpen(true)}
                             disabled={isCompiling || isDeviceHealthRunning}
@@ -8120,7 +8163,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             data-ck-board-options-status={boardOptionsStatus}
                             data-ck-board-options-compatible={Object.keys(droppedBoardOptions).length === 0 ? 'true' : 'false'}
                             className="ck-board-command"
-                            title={`板卡设置与编译缓存\n${getBoardName()}\n${effectiveCompileFqbn}`}
+                            title={`${uiText('板卡设置与编译缓存', 'Board settings & build cache')}\n${getBoardName()}\n${effectiveCompileFqbn}`}
                         >
                             <CircuitBoard size={17} className="text-[var(--accent)] shrink-0" />
                             <span className="truncate">{getBoardName()}</span>
@@ -8132,12 +8175,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             }} onKeyDown={e => {
                                 if (e.key === 'Escape') { e.currentTarget.open = false; e.currentTarget.querySelector('summary')?.focus(); }
                             }}>
-                                <summary aria-label="工程参数待补齐" title="工程参数待补齐"><AlertTriangle size={13} /></summary>
+                                <summary aria-label={uiText('工程参数待补齐', 'Incomplete project target metadata')} title={uiText('工程参数待补齐', 'Incomplete project target metadata')}><AlertTriangle size={13} /></summary>
                                 <div className="ck-target-popover" data-ck-build-target-hint>
-                                    <strong>工程参数待补齐</strong>
-                                    <p>工程尚未记录完整的 Core 版本或默认板卡参数。环境就绪后，保存工程即可补齐。</p>
+                                    <strong>{uiText('工程参数待补齐', 'Incomplete project metadata')}</strong>
+                                    <p>{uiText('工程尚未记录完整的 Core 版本或默认板卡参数。环境就绪后，保存工程即可补齐。', 'This project has not recorded the full Core version or default board options yet. Save once the environment is ready to record them.')}</p>
                                     <button type="button" disabled={!buildEnvironment.resolved || !activeCoreVersion || editorSwitchBlocked}
-                                        onClick={() => void handleSave()}>保存并补齐</button>
+                                        onClick={() => void handleSave()}>{uiText('保存并补齐', 'Save & Record')}</button>
                                 </div>
                             </details>}
                         <div className="h-4 w-px bg-[#e3e8ef] dark:bg-slate-700" />
@@ -8147,12 +8190,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 className="ck-port-command"
                                 onClick={() => setIsPortMenuOpen(!isPortMenuOpen)}
                                 disabled={isDeviceHealthRunning}
-                                data-ck-role="toolbar-port-select" title={activePort || '选择串口'}
+                                data-ck-role="toolbar-port-select" title={activePort || uiText('选择串口', 'Select serial port')}
                                 aria-haspopup="menu"
                                 aria-expanded={isPortMenuOpen}
                             >
                                 <Usb size={16} className={activePort ? 'text-[var(--accent)] shrink-0' : 'text-slate-400 shrink-0'} />
-                                <span className="truncate">{activePort || '未选端口'}</span>
+                                <span className="truncate">{activePort || uiText('未选端口', 'No port')}</span>
                                 <ChevronDown size={12} className="ml-auto text-slate-400 shrink-0" />
                             </button>
 
@@ -8161,10 +8204,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                     <div className="fixed inset-0 z-40 cursor-default" onClick={() => setIsPortMenuOpen(false)} />
                                     <div className="absolute top-[calc(100%+8px)] right-0 w-72 bg-white border border-[#dce3ec] shadow-xl rounded-md z-50 py-1.5 max-h-[360px] overflow-y-auto flex flex-col animate-in fade-in zoom-in-95 duration-100 origin-top-right dark:border-slate-700 dark:bg-slate-900" role="menu">
                                         <div className="px-3 py-2 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
-                                            <span className="text-[10px] font-bold uppercase text-slate-400">可用串口</span>
+                                            <span className="text-[10px] font-bold uppercase text-slate-400">{uiText('可用串口', 'Available Ports')}</span>
                                             <span className="text-[10px] font-mono text-slate-400">{ports.length}</span>
                                         </div>
-                                        {ports.length === 0 && <div className="px-3 py-6 text-center text-slate-400 text-xs">未发现串口</div>}
+                                        {ports.length === 0 && <div className="px-3 py-6 text-center text-slate-400 text-xs">{uiText('未发现串口', 'No serial ports found')}</div>}
                                         {ports.map((p: any) => (
                                             <button
                                                 key={p.port_name}
@@ -8176,7 +8219,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                                 <span className={`w-2 h-2 rotate-45 border shrink-0 ${activePort === p.port_name ? 'bg-brand-600 border-brand-600' : 'bg-white border-slate-300 dark:bg-slate-800 dark:border-slate-600'}`} />
                                                 <span className="flex flex-col min-w-0 flex-1">
                                                     <span className="font-mono font-bold text-xs text-slate-700 dark:text-slate-200">{p.port_name}</span>
-                                                    <span className="text-[10px] text-slate-400 truncate mt-0.5">{p.description || '串行设备'}</span>
+                                                    <span className="text-[10px] text-slate-400 truncate mt-0.5">{p.description || uiText('串行设备', 'Serial device')}</span>
                                                 </span>
                                                 {activePort === p.port_name && <Check size={14} className="text-[var(--accent)] shrink-0" />}
                                             </button>
@@ -8188,17 +8231,17 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                             onClick={() => void handleInspectDevice()}
                                             disabled={isDeviceHealthRunning || isCompiling || blockDebugSession.active || !activePort}
                                             role="menuitem"
-                                            title="会短暂复位开发板，但不会擦除或写入 Flash"
+                                            title={uiText('会短暂复位开发板，但不会擦除或写入 Flash', 'Briefly resets the board without erasing or writing Flash')}
                                         >
                                             {isDeviceHealthRunning ? <Loader2 size={15} className="shrink-0 animate-spin" /> : <HeartPulse size={15} className="shrink-0" />}
                                             <span className="flex min-w-0 flex-col">
-                                                <span className="font-bold">真机体检</span>
-                                                <span className="mt-0.5 truncate text-[9px] text-slate-400 dark:text-slate-500">短暂复位，不写 Flash</span>
+                                                <span className="font-bold">{uiText('真机体检', 'Device Check')}</span>
+                                                <span className="mt-0.5 truncate text-[9px] text-slate-400 dark:text-slate-500">{uiText('短暂复位，不写 Flash', 'Brief reset, no Flash write')}</span>
                                             </span>
                                         </button>}
                                         {activePort && (
                                             <button disabled={isDeviceHealthRunning} className="mx-2 mt-1 px-2.5 py-2 border-t border-slate-100 text-xs text-slate-500 hover:text-red-600 flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:text-slate-400 dark:hover:text-red-300" onClick={() => { connectDevice(''); setIsPortMenuOpen(false); }}>
-                                                <XCircle size={14} /> 断开当前串口
+                                                <XCircle size={14} /> {uiText('断开当前串口', 'Disconnect port')}
                                             </button>
                                         )}
                                     </div>
@@ -8206,12 +8249,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             )}
                         </div>
 
-                        <button onClick={() => scanPorts()} disabled={isDeviceHealthRunning} className="w-9 h-full flex items-center justify-center text-slate-400 hover:text-[var(--accent)] hover:bg-[#f5f8fa] border-l border-[#e3e8ef] rounded-r-md transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-brand-300" title="刷新串口" aria-label="刷新串口">
+                        <button onClick={() => scanPorts()} disabled={isDeviceHealthRunning} className="w-9 h-full flex items-center justify-center text-slate-400 hover:text-[var(--accent)] hover:bg-[#f5f8fa] border-l border-[#e3e8ef] rounded-r-md transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-brand-300" title={uiText('刷新串口', 'Refresh ports')} aria-label={uiText('刷新串口', 'Refresh ports')}>
                             <RefreshCw size={14} />
                         </button>
                     </div>
 
-                <div className="ck-workspace-toolbar-actions flex items-center shrink-0" role="group" aria-label="构建与视图">
+                <div className="ck-workspace-toolbar-actions flex items-center shrink-0" role="group" aria-label={uiText('构建与视图', 'Build and view')}>
                     <button
                         type="button"
                         data-ck-role="engineering-health-button"
@@ -8237,10 +8280,10 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         onClick={() => void handleInspectDevice()}
                         disabled={isDeviceHealthRunning || isCompiling || blockDebugSession.active || !activePort}
                         className="hidden min-[1500px]:inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-brand-200 bg-brand-50 px-2.5 text-xs font-bold whitespace-nowrap text-[var(--accent)] transition-colors hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-300 dark:hover:bg-brand-950/65"
-                        title={activePort ? '会短暂复位开发板，但不会擦除或写入 Flash' : '请先选择串口'}
+                        title={activePort ? uiText('会短暂复位开发板，但不会擦除或写入 Flash', 'Briefly resets the board without erasing or writing Flash') : uiText('请先选择串口', 'Select a serial port first')}
                     >
                         {isDeviceHealthRunning ? <Loader2 size={16} className="animate-spin" /> : <HeartPulse size={16} />}
-                        <span>{isDeviceHealthRunning ? '体检中' : '真机体检'}</span>
+                        <span>{isDeviceHealthRunning ? uiText('体检中', 'Checking') : uiText('真机体检', 'Device Check')}</span>
                     </button>}
 
                     <div className="flex shrink-0 items-center gap-1">
@@ -8351,25 +8394,25 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         )}
                     </div>
 
-                    <button type="button" data-ck-role="ai-assistant-trigger" aria-label="打开 CK AI 积木助手" aria-expanded={aiOpen}
-                        disabled={sourceMode} title={sourceMode ? "AI 积木助手用于积木模式" : "AI 积木助手"} onClick={() => aiOpen ? setAiOpen(false) : openAi()}
+                    <button type="button" data-ck-role="ai-assistant-trigger" aria-label={uiText('打开 CK AI 积木助手', 'Open CK AI Assistant')} aria-expanded={aiOpen}
+                        disabled={sourceMode} title={sourceMode ? uiText('AI 积木助手用于积木模式', 'AI Assistant is available in Blocks mode') : uiText('AI 积木助手', 'AI Assistant')} onClick={() => aiOpen ? setAiOpen(false) : openAi()}
                         className={`h-10 shrink-0 rounded-md border px-2.5 flex items-center gap-1.5 text-xs font-semibold transition-colors ${aiOpen ? 'border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-300' : 'border-slate-200 text-slate-600 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:text-slate-300'}`}>
                         <Sparkles size={16} /><span>AI</span>
                     </button>
                     <div className="hidden min-[1800px]:flex items-center h-10 p-0.5 bg-[#f1f4f8] border border-[#e1e7ef] rounded-md dark:border-slate-700 dark:bg-slate-800">
-                        <button onClick={toggleSerialMonitor} disabled={isSerialMonitorSwitching || isDeviceHealthRunning} className={`h-9 px-2.5 rounded flex items-center gap-1.5 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-wait ${isSerialMonitorOpen ? 'bg-white text-[var(--accent)] dark:bg-slate-700 dark:text-brand-300' : 'text-slate-500 hover:text-slate-900 hover:bg-white dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100'}`} title={isDeviceHealthRunning ? '真机体检期间串口由体检独占' : isSerialMonitorSwitching ? '正在应用串口设置' : isSerialMonitorOpen ? '关闭串口监视器' : '打开串口监视器'}>
-                            <Monitor size={16} /> 串口监视
+                        <button onClick={toggleSerialMonitor} disabled={isSerialMonitorSwitching || isDeviceHealthRunning} className={`h-9 px-2.5 rounded flex items-center gap-1.5 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-wait ${isSerialMonitorOpen ? 'bg-white text-[var(--accent)] dark:bg-slate-700 dark:text-brand-300' : 'text-slate-500 hover:text-slate-900 hover:bg-white dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100'}`} title={isDeviceHealthRunning ? uiText('真机体检期间串口由体检独占', 'Serial port is reserved during device check') : isSerialMonitorSwitching ? uiText('正在应用串口设置', 'Applying serial settings') : isSerialMonitorOpen ? uiText('关闭串口监视器', 'Close serial monitor') : uiText('打开串口监视器', 'Open serial monitor')}>
+                            <Monitor size={16} /> {uiText('串口监视', 'Serial')}
                         </button>
-                        <button onClick={toggleCodeView} className={`h-9 px-2.5 rounded flex items-center gap-1.5 text-xs font-semibold transition-colors ${codeViewOpen ? 'bg-white text-slate-900 dark:bg-slate-700 dark:text-slate-100' : 'text-slate-500 hover:text-slate-900 hover:bg-white dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100'}`} title={codeViewOpen ? '隐藏代码预览' : '显示代码预览'}>
-                            <Code size={16} /> 代码预览
+                        <button onClick={toggleCodeView} className={`h-9 px-2.5 rounded flex items-center gap-1.5 text-xs font-semibold transition-colors ${codeViewOpen ? 'bg-white text-slate-900 dark:bg-slate-700 dark:text-slate-100' : 'text-slate-500 hover:text-slate-900 hover:bg-white dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100'}`} title={codeViewOpen ? uiText('隐藏代码预览', 'Hide code preview') : uiText('显示代码预览', 'Show code preview')}>
+                            <Code size={16} /> {uiText('代码预览', 'Code')}
                         </button>
                         <button
                             onClick={() => void handleStartBlockTrace()}
                             disabled={sourceMode || isCompiling || isDeviceHealthRunning || blockDebugSession.active}
                             className="h-9 px-2.5 rounded flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-300 dark:hover:bg-slate-700"
-                            title="运行轨迹：上传采样固件，不暂停开发板程序"
+                            title={uiText('运行轨迹：上传采样固件，不暂停开发板程序', 'Execution Trace: upload sampling firmware without pausing the board')}
                         >
-                            <Activity size={16} /> 运行轨迹
+                            <Activity size={16} /> {uiText('运行轨迹', 'Trace')}
                         </button>
                         <button
                             type="button"
@@ -8383,8 +8426,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                     </div>
 
                     <div className="relative shrink-0">
-                        <button aria-label="视图菜单" data-ck-role="view-menu-trigger" onClick={() => setIsViewMenuOpen((value) => !value)} className="h-10 px-2.5 border border-[#dce3ec] bg-white rounded-md flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" aria-haspopup="menu" aria-expanded={isViewMenuOpen}>
-                            <Code size={16} /><span>视图</span><ChevronDown size={12} />
+                        <button aria-label={uiText('视图菜单', 'View menu')} data-ck-role="view-menu-trigger" onClick={() => setIsViewMenuOpen((value) => !value)} className="h-10 px-2.5 border border-[#dce3ec] bg-white rounded-md flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" aria-haspopup="menu" aria-expanded={isViewMenuOpen}>
+                            <Code size={16} /><span>{uiText('视图', 'View')}</span><ChevronDown size={12} />
                         </button>
                         {isViewMenuOpen && (
                             <>
@@ -8414,27 +8457,27 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                         role="menuitem"
                                     >
                                         {isConsoleDetached ? <ExternalLink size={15} /> : <Monitor size={15} />}
-                                        {isConsoleDetached ? '聚焦串口浮窗' : isSerialMonitorOpen ? '关闭串口监视' : '打开串口监视'}
+                                        {isConsoleDetached ? uiText('聚焦串口浮窗', 'Focus Serial Window') : isSerialMonitorOpen ? uiText('关闭串口监视', 'Close Serial Monitor') : uiText('打开串口监视', 'Open Serial Monitor')}
                                     </button>
                                     <button onClick={() => runViewMenuAction(toggleCodeView)} className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" role="menuitem">
-                                        <Code size={15} /> {codeViewOpen ? '隐藏代码预览' : '显示代码预览'}
+                                        <Code size={15} /> {codeViewOpen ? uiText('隐藏代码预览', 'Hide Code Preview') : uiText('显示代码预览', 'Show Code Preview')}
                                     </button>
                                     <button
                                         onClick={() => runViewMenuAction(() => void handleStartBlockTrace())}
                                         disabled={sourceMode || isCompiling || isDeviceHealthRunning || blockDebugSession.active}
                                         className="w-full h-9 px-2.5 rounded flex items-center gap-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50"
                                         role="menuitem"
-                                        title="上传采样固件，不暂停开发板程序"
+                                        title={uiText('上传采样固件，不暂停开发板程序', 'Upload sampling firmware without pausing the board')}
                                     >
-                                        <Activity size={15} /> 运行轨迹（上传）
+                                        <Activity size={15} /> {uiText('运行轨迹（上传）', 'Execution Trace (Upload)')}
                                     </button>
                                     <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
                                     <div className="px-2.5 pb-1 pt-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
                                         {healthTranslate('experience.displayMode')}
                                     </div>
                                     {([
-                                        ['simple', '简洁视图', '日常结果与需要处理的问题'],
-                                        ['engineering', '工程视图', '完整 FQBN、缓存与证据细节'],
+                                        ['simple', uiText('简洁视图', 'Simple view'), uiText('日常结果与需要处理的问题', 'Everyday results and actionable issues')],
+                                        ['engineering', uiText('工程视图', 'Engineering view'), uiText('完整 FQBN、缓存与证据细节', 'Full FQBN, cache, and evidence details')],
                                     ] as const).map(([mode, label, description]) => (
                                         <button
                                             key={mode}
@@ -8480,18 +8523,18 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
             </header>
 
             {currentPath && !projectLoadProgress && !projectLoadSafetyError && buildTargetDifference && <div data-ck-build-target-notice role="status" className="flex shrink-0 flex-wrap items-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
-                <span className="flex-1">{buildTargetDifference} 已保留原配置，编译和上传需要先确认。</span>
-                <button type="button" className="underline" onClick={() => setIsConfigOpen(true)}>查看板卡设置</button>
+                <span className="flex-1">{buildTargetDifference} {uiText('已保留原配置，编译和上传需要先确认。', 'Original settings are preserved; confirm before compiling or uploading.')}</span>
+                <button type="button" className="underline" onClick={() => setIsConfigOpen(true)}>{uiText('查看板卡设置', 'View Board Settings')}</button>
                 {buildTargetDifference && <button type="button" onClick={adoptCurrentBuildEnvironment}
                     disabled={!buildEnvironment.resolved || !activeCoreVersion || isCompiling}
-                    className="rounded border border-amber-400 px-2 py-1 font-semibold disabled:opacity-40">采用当前环境</button>}
+                    className="rounded border border-amber-400 px-2 py-1 font-semibold disabled:opacity-40">{uiText('采用当前环境', 'Use Current Environment')}</button>}
             </div>}
             {/* Main Content */}
             <div className={`ck-workspace-main flex flex-1 min-h-0 overflow-hidden min-w-0 w-full max-w-full relative z-0 ${isConfigOpen ? 'blur-[2px] opacity-90' : ''} `}>
                 <div className="ck-editing-surface">
                 <div className="ck-workspace-stage flex-1 min-w-0 min-h-0 relative bg-[#fbfcfe] overflow-hidden flex flex-col transition-colors dark:bg-[#0b1220]" data-editor-mode={sourceMode ? 'source' : 'blocks'}>
-                    <div id="ck-blocks-panel" role="tabpanel" aria-labelledby="ck-blocks-tab" className="ck-blocks-panel absolute inset-0" ref={blocklyDiv} style={{ touchAction: 'none', display: sourceMode ? 'none' : undefined }} aria-hidden={sourceMode} inert={sourceMode}></div>
-                    {workspaceSource && <div id="ck-source-panel" role="tabpanel" aria-labelledby="ck-source-tab" className="ck-source-panel" hidden={!sourceMode} inert={!sourceMode}><Suspense fallback={<div role="status" className="ck-source-loading">正在准备编辑器…</div>}><WorkspaceSourcePane source={workspaceSource} onResolve={resolveProjectSource} active={sourceMode} dirty={isProjectDirty} followsBlocks={workspaceSource.code === workspaceSource.generatedBase} actionsDisabled={editorSwitchBlocked}
+                    <div id="ck-blocks-panel" role="tabpanel" aria-labelledby="ck-blocks-tab" className="ck-blocks-panel absolute inset-0 isolate z-0" ref={blocklyDiv} style={{ touchAction: 'none', display: sourceMode ? 'none' : undefined }} aria-hidden={sourceMode} inert={sourceMode}></div>
+                    {workspaceSource && <div id="ck-source-panel" role="tabpanel" aria-labelledby="ck-source-tab" className="ck-source-panel" hidden={!sourceMode} inert={!sourceMode}><Suspense fallback={<div role="status" className="ck-source-loading">{uiText('正在准备编辑器…', 'Preparing editor…')}</div>}><WorkspaceSourcePane source={workspaceSource} onResolve={resolveProjectSource} active={sourceMode} dirty={isProjectDirty} followsBlocks={workspaceSource.code === workspaceSource.generatedBase} actionsDisabled={editorSwitchBlocked}
                         onImport={() => { void importProjectSource(); }} onExport={() => { void exportProjectSource(); }} onRegenerate={() => { void replaceSourceFromBlocks(); }} code={workspaceSource.code} documentKey={currentPath + ':' + projectLoadedRevision}
                         dark={resolvedTheme === 'dark'} readOnly={Boolean(isCompiling || isBuildPreparing || projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure)}
                         log={sourceBuildCodeRef.current === workspaceSource!.code ? compileLog : ''}
@@ -8529,44 +8572,44 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         />
                     )}
                     {!unknownBlockProtection && projectLoadSafetyError && (
-                        <div className="absolute inset-0 z-[45] flex items-center justify-center overflow-auto bg-slate-50 p-5 dark:bg-[#0b1220]" data-ck-role="project-load-safety-error">
+                        <div className="absolute inset-0 z-[130] flex items-center justify-center overflow-auto bg-slate-50 p-5 dark:bg-[#0b1220]" data-ck-role="project-load-safety-error">
                             <div className="w-full max-w-xl rounded-2xl border border-red-200 bg-white p-6 shadow-xl dark:border-red-900 dark:bg-slate-900">
                                 <div className="flex items-start gap-3">
                                     <div className="rounded-xl bg-red-100 p-3 text-red-700 dark:bg-red-950/50 dark:text-red-300"><AlertTriangle size={24} /></div>
                                     <div>
-                                        <h2 className="text-lg font-black text-slate-900 dark:text-white">工程已停止载入</h2>
+                                        <h2 className="text-lg font-black text-slate-900 dark:text-white">{uiText('工程已停止载入', 'Project Load Stopped')}</h2>
                                         <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{projectLoadSafetyError}</p>
                                     </div>
                                 </div>
                                 <div className="mt-5 flex flex-wrap gap-2">
-                                    <button type="button" onClick={retryProtectedProjectLoad} className="inline-flex h-10 items-center gap-2 rounded-lg bg-red-600 px-3 text-sm font-bold text-white hover:bg-red-700"><RefreshCw size={15} />重新读取</button>
-                                    <button type="button" onClick={() => void showProtectedProjectInFolder()} className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"><FolderOpen size={15} />显示原工程</button>
+                                    <button type="button" onClick={retryProtectedProjectLoad} className="inline-flex h-10 items-center gap-2 rounded-lg bg-red-600 px-3 text-sm font-bold text-white hover:bg-red-700"><RefreshCw size={15} />{uiText('重新读取', 'Reload')}</button>
+                                    <button type="button" onClick={() => void showProtectedProjectInFolder()} className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"><FolderOpen size={15} />{uiText('显示原工程', 'Show Original Project')}</button>
                                 </div>
                             </div>
                         </div>
                     )}
                     {rendererRecoveryFailure && (
                         <div
-                            className="absolute inset-0 z-[55] flex items-center justify-center overflow-auto bg-slate-50/95 p-5 dark:bg-[#0b1220]/95"
+                            className="absolute inset-0 z-[135] flex items-center justify-center overflow-auto bg-slate-50/95 p-5 dark:bg-[#0b1220]/95"
                             data-ck-role="blockly-renderer-recovery-failure"
                         >
                             <div className="w-full max-w-xl rounded-2xl border border-amber-300 bg-white p-6 shadow-2xl dark:border-amber-700 dark:bg-slate-900">
                                 <div className="flex items-start gap-3">
                                     <div className="rounded-xl bg-amber-100 p-3 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"><AlertTriangle size={24} /></div>
                                     <div>
-                                        <h2 className="text-lg font-black text-slate-900 dark:text-white">积木外观恢复已停止</h2>
+                                        <h2 className="text-lg font-black text-slate-900 dark:text-white">{uiText('积木外观恢复已停止', 'Block Skin Recovery Stopped')}</h2>
                                         <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{rendererRecoveryFailure.message}</p>
-                                        <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">切换前的完整工作区快照仍保留在当前会话中；在恢复完成前，CK 不允许编辑、保存、编译或上传。</p>
+                                        <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{uiText('切换前的完整工作区快照仍保留在当前会话中；在恢复完成前，CK 不允许编辑、保存、编译或上传。', 'The complete pre-switch workspace snapshot is kept in memory. Editing, saving, building, and uploading stay locked until recovery succeeds.')}</p>
                                     </div>
                                 </div>
                                 <div className="mt-5 flex flex-wrap gap-2">
-                                    <button type="button" onClick={retryBlocklyRendererRecovery} className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-3 text-sm font-bold text-white hover:bg-brand-700"><RefreshCw size={15} />重试恢复</button>
-                                    <button type="button" onClick={() => void exportBlocklyRendererRecoverySnapshot()} className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"><ArchiveRestore size={15} />导出恢复快照</button>
+                                    <button type="button" onClick={retryBlocklyRendererRecovery} className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-3 text-sm font-bold text-white hover:bg-brand-700"><RefreshCw size={15} />{uiText('重试恢复', 'Retry Recovery')}</button>
+                                    <button type="button" onClick={() => void exportBlocklyRendererRecoverySnapshot()} className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"><ArchiveRestore size={15} />{uiText('导出恢复快照', 'Export Recovery Snapshot')}</button>
                                 </div>
                             </div>
                         </div>
                     )}
-                    {!sourceMode && <div
+                    {!sourceMode && !unknownBlockProtection && !projectLoadSafetyError && !rendererRecoveryFailure && <div
                         className={`ck-toolbox-search-dock-overlay ${isBlockSearchActive ? 'is-active' : ''}`}
                         role="search"
                         aria-label={blockSearchResultCount == null
@@ -8712,12 +8755,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                             } });},
                     }}
                     boardLabel={`${activeBoard}${activeCoreVersion ? ` · ${activeCoreVersion}` : ''}`}
-                    disabledReason={sourceMode ? '当前为源码模式；切回积木后可使用 AI 积木助手。' : projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure ? '工程正在载入或处于保护状态，请先处理。' : !buildEnvironment.resolved ? '板卡参数尚未就绪，请先完成板卡设置。' : isCompiling || isBuildPreparing ? '正在编译或上传，完成后可继续发送或应用修改。' : blockDebugSession.active ? '调试中，请先结束调试。' : undefined}
+                    disabledReason={sourceMode ? uiText('当前为源码模式；切回积木后可使用 AI 积木助手。', 'Source mode is active; switch back to Blocks to use AI Assistant.') : projectLoadProgress || unknownBlockProtection || projectLoadSafetyError || rendererRecoveryFailure ? uiText('工程正在载入或处于保护状态，请先处理。', 'Project is loading or in protection mode.') : !buildEnvironment.resolved ? uiText('板卡参数尚未就绪，请先完成板卡设置。', 'Board configuration is not ready yet.') : isCompiling || isBuildPreparing ? uiText('正在编译或上传，完成后可继续发送或应用修改。', 'Build or upload in progress; wait until it finishes.') : blockDebugSession.active ? uiText('调试中，请先结束调试。', 'Debug session active; stop debugging first.') : undefined}
                     onClose={() => setAiOpen(false)} onCode={toggleCodeView}
                     onLayout={() => { if (workspaceRef.current) Blockly.svgResize(workspaceRef.current); }}
-                    beforeApply={() => captureWorkspaceCheckpoint('AI 修改前')}
+                    beforeApply={() => captureWorkspaceCheckpoint(uiText('AI 修改前', 'Before AI edit'))}
                     onCompile={async () => ({ ok: await handleCompileAndUpload(false), log: compileLogRef.current })}
-                    verifyMembers={async members=>{if(memberFiles.current?.pending() || members!==await invoke<string>('project_source_identity',{path:currentPath}))throw Error('工程附带源码已变化，请保存后重新验证');}}
+                    verifyMembers={async members=>{if(memberFiles.current?.pending() || members!==await invoke<string>('project_source_identity',{path:currentPath}))throw Error(uiText('工程附带源码已变化，请保存后重新验证', 'Project source files changed; save and re-verify'));}}
                     onVerifiedUpload={(proof,check)=>handleCompileAndUpload(true,{uploadMode:'normal',aiUpload:{...proof,check}})}
                 />
                 {/* Right: Code Preview */}
@@ -8726,14 +8769,14 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                         <div className="h-10 bg-[#f4f7fa] border-b border-[#dce3ec] flex items-center justify-between px-3 shrink-0 dark:border-slate-700 dark:bg-slate-900">
                             <div className="flex items-center gap-2 min-w-0">
                                 <Code size={14} className="text-[var(--accent)]" />
-                                <span className="text-[10px] font-bold text-slate-500 uppercase">生成代码</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">{uiText('生成代码', 'Generated Code')}</span>
                                 <span className="text-[9px] font-mono text-slate-400">sketch.ino</span>
                             </div>
                             <div className="flex items-center gap-0.5">
-                                <button disabled={codePreviewPending} className="w-7 h-7 flex items-center justify-center rounded text-slate-400 hover:text-[var(--accent)] hover:bg-white dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-brand-300 disabled:opacity-40" onClick={async () => { try { await navigator.clipboard.writeText(sourceWithBuildTarget(userReadableCode, captureBuildTarget())); showToast('代码已复制，已附带板卡配置注释', 'success'); } catch { showToast('复制失败，请重试', 'error'); } }} title="复制代码（含板卡配置注释）" aria-label="复制代码">
+                                <button disabled={codePreviewPending} className="w-7 h-7 flex items-center justify-center rounded text-slate-400 hover:text-[var(--accent)] hover:bg-white dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-brand-300 disabled:opacity-40" onClick={async () => { try { await navigator.clipboard.writeText(sourceWithBuildTarget(userReadableCode, captureBuildTarget())); showToast(uiText('代码已复制，已附带板卡配置注释', 'Code copied with board configuration header'), 'success'); } catch { showToast(uiText('复制失败，请重试', 'Copy failed, please retry'), 'error'); } }} title={uiText('复制代码（含板卡配置注释）', 'Copy code (with board config comment)')} aria-label={uiText('复制代码', 'Copy code')}>
                                     <Copy size={13} />
                                 </button>
-                                <button className="w-7 h-7 flex items-center justify-center rounded text-slate-400 hover:text-slate-800 hover:bg-white dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-100" onClick={() => setCodeViewOpen(false)} title="关闭代码预览" aria-label="关闭代码预览">
+                                <button className="w-7 h-7 flex items-center justify-center rounded text-slate-400 hover:text-slate-800 hover:bg-white dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-100" onClick={() => setCodeViewOpen(false)} title={uiText('关闭代码预览', 'Close code preview')} aria-label={uiText('关闭代码预览', 'Close code preview')}>
                                     <X size={14} />
                                 </button>
                             </div>
@@ -8796,29 +8839,29 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 className={`ck-serial-console-tab flex items-center gap-1.5 px-3 h-full transition-colors border-b-2 ${consoleTab === 'serial' ? 'is-active border-brand-600 text-[var(--accent)] bg-white dark:bg-slate-800 dark:text-brand-300' : 'border-transparent hover:bg-white/70 dark:hover:bg-slate-800/70'}`}
                             >
                                 <Terminal size={14} />
-                                <span className="text-xs font-bold whitespace-nowrap">串口监视器</span>
+                                <span className="text-xs font-bold whitespace-nowrap">{uiText('串口监视器', 'Serial Monitor')}</span>
                             </button>
                             <button
                                 onClick={() => setConsoleTab('compile')}
                                 className={`ck-serial-console-tab ck-serial-console-tab-compile flex items-center gap-1.5 px-3 h-full transition-colors border-b-2 ${consoleTab === 'compile' ? 'is-active border-[#2563eb] text-[#1d4ed8] bg-white dark:bg-slate-800 dark:text-blue-300' : 'border-transparent hover:bg-white/70 dark:hover:bg-slate-800/70'}`}
                             >
                                 <Cpu size={14} />
-                                <span className="text-xs font-bold whitespace-nowrap">输出日志</span>
+                                <span className="text-xs font-bold whitespace-nowrap">{uiText('输出日志', 'Build Output')}</span>
                             </button>
                         </div>
 
                         <div className="ml-auto pl-3 flex items-center gap-2 shrink-0">
                             {consoleTab === 'serial' && (
                                 <>
-                                    <label className="ck-serial-setting-label flex items-center gap-1 text-[10px] font-bold text-slate-500 whitespace-nowrap" title="当前串口端口">
-                                        <span>端口</span>
+                                    <label className="ck-serial-setting-label flex items-center gap-1 text-[10px] font-bold text-slate-500 whitespace-nowrap" title={uiText('当前串口端口', 'Serial port')}>
+                                        <span>{uiText('端口', 'Port')}</span>
                                         <select
                                             className="ck-serial-control-select h-7 min-w-[92px] max-w-[150px] text-xs text-slate-700 border border-slate-200 rounded bg-white outline-none cursor-pointer font-mono px-1 focus:border-brand-500 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                                             value={activePort || ''}
                                             disabled={isSerialMonitorSwitching || isDeviceHealthRunning}
                                             onChange={(event) => connectDevice(event.target.value)}
                                         >
-                                            <option value="">未选择</option>
+                                            <option value="">{uiText('未选择', 'None')}</option>
                                             {ports.map((port) => (
                                                 <option key={port.port_name} value={port.port_name}>
                                                     {port.port_name}
@@ -8827,8 +8870,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                         </select>
                                     </label>
 
-                                    <label className="ck-serial-setting-label flex items-center gap-1 text-[10px] font-bold text-slate-500 whitespace-nowrap" title="串口波特率">
-                                        <span>波特率</span>
+                                    <label className="ck-serial-setting-label flex items-center gap-1 text-[10px] font-bold text-slate-500 whitespace-nowrap" title={uiText('串口波特率', 'Serial baud rate')}>
+                                        <span>{uiText('波特率', 'Baud')}</span>
                                         <select
                                             className="ck-serial-control-select h-7 min-w-[88px] text-xs text-slate-700 border border-slate-200 rounded bg-white outline-none cursor-pointer font-mono px-1 focus:border-brand-500 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                                             value={baudRate}
@@ -8852,31 +8895,31 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                             ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-900 dark:bg-red-950/35 dark:text-red-300'
                                             : 'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100 dark:border-brand-900 dark:bg-brand-950/40 dark:text-brand-300'}`}
                                         title={isDeviceHealthRunning
-                                            ? '真机体检期间串口由体检独占'
+                                            ? uiText('真机体检期间串口由体检独占', 'Serial port is reserved during device check')
                                             : isSerialMonitorSwitching
-                                                ? '正在应用串口设置'
+                                                ? uiText('正在应用串口设置', 'Applying serial settings')
                                                 : isSerialMonitorOpen
-                                                    ? '真正关闭串口并释放端口'
-                                                    : '打开当前端口'}
+                                                    ? uiText('真正关闭串口并释放端口', 'Close serial monitor and release port')
+                                                    : uiText('打开当前端口', 'Open selected port')}
                                         data-ck-action="toggle-serial-monitor-near-endpoint"
                                     >
                                         <Monitor size={13} />
-                                        <span>{isSerialMonitorSwitching ? '处理中…' : isSerialMonitorOpen ? '关闭串口' : '打开串口'}</span>
+                                        <span>{isSerialMonitorSwitching ? uiText('处理中…', 'Working…') : isSerialMonitorOpen ? uiText('关闭串口', 'Close') : uiText('打开串口', 'Open')}</span>
                                     </button>
 
-                                    <div className="ck-serial-view-switch h-7 flex items-center border border-slate-200 rounded bg-white p-0.5 dark:border-slate-700 dark:bg-slate-800" aria-label="串口显示模式">
+                                    <div className="ck-serial-view-switch h-7 flex items-center border border-slate-200 rounded bg-white p-0.5 dark:border-slate-700 dark:bg-slate-800" aria-label={uiText('串口显示模式', 'Serial display mode')}>
                                         <button
                                             onClick={() => { setConsoleViewMode('text'); setViewMode('text'); }}
                                             className={`ck-serial-view-button h-6 px-2 flex items-center justify-center gap-1 rounded text-[10px] font-semibold transition-colors ${consoleViewMode === 'text' && viewMode === 'text' ? 'is-active bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300' : 'text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200'}`}
-                                            title="文本模式"
+                                            title={uiText('文本模式', 'Text mode')}
                                         >
                                             <Type size={13} />
-                                            <span>文本</span>
+                                            <span>{uiText('文本', 'Text')}</span>
                                         </button>
                                         <button
                                             onClick={() => { setConsoleViewMode('text'); setViewMode('hex'); }}
                                             className={`ck-serial-view-button h-6 px-2 flex items-center justify-center gap-1 rounded text-[10px] font-semibold transition-colors ${consoleViewMode === 'text' && viewMode === 'hex' ? 'is-active bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300' : 'text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200'}`}
-                                            title="十六进制模式"
+                                            title={uiText('十六进制模式', 'Hex mode')}
                                         >
                                             <Binary size={13} />
                                             <span>HEX</span>
@@ -8884,24 +8927,24 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                         <button
                                             onClick={() => setConsoleViewMode('plot')}
                                             className={`ck-serial-view-button h-6 px-2 flex items-center justify-center gap-1 rounded text-[10px] font-semibold transition-colors ${consoleViewMode === 'plot' ? 'is-active bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300' : 'text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200'}`}
-                                            title="结构化串口数据"
+                                            title={uiText('结构化串口数据', 'Structured serial plotter')}
                                         >
                                             <Activity size={13} />
-                                            <span>数据</span>
+                                            <span>{uiText('数据', 'Plotter')}</span>
                                         </button>
                                     </div>
 
                                     <button
                                         onClick={() => setShowTimestamp((value) => !value)}
                                         className={`ck-serial-icon-button w-7 h-7 flex items-center justify-center rounded transition-colors ${showTimestamp ? 'is-active text-brand-700 bg-brand-50 dark:bg-brand-950/60 dark:text-brand-300' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200'}`}
-                                        title={showTimestamp ? '关闭时间戳' : '显示时间戳'}
+                                        title={showTimestamp ? uiText('关闭时间戳', 'Hide timestamps') : uiText('显示时间戳', 'Show timestamps')}
                                     >
                                         <Clock3 size={14} />
                                     </button>
                                     <button
                                         onClick={() => setIsPaused((value) => !value)}
                                         className={`ck-serial-icon-button w-7 h-7 flex items-center justify-center rounded transition-colors ${isPaused ? 'is-active text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-300' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200'}`}
-                                        title={isPaused ? '继续接收显示' : '暂停接收显示'}
+                                        title={isPaused ? uiText('继续接收显示', 'Resume output') : uiText('暂停接收显示', 'Pause output')}
                                     >
                                         {isPaused ? <Play size={14} className="fill-current" /> : <Pause size={14} className="fill-current" />}
                                     </button>
@@ -8910,22 +8953,22 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                             type="button"
                                             onClick={() => void handleExportSerialCapture()}
                                             className="ck-serial-action-button h-7 px-2 flex items-center justify-center gap-1 rounded text-slate-500 hover:text-brand-700 hover:bg-brand-50 transition-colors dark:text-slate-400 dark:hover:bg-brand-950/60 dark:hover:text-brand-300"
-                                            title={viewMode === 'hex' ? '导出当前 HEX 捕获（.hex/.txt）' : '导出当前文本捕获（.log/.txt）'}
-                                            aria-label={viewMode === 'hex' ? '导出 HEX 串口内容' : '导出文本串口内容'}
+                                            title={viewMode === 'hex' ? uiText('导出当前 HEX 捕获（.hex/.txt）', 'Export HEX capture (.hex/.txt)') : uiText('导出当前文本捕获（.log/.txt）', 'Export text capture (.log/.txt)')}
+                                            aria-label={viewMode === 'hex' ? uiText('导出 HEX 串口内容', 'Export HEX serial output') : uiText('导出文本串口内容', 'Export text serial output')}
                                         >
                                             <Save size={13} />
-                                            <span className="text-[10px] font-bold">导出</span>
+                                            <span className="text-[10px] font-bold">{uiText('导出', 'Export')}</span>
                                         </button>
                                     )}
                                     <button
                                         type="button"
                                         onClick={() => void openDetachedConsole()}
                                         className="ck-serial-action-button h-7 px-2 flex items-center justify-center gap-1 rounded text-slate-500 hover:text-brand-700 hover:bg-brand-50 transition-colors dark:text-slate-400 dark:hover:bg-brand-950/60 dark:hover:text-brand-300"
-                                        title="将串口监视器弹出为独立窗口"
-                                        aria-label="弹出串口浮窗"
+                                        title={uiText('将串口监视器弹出为独立窗口', 'Pop out serial monitor into a separate window')}
+                                        aria-label={uiText('弹出串口浮窗', 'Pop out serial monitor')}
                                     >
                                         <ExternalLink size={13} />
-                                        <span className="text-[10px] font-bold">浮窗</span>
+                                        <span className="text-[10px] font-bold">{uiText('浮窗', 'Pop out')}</span>
                                     </button>
                                 </>
                             )}
@@ -8939,7 +8982,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                     }
                                 }}
                                 className="ck-serial-icon-button ck-serial-clear-button w-7 h-7 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors dark:text-slate-500 dark:hover:bg-red-950/45 dark:hover:text-red-300"
-                                title={consoleTab === 'serial' ? '清空串口内容' : '清空输出日志'}
+                                title={consoleTab === 'serial' ? uiText('清空串口内容', 'Clear serial output') : uiText('清空输出日志', 'Clear build output')}
                             >
                                 <Trash2 size={14} />
                             </button>
@@ -8951,8 +8994,8 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 type="button"
                                 onClick={() => setConsoleOpen(false)}
                                 className="ck-serial-icon-button w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                                title="收起控制台"
-                                aria-label="收起控制台"
+                                title={uiText('收起控制台', 'Close console')}
+                                aria-label={uiText('收起控制台', 'Close console')}
                             >
                                 <X size={14} />
                             </button>
@@ -9009,20 +9052,20 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                     {compileLogDigest.lines.length > 0 && (
                                         <div className="mb-2 flex items-center justify-between gap-2 rounded border border-red-100 bg-red-50/70 px-2 py-1.5 font-sans dark:border-red-900/70 dark:bg-red-950/25">
                                             <div className="min-w-0 text-[10px] font-semibold text-red-700 dark:text-red-300">
-                                                已提炼 {compileLogDigest.errorCount} 条编译错误
-                                                {compileLogDigest.omittedLineCount > 0 ? ` · 隐藏 ${compileLogDigest.omittedLineCount} 行过程日志` : ''}
+                                                {uiText(`已提炼 ${compileLogDigest.errorCount} 条编译错误`, `Extracted ${compileLogDigest.errorCount} compiler error(s)`)}
+                                                {compileLogDigest.omittedLineCount > 0 ? uiText(` · 隐藏 ${compileLogDigest.omittedLineCount} 行过程日志`, ` · ${compileLogDigest.omittedLineCount} lines hidden`) : ''}
                                             </div>
                                             <div className="inline-flex shrink-0 rounded border border-red-200 bg-white p-0.5 dark:border-red-800 dark:bg-slate-900">
                                                 <button
                                                     type="button"
                                                     onClick={() => setCompileLogViewMode('key')}
                                                     className={`rounded px-2 py-1 text-[10px] font-bold ${compileLogViewMode === 'key' ? 'bg-red-600 text-white' : 'text-slate-500 hover:bg-red-50 dark:text-slate-300 dark:hover:bg-red-950/50'}`}
-                                                >关键错误</button>
+                                                >{uiText('关键错误', 'Key Errors')}</button>
                                                 <button
                                                     type="button"
                                                     onClick={() => setCompileLogViewMode('full')}
                                                     className={`rounded px-2 py-1 text-[10px] font-bold ${compileLogViewMode === 'full' ? 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900' : 'text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}
-                                                >完整日志</button>
+                                                >{uiText('完整日志', 'Full Log')}</button>
                                             </div>
                                         </div>
                                     )}
@@ -9044,7 +9087,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                                             key={`${idx}:${entry.text}`}
                                                             className={`${cls}${canLocateBlock ? ' cursor-pointer rounded px-0.5 -mx-0.5 hover:bg-red-100 hover:underline dark:hover:bg-red-950/50' : ''}`}
                                                             onClick={canLocateBlock ? () => handleCompileLineClick(entry.raw) : undefined}
-                                                            title={canLocateBlock ? '点击定位到已确认映射的积木' : undefined}
+                                                            title={canLocateBlock ? uiText('点击定位到已确认映射的积木', 'Click to locate the mapped block') : undefined}
                                                         >{entry.text || ' '}</div>
                                                     );
                                                 })}
@@ -9064,7 +9107,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                                         key={`${idx}:${line.length}`}
                                                         className={`${cls}${canLocateBlock ? ' cursor-pointer hover:underline hover:bg-red-50/60 rounded px-0.5 -mx-0.5 dark:hover:bg-red-950/40' : ''}`}
                                                         onClick={canLocateBlock ? () => handleCompileLineClick(line) : undefined}
-                                                        title={canLocateBlock ? '点击定位到已确认映射的积木' : undefined}
+                                                        title={canLocateBlock ? uiText('点击定位到已确认映射的积木', 'Click to locate the mapped block') : undefined}
                                                     >
                                                         {line || ' '}
                                                     </div>
@@ -9073,7 +9116,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                         </div>
                                         )
                                     ) : (
-                                        <span className="text-slate-300 italic dark:text-slate-600">暂无输出日志...</span>
+                                        <span className="text-slate-300 italic dark:text-slate-600">{uiText('暂无输出日志...', 'No build output yet...')}</span>
                                     )}
                             </div>
                         )}
@@ -9089,7 +9132,7 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 onChange={(e) => setSerialInput(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSendSerial()}
                                 disabled={!isSerialMonitorOpen || blockDebugSession.active}
-                                placeholder={blockDebugSession.active ? "调试/轨迹期间串口由控制协议独占" : isSerialMonitorOpen ? "发送数据..." : "串口监视器已关闭"}
+                                placeholder={blockDebugSession.active ? uiText('调试/轨迹期间串口由控制协议独占', 'Serial port is reserved for debug/trace protocol') : isSerialMonitorOpen ? uiText('发送数据...', 'Send data...') : uiText('串口监视器已关闭', 'Serial monitor is closed')}
                                 className="ck-serial-input flex-1 bg-transparent border-none text-slate-700 text-xs px-3 focus:ring-0 outline-none disabled:opacity-30 placeholder:text-slate-400 h-full dark:text-slate-200 dark:placeholder:text-slate-600"
                             />
 
@@ -9099,12 +9142,12 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                     className="ck-serial-line-ending-select w-full bg-transparent text-[10px] font-bold text-slate-500 outline-none cursor-pointer hover:text-brand-600 transition-colors uppercase appearance-none text-center relative z-10 pl-2 pr-4 h-full dark:text-slate-400 dark:hover:text-brand-300"
                                     value={lineEnding}
                                     onChange={(e) => setLineEnding(e.target.value)}
-                                    title="行尾符"
+                                    title={uiText('行尾符', 'Line ending')}
                                 >
-                                    <option value="">无</option>
-                                    <option value={'\n'}>换行 (LF)</option>
-                                    <option value={'\r'}>回车 (CR)</option>
-                                    <option value={'\r\n'}>回车换行</option>
+                                    <option value="">{uiText('无', 'None')}</option>
+                                    <option value={'\n'}>{uiText('换行 (LF)', 'LF')}</option>
+                                    <option value={'\r'}>{uiText('回车 (CR)', 'CR')}</option>
+                                    <option value={'\r\n'}>{uiText('回车换行', 'CRLF')}</option>
                                 </select>
                                 <span className="text-slate-400 text-[8px] absolute right-1 pointer-events-none top-1/2 -translate-y-1/2">▼</span>
                             </div>
@@ -9114,11 +9157,11 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                                 onClick={handleSendSerial}
                                 disabled={!isSerialMonitorOpen || !serialInput.trim() || blockDebugSession.active}
                                 className="ck-serial-send-button h-full px-3 flex items-center justify-center gap-1.5 bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                title="发送串口数据"
-                                aria-label="发送串口数据"
+                                title={uiText('发送串口数据', 'Send serial data')}
+                                aria-label={uiText('发送串口数据', 'Send serial data')}
                             >
                                 <Send size={14} />
-                                <span className="text-xs font-bold">发送</span>
+                                <span className="text-xs font-bold">{uiText('发送', 'Send')}</span>
                             </button>
                         </div>
                     )}
@@ -9128,20 +9171,20 @@ export default function Workspace({ projectPath, onBack, onProjectOpenListenerRe
                 <button type="button"
                     onClick={() => void openDetachedConsole()}
                     className="h-7 bg-brand-50 border-t border-brand-200 flex items-center justify-between px-3 cursor-pointer hover:bg-brand-100 shrink-0 transition-colors dark:border-brand-900 dark:bg-brand-950/45 dark:hover:bg-brand-950/70"
-                    title="点击聚焦串口浮窗"
+                    title={uiText('点击聚焦串口浮窗', 'Click to focus detached serial window')}
                 >
                     <div className="flex items-center space-x-2 text-brand-700 dark:text-brand-300">
                         <ExternalLink size={12} />
-                        <span className="text-[10px] font-bold">串口监视器正在浮窗运行</span>
+                        <span className="text-[10px] font-bold">{uiText('串口监视器正在浮窗运行', 'Serial Monitor is running in a separate window')}</span>
                     </div>
-                    <span className="text-[9px] font-semibold text-brand-600/80 dark:text-brand-400/80">点击聚焦</span>
+                    <span className="text-[9px] font-semibold text-brand-600/80 dark:text-brand-400/80">{uiText('点击聚焦', 'Focus')}</span>
                 </button>
             ) : (
                 // Collapsed Bar
                 <button type="button" onClick={() => setConsoleOpen(true)} className="h-7 bg-[#f4f7fa] border-t border-[#dce3ec] flex items-center justify-between px-3 cursor-pointer hover:bg-white shrink-0 transition-colors dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800">
                     <div className="flex items-center space-x-2 text-slate-500">
                         <Terminal size={12} />
-                        <span className="text-[10px] font-bold">打开控制台</span>
+                        <span className="text-[10px] font-bold">{uiText('打开控制台', 'Open Console')}</span>
                     </div>
                 </button>
             )

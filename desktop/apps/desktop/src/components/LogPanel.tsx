@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { useLogs } from '../hooks/useLogs';
+import { useUiText } from '../i18n/uiText';
 
 export const LogPanel: React.FC = () => {
+    const { tr } = useUiText();
     const { logs, clearLogs } = useLogs();
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -13,8 +15,8 @@ export const LogPanel: React.FC = () => {
     return (
         <div style={styles.container}>
             <div style={styles.header}>
-                <h3>系统日志</h3>
-                <button onClick={clearLogs}>清空</button>
+                <h3>{tr('系统日志', 'System Logs')}</h3>
+                <button onClick={clearLogs}>{tr('清空', 'Clear')}</button>
             </div>
             <div style={styles.logBody}>
                 {logs.map((log, index) => (

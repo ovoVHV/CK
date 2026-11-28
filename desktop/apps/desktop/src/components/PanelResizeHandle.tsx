@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useUiText } from '../i18n/uiText';
 import './PanelResizeHandle.css';
 
 export function useSavedPanelSize(key: string, fallback: number) {
@@ -14,6 +15,7 @@ export function PanelResizeHandle({ target, axis, size, min, max, onCommit, labe
     target: RefObject<HTMLElement | null>; axis: 'width' | 'height'; size: number; min: number; max: number;
     onCommit: (size: number) => void; label: string; reset?: number;
 }) {
+    const { tr } = useUiText();
     const latest = useRef({ min, max, onCommit, size }); latest.current = { min, max, onCommit, size };
     const origin = useRef<{ position: number; size: number; current: number; restore: () => void } | null>(null);
     const frame = useRef<number | null>(null);
@@ -33,7 +35,7 @@ export function PanelResizeHandle({ target, axis, size, min, max, onCommit, labe
     }, []);
     return <button type="button" role="separator" className={`ck-panel-resizer ck-panel-resizer--${axis}`} aria-label={label}
         aria-orientation={axis === 'width' ? 'vertical' : 'horizontal'} aria-valuemin={min} aria-valuemax={max} aria-valuenow={value}
-        title={`${label} · 拖动调整，双击恢复默认`} data-ck-role={`${axis}-resize-handle`}
+        title={`${label} · ${tr('拖动调整，双击恢复默认', 'Drag to resize, double-click to reset')}`} data-ck-role={`${axis}-resize-handle`}
         onPointerDown={event => {
             if (event.button !== 0 || !target.current) return;
             event.preventDefault(); event.stopPropagation(); event.currentTarget.setPointerCapture(event.pointerId);

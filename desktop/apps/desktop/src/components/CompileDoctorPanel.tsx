@@ -5,6 +5,7 @@ import {
 } from '../services/compile_doctor';
 import type { WorkspaceViewMode } from '../services/workspace_view_mode';
 import { useTranslation } from 'react-i18next';
+import { useUiText } from '../i18n/uiText';
 
 interface CompileDoctorPanelProps {
     report: CompileDoctorReport | null;
@@ -74,6 +75,8 @@ export function CompileDoctorPanel({
     displayMode = 'engineering',
 }: CompileDoctorPanelProps) {
     const { t: translate } = useTranslation('build');
+    const { isEn } = useUiText();
+    const colon = isEn ? ': ' : '：';
     const t = translate as unknown as (key: string, options?: Record<string, unknown>) => string;
     if (!report && !isCompiling) return null;
 
@@ -168,7 +171,7 @@ export function CompileDoctorPanel({
                                     ? t('doctor.toolchain.processHint')
                                     : t('doctor.toolchain.strongHint')}
                         >
-                            {t('doctor.toolchainLabel')}：{identitySourceLabel}
+                            {t('doctor.toolchainLabel')}{colon}{identitySourceLabel}
                         </span>
                     )}
                     {report.warmupReused && cachePill(true, t('doctor.cache.warmup'))}
@@ -179,15 +182,15 @@ export function CompileDoctorPanel({
             {!simple && (report.missReasons.length > 0 || report.environmentChanges.length > 0 || report.status !== 'healthy') && (
                 <div className="mt-2 border-t border-slate-200/70 pt-1.5 text-[10px] leading-4 text-slate-600 dark:border-slate-700 dark:text-slate-300">
                     {report.missReasons.length > 0 && (
-                        <div><span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.cacheChanges')}：</span>{report.missReasons.map(reason => t(missReasonKey(reason), { defaultValue: reason.split('_').join(' ') })).join(listSeparator)}</div>
+                        <div><span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.cacheChanges')}{colon}</span>{report.missReasons.map(reason => t(missReasonKey(reason), { defaultValue: reason.split('_').join(' ') })).join(listSeparator)}</div>
                     )}
                     {report.environmentChanges.length > 0 && (
-                        <div><span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.environmentChanges')}：</span>{report.environmentChanges.join(listSeparator)}</div>
+                        <div><span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.environmentChanges')}{colon}</span>{report.environmentChanges.join(listSeparator)}</div>
                     )}
                     {report.forgeReasonDetails.length > 0 && report.forgeCoreStatus !== 'certified-evidence-available' && (
-                        <div><span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.eligibilityReasons')}：</span>{report.forgeReasonCodes.map((code, index) => t(`doctor.forgeReason.${code}`, { coreVersion: report.diagnostics?.engine?.coreVersion || '', defaultValue: report.forgeReasonDetails[index] || code })).join(listSeparator)}</div>
+                        <div><span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.eligibilityReasons')}{colon}</span>{report.forgeReasonCodes.map((code, index) => t(`doctor.forgeReason.${code}`, { coreVersion: report.diagnostics?.engine?.coreVersion || '', defaultValue: report.forgeReasonDetails[index] || code })).join(listSeparator)}</div>
                     )}
-                    <div><span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.recommendation')}：</span>{recommendation}</div>
+                    <div><span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.recommendation')}{colon}</span>{recommendation}</div>
                 </div>
             )}
 
@@ -197,7 +200,7 @@ export function CompileDoctorPanel({
                         data-ck-role="compile-doctor-actionable-summary"
                         className="mt-2 border-t border-slate-200/70 pt-1.5 text-[10px] leading-4 text-slate-600 dark:border-slate-700 dark:text-slate-300"
                     >
-                        <span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.recommendation')}：</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-200">{t('doctor.recommendation')}{colon}</span>
                         {recommendation}
                     </div>
                     <details data-ck-role="compile-doctor-advanced-details" className="mt-1.5 text-[10px] text-slate-500 dark:text-slate-400">
@@ -213,7 +216,7 @@ export function CompileDoctorPanel({
                                     data-ck-role="toolchain-identity-source-advanced"
                                     className="inline-flex items-center rounded border border-slate-200 bg-white/75 px-1.5 py-0.5 font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900/65 dark:text-slate-300"
                                 >
-                                    {t('doctor.toolchainLabel')}：{identitySourceLabel}
+                                    {t('doctor.toolchainLabel')}{colon}{identitySourceLabel}
                                 </span>
                             )}
                             {report.warmupReused && cachePill(true, t('doctor.cache.warmup'))}
@@ -222,13 +225,13 @@ export function CompileDoctorPanel({
                         {(report.missReasons.length > 0 || report.environmentChanges.length > 0 || report.forgeReasonDetails.length > 0) && (
                             <div className="mt-1.5 leading-4">
                                 {report.missReasons.length > 0 && (
-                                    <div><span className="font-bold">{t('doctor.cacheChanges')}：</span>{report.missReasons.map(reason => t(missReasonKey(reason), { defaultValue: reason.split('_').join(' ') })).join(listSeparator)}</div>
+                                    <div><span className="font-bold">{t('doctor.cacheChanges')}{colon}</span>{report.missReasons.map(reason => t(missReasonKey(reason), { defaultValue: reason.split('_').join(' ') })).join(listSeparator)}</div>
                                 )}
                                 {report.environmentChanges.length > 0 && (
-                                    <div><span className="font-bold">{t('doctor.environmentChanges')}：</span>{report.environmentChanges.join(listSeparator)}</div>
+                                    <div><span className="font-bold">{t('doctor.environmentChanges')}{colon}</span>{report.environmentChanges.join(listSeparator)}</div>
                                 )}
                                 {report.forgeReasonDetails.length > 0 && report.forgeCoreStatus !== 'certified-evidence-available' && (
-                                    <div><span className="font-bold">{t('doctor.eligibilityReasons')}：</span>{report.forgeReasonCodes.map((code, index) => t(`doctor.forgeReason.${code}`, { coreVersion: report.diagnostics?.engine?.coreVersion || '', defaultValue: report.forgeReasonDetails[index] || code })).join(listSeparator)}</div>
+                                    <div><span className="font-bold">{t('doctor.eligibilityReasons')}{colon}</span>{report.forgeReasonCodes.map((code, index) => t(`doctor.forgeReason.${code}`, { coreVersion: report.diagnostics?.engine?.coreVersion || '', defaultValue: report.forgeReasonDetails[index] || code })).join(listSeparator)}</div>
                                 )}
                             </div>
                         )}

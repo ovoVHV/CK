@@ -37,7 +37,11 @@ const yamlPath=path.join(profile,'arduino-cli.yaml');
 function yaml(file,userRoot){
  // Reject YAML metacharacters/newlines rather than misparse a user-selected path.
  for(const p of [sysroot,userRoot])if(/[\r\n]/.test(p))throw Error('Asset path contains unsupported YAML characters');
- fs.writeFileSync(file,`directories:\n  data: ${JSON.stringify(sysroot.replaceAll('\\','/'))}\n  downloads: ${JSON.stringify(path.join(local,'downloads').replaceAll('\\','/'))}\n  user: ${JSON.stringify(userRoot.replaceAll('\\','/'))}\nbuild_cache:\n  compilations_before_purge: 0\n  ttl: 87600h\n`);
+ const content=`directories:\n  data: ${JSON.stringify(sysroot.replaceAll('\\','/'))}\n  downloads: ${JSON.stringify(path.join(local,'downloads').replaceAll('\\','/'))}\n  user: ${JSON.stringify(userRoot.replaceAll('\\','/'))}\nbuild_cache:\n  compilations_before_purge: 0\n  ttl: 87600h\n`;
+ if(fs.existsSync(file)&&fs.readFileSync(file,'utf8')===content)return;
+ const tmp=`${file}.${process.pid}.${randomBytes(4).toString('hex')}.tmp`;
+ fs.writeFileSync(tmp,content);
+ try{fs.renameSync(tmp,file);}catch{try{fs.unlinkSync(tmp);}catch{}if(!fs.existsSync(file)||fs.readFileSync(file,'utf8')!==content)fs.writeFileSync(file,content);}
 }
 yaml(yamlPath,user);
 if(storage&&!fs.existsSync(path.join(sysroot,'arduino-cli.yaml'))){

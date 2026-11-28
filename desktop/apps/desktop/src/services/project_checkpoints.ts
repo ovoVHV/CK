@@ -62,19 +62,28 @@ export const isNativeCheckpointStorageAvailable = (): boolean => (
     )
 );
 
+const isEnUi = (): boolean => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { return false; }
+};
+const uiText = (zh: string, en: string): string => (isEnUi() ? en : zh);
+
 const requireProjectPath = (projectPath: string): string => {
     const path = String(projectPath || '').trim();
-    if (!path) throw new Error('当前工程还没有可用于检查点的路径');
+    if (!path) throw new Error(uiText('当前工程还没有可用于检查点的路径', 'Current project does not have a saved path for checkpoints yet'));
     return path;
 };
 
 export const checkpointReasonLabel = (reason: ProjectCheckpointReason): string => {
-    if (reason === 'before_compile') return '编译前';
-    if (reason === 'before_upload') return '上传前';
-    if (reason === 'before_restore') return '恢复前保护';
-    if (reason === 'before_leave') return '离开前保护';
-    if (reason === 'manual') return '手动检查点';
-    return String(reason || '自动保护');
+    if (reason === 'before_compile') return uiText('编译前', 'Before compile');
+    if (reason === 'before_upload') return uiText('上传前', 'Before upload');
+    if (reason === 'before_restore') return uiText('恢复前保护', 'Before restore');
+    if (reason === 'before_leave') return uiText('离开前保护', 'Before leaving');
+    if (reason === 'manual') return uiText('手动检查点', 'Manual checkpoint');
+    return String(reason || uiText('自动保护', 'Auto protection'));
 };
 
 export const formatCheckpointBytes = (bytes: number): string => {
@@ -87,7 +96,7 @@ export const formatCheckpointBytes = (bytes: number): string => {
 export const formatCheckpointTime = (createdAt: string): string => {
     const time = new Date(createdAt);
     if (Number.isNaN(time.getTime())) return createdAt;
-    return new Intl.DateTimeFormat('zh-CN', {
+    return new Intl.DateTimeFormat(isEnUi() ? 'en-US' : 'zh-CN', {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',

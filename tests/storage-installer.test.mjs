@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {spawnSync} from 'node:child_process';
-import {storageIncludes,storageFunctions} from '../scripts/storage-installer.mjs';
+import {storageIncludes,storageLangStrings,storageFunctions} from '../scripts/storage-installer.mjs';
 import {ENGINE_VERSION} from '../src/version.mjs';
 test('installer computes defaults for nonexistent folders and preserves explicit choice',t=>{
  const nsis=process.env.CK_NSIS||path.join(process.env.LOCALAPPDATA,'tauri/NSIS/makensis.exe');
@@ -18,4 +18,30 @@ test('installer embeds the actual release as Windows product and file versions',
  const installer=fs.readFileSync(new URL('../scripts/package-installer.mjs',import.meta.url),'utf8');
  assert.match(ENGINE_VERSION,/^\d+\.\d+\.\d+$/);
  for(const entry of ['VIProductVersion "${ENGINE_VERSION}.0"','VIAddVersionKey "ProductVersion" "${ENGINE_VERSION}"','VIAddVersionKey "FileVersion" "${ENGINE_VERSION}"'])assert(installer.includes(entry),entry);
+});
+test('installer supports both English and Simplified Chinese with complete LangStrings',t=>{
+ const installer=fs.readFileSync(new URL('../scripts/package-installer.mjs',import.meta.url),'utf8');
+ for(const marker of [
+  '!define MUI_LANGDLL_ALLLANGUAGES',
+  '!insertmacro MUI_LANGUAGE "English"',
+  '!insertmacro MUI_LANGUAGE "SimpChinese"',
+  '!insertmacro MUI_LANGDLL_DISPLAY',
+  '!insertmacro MUI_UNGETLANGUAGE',
+ ])assert(installer.includes(marker),`Missing installer marker: ${marker}`);
+ const combined=installer+'\n'+storageLangStrings+'\n'+storageFunctions;
+ const used=[...new Set([...combined.matchAll(/\$\((CK_[A-Z0-9_]+)\)/g)].map(m=>m[1]))];
+ assert(used.length>=15,`Expected bilingual LangStrings, found ${used.length}`);
+ for(const key of used){
+  assert(new RegExp(`LangString\\s+${key}\\s+\\\\?\\$\\{LANG_SIMPCHINESE\\}`).test(combined),`Missing SimpChinese LangString: ${key}`);
+  assert(new RegExp(`LangString\\s+${key}\\s+\\\\?\\$\\{LANG_ENGLISH\\}`).test(combined),`Missing English LangString: ${key}`);
+ }
+ const nsis=process.env.CK_NSIS||path.join(process.env.LOCALAPPDATA,'tauri/NSIS/makensis.exe');
+ if(!fs.existsSync(nsis)){t.skip('NSIS unavailable');return;}
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ck-i18n-installer-'));
+ t.after(()=>{fs.rmSync(dir,{recursive:true,force:true});});
+ const file=path.join(dir,'i18n.nsi');
+ const slash=s=>s.replaceAll('/','\\');
+ fs.writeFileSync(file,'\uFEFF'+`Unicode True\n!include "MUI2.nsh"\n${storageIncludes}\nName "CK LAB i18n Test"\nOutFile "${slash(path.join(dir,'i18n.exe'))}"\nRequestExecutionLevel user\n!define MUI_LANGDLL_ALLLANGUAGES\n!insertmacro MUI_PAGE_WELCOME\nPage custom CKDataPage CKDataPageLeave\n!insertmacro MUI_PAGE_INSTFILES\n!insertmacro MUI_LANGUAGE "English"\n!insertmacro MUI_LANGUAGE "SimpChinese"\n${storageLangStrings}\n${storageFunctions}\nFunction .onInit\n !insertmacro MUI_LANGDLL_DISPLAY\nFunctionEnd\nSection "CK LAB"\nSectionEnd\n`);
+ const built=spawnSync(nsis,['/V2',file],{windowsHide:true,encoding:'utf8'});
+ assert.equal(built.status,0,built.stdout+built.stderr);
 });

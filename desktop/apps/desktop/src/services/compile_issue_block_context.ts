@@ -1,3 +1,11 @@
+const isEnUi = (): boolean => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { return false; }
+};
+const uiText = (zh: string, en: string): string => (isEnUi() ? en : zh);
 import type {
     CompileIssueBlockContext,
     CompileIssueCard,
@@ -54,12 +62,12 @@ const presentationKey = (
     section: CompileSourceSection,
 ): string => `${blockId}\u0000${blockType}\u0000${section}`;
 
-const SECTION_LABELS: Record<CompileSourceSection, string> = {
-    setup: '初始化流程',
-    loop: '主循环',
-    definition: '定义区',
-    expression: '表达式',
-    unknown: '未知流程',
+const sectionLabelFor = (section: CompileSourceSection): string => {
+    if (section === 'setup') return uiText('初始化流程', 'Setup');
+    if (section === 'loop') return uiText('主循环', 'Loop');
+    if (section === 'definition') return uiText('定义区', 'Definitions');
+    if (section === 'expression') return uiText('表达式', 'Expression');
+    return uiText('未知流程', 'Unknown section');
 };
 
 const compactBlockLabel = (block: BlocklyBlockLike, maxLength = 72): string => {
@@ -71,7 +79,7 @@ const compactBlockLabel = (block: BlocklyBlockLike, maxLength = 72): string => {
     } catch {
         // A third-party block renderer must not break compilation diagnostics.
     }
-    return String(block.type || '未命名积木');
+    return String(block.type || uiText('未命名积木', 'Unnamed block'));
 };
 
 const chainOrdinal = (block: BlocklyBlockLike): number | null => {
@@ -101,7 +109,7 @@ const flowPositionFor = (
     block: BlocklyBlockLike,
     section: CompileSourceSection,
 ): string => {
-    const sectionLabel = SECTION_LABELS[section];
+    const sectionLabel = sectionLabelFor(section);
     const ordinal = chainOrdinal(block);
     if (ordinal == null) return sectionLabel;
 
@@ -113,8 +121,8 @@ const flowPositionFor = (
     }
     const parentLabel = parent ? compactBlockLabel(parent, 36) : '';
     return parentLabel
-        ? `${sectionLabel} · “${parentLabel}”内第 ${ordinal} 项`
-        : `${sectionLabel} · 当前积木链第 ${ordinal} 项`;
+        ? uiText(`${sectionLabel} · “${parentLabel}”内第 ${ordinal} 项`, `${sectionLabel} · item #${ordinal} inside "${parentLabel}"`)
+        : uiText(`${sectionLabel} · 当前积木链第 ${ordinal} 项`, `${sectionLabel} · block #${ordinal} in chain`);
 };
 
 /**
@@ -175,7 +183,7 @@ export const resolveCompileIssueBlockContext = (
         label: presentation.label,
         section: presentation.section,
         sourceLine: issue.sourceLine,
-        flowLocation: `${presentation.flowPosition} · 源码第 ${issue.sourceLine} 行`,
+        flowLocation: uiText(`${presentation.flowPosition} · 源码第 ${issue.sourceLine} 行`, `${presentation.flowPosition} · source line ${issue.sourceLine}`),
         confidence: mapping.confidence as 'exact' | 'high',
     };
 };

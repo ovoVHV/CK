@@ -1,5 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
 import { projectHealthCapabilities } from './project_health_capabilities';
+const uiText = (zh: string, en: string): string => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || '')) ? en : zh;
+    } catch { return zh; }
+};
 
 export type DiagnosticContentLevel =
     | 'full_project'
@@ -225,7 +232,7 @@ export const deriveDiagnosticCoreAvailability = (
             packageName,
             requiredVersion,
             installedVersion: null,
-            label: summary.missingCore ? '诊断记录报告 Core 缺失' : '尚未检查当前电脑的 Core',
+            label: summary.missingCore ? uiText('诊断记录报告 Core 缺失', 'Bundle recorded missing Core') : uiText('尚未检查当前电脑的 Core', 'Local Core not checked yet'),
         };
     }
     if (!packageName) {
@@ -234,7 +241,7 @@ export const deriveDiagnosticCoreAvailability = (
             packageName: null,
             requiredVersion,
             installedVersion: null,
-            label: '诊断包未提供可比较的 Core 包名',
+            label: uiText('诊断包未提供可比较的 Core 包名', 'Bundle did not include a comparable Core package name'),
         };
     }
     const installedVersion = String(currentCoreVersions[packageName] || '').trim() || null;
@@ -244,7 +251,7 @@ export const deriveDiagnosticCoreAvailability = (
             packageName,
             requiredVersion,
             installedVersion: null,
-            label: `当前电脑缺少 ${packageName}`,
+            label: uiText(`当前电脑缺少 ${packageName}`, `Missing ${packageName} on this PC`),
         };
     }
     if (requiredVersion && installedVersion !== requiredVersion) {
@@ -253,7 +260,7 @@ export const deriveDiagnosticCoreAvailability = (
             packageName,
             requiredVersion,
             installedVersion,
-            label: `当前电脑为 ${installedVersion}，诊断包使用 ${requiredVersion}`,
+            label: uiText(`当前电脑为 ${installedVersion}，诊断包使用 ${requiredVersion}`, `This PC has ${installedVersion}; bundle used ${requiredVersion}`),
         };
     }
     return {
@@ -261,7 +268,7 @@ export const deriveDiagnosticCoreAvailability = (
         packageName,
         requiredVersion,
         installedVersion,
-        label: `当前电脑已安装 ${packageName}@${installedVersion}`,
+        label: uiText(`当前电脑已安装 ${packageName}@${installedVersion}`, `Installed ${packageName}@${installedVersion} on this PC`),
     };
 };
 

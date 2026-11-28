@@ -30,7 +30,7 @@ await build({entryPoints:[fileURLToPath(new URL('./Dashboard.tsx',import.meta.ur
   else if(a.path.endsWith('DashboardUpdate'))contents='export const useDashboardUpdate=()=>({settings:null,dialog:null});';
   else if(a.path.endsWith('project_status_session'))contents='export const useRecentProjectPath=()=>null;';
   else if(a.path.includes('plugin-opener'))contents='export const openUrl=(url)=>globalThis.__resourceOpen(url);';
-  else if(a.path.includes('/core'))contents='export const invoke=(...args)=>globalThis.__resourceInvoke(...args);';
+  else if(a.path.includes('/core'))contents='export const invoke=(...args)=>globalThis.__resourceInvoke(...args);export const convertFileSrc=(p)=>String(p||"");';
   else if(a.path.includes('plugin-dialog'))contents='export const open=async()=>null;';
   else if(a.path.endsWith('LibraryManagerModal'))contents='import React from "react";export default function Library(props){return React.createElement("div",{role:"dialog","aria-label":"Library probe"},React.createElement("button",{onClick:props.onClose},"Close library"));}';
   else contents='export const DashboardProjectStatus=()=>null;export default ()=>null;';

@@ -5,6 +5,13 @@ import type {
     BoardPassportCheck,
     BoardPassportLock,
 } from '../types/board';
+const uiText = (zh: string, en: string): string => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || '')) ? en : zh;
+    } catch { return zh; }
+};
 
 export type PassportStageStatus = 'passed' | 'warning' | 'failed' | 'pending';
 export type PassportStageId = 'structure' | 'environment' | 'compile' | 'device';
@@ -178,30 +185,30 @@ const compileCheckFromPassport = (passport: BoardPassport | undefined): BoardPas
     const warned = statuses.filter(status => status === 'warning').length;
     const failed = statuses.filter(status => status === 'failed').length;
     if (failed > 0 || certification === 'failed') {
-        return { status: 'failed', message: `${failed || 1} 个声明配置编译验证失败` };
+        return { status: 'failed', message: uiText(`${failed || 1} 个声明配置编译验证失败`, `${failed || 1} declared profile(s) failed compile verification`) };
     }
     if (profiles.length > 0 && passed === profiles.length) {
-        return { status: 'passed', message: `${passed} 个声明配置已通过本机编译` };
+        return { status: 'passed', message: uiText(`${passed} 个声明配置已通过本机编译`, `${passed} declared profile(s) passed local compile`) };
     }
     if (certification === 'compile_certified' || certification === 'device_verified') {
-        return { status: 'passed', message: '本机声明配置编译通过' };
+        return { status: 'passed', message: uiText('本机声明配置编译通过', 'Local compile verification passed') };
     }
     if (passed > 0 || ['partially_certified', 'revalidation_required', 'expired'].includes(certification)) {
         return {
             status: 'warning',
-            message: passed > 0 ? `${passed}/${profiles.length} 个声明配置已通过，仍需复验` : '缓存凭证已过期，需要重新编译认证',
+            message: passed > 0 ? uiText(`${passed}/${profiles.length} 个声明配置已通过，仍需复验`, `${passed}/${profiles.length} profiles passed; revalidation required`) : uiText('缓存凭证已过期，需要重新编译认证', 'Cached certificate expired; re-compilation required'),
         };
     }
     if (certification === 'blocked_core') {
         return coreEnvironmentBlocksUse(passport.core)
-            ? { status: 'failed', message: passport.core?.message || '核心环境阻止本机编译认证' }
-            : { status: 'warning', message: passport.core?.message || '核心状态需要复验，仍可继续自动认证' };
+            ? { status: 'failed', message: passport.core?.message || uiText('核心环境阻止本机编译认证', 'Core environment blocks local compile verification') }
+            : { status: 'warning', message: passport.core?.message || uiText('核心状态需要复验，仍可继续自动认证', 'Core status needs revalidation; auto-verification can continue') };
     }
     if (warned > 0) {
-        return { status: 'warning', message: `${warned}/${profiles.length} 个声明配置需要重新编译认证` };
+        return { status: 'warning', message: uiText(`${warned}/${profiles.length} 个声明配置需要重新编译认证`, `${warned}/${profiles.length} profile(s) require compile revalidation`) };
     }
     return profiles.length > 0
-        ? { status: 'pending', message: `${profiles.length} 个声明配置等待本机编译认证` }
+        ? { status: 'pending', message: uiText(`${profiles.length} 个声明配置等待本机编译认证`, `${profiles.length} profile(s) pending local compile verification`) }
         : undefined;
 };
 
@@ -209,9 +216,9 @@ const deviceCheckFromPassport = (passport: BoardPassport | undefined): BoardPass
     const profiles = Array.isArray(passport?.profiles) ? passport.profiles : [];
     if (profiles.length === 0) return undefined;
     const verified = profiles.filter(profile => profile?.status === 'device_verified').length;
-    if (verified === profiles.length) return { status: 'passed', message: `${verified} 个配置档案已真机验证` };
-    if (verified > 0) return { status: 'warning', message: `${verified}/${profiles.length} 个配置档案已真机验证` };
-    return { status: 'pending', message: `${profiles.length} 个配置档案尚待真机样板验证` };
+    if (verified === profiles.length) return { status: 'passed', message: uiText(`${verified} 个配置档案已真机验证`, `${verified} profile(s) verified on hardware`) };
+    if (verified > 0) return { status: 'warning', message: uiText(`${verified}/${profiles.length} 个配置档案已真机验证`, `${verified}/${profiles.length} profiles verified on hardware`) };
+    return { status: 'pending', message: uiText(`${profiles.length} 个配置档案尚待真机样板验证`, `${profiles.length} profile(s) pending physical board verification`) };
 };
 
 const normalizeVersion = (value: string | undefined): number[] | undefined => {
@@ -301,11 +308,11 @@ const knownIncompatibilityReason = (
     version: string,
 ): string | undefined => {
     if (policy.incompatible.some(declared => coreVersionsMatch(declared, version))) {
-        return `核心 ${version} 已知不兼容`;
+        return uiText(`核心 ${version} 已知不兼容`, `Core ${version} is known incompatible`);
     }
     for (const entry of policy.knownIncompatible) {
         if (typeof entry === 'string') {
-            if (coreVersionsMatch(entry, version)) return `核心 ${version} 已知不兼容`;
+            if (coreVersionsMatch(entry, version)) return uiText(`核心 ${version} 已知不兼容`, `Core ${version} is known incompatible`);
             continue;
         }
         const record = asRecord(entry);
@@ -317,7 +324,7 @@ const knownIncompatibilityReason = (
             firstText(range.minimum, range.min),
             firstText(range.maximum_exclusive, range.maximumExclusive),
         ));
-        if (matches) return firstText(record.reason, record.message) || `核心 ${version} 已知不兼容`;
+        if (matches) return firstText(record.reason, record.message) || uiText(`核心 ${version} 已知不兼容`, `Core ${version} is known incompatible`);
     }
     return undefined;
 };
@@ -369,29 +376,33 @@ export const resolveBoardPassport = (
     const deviceRaw = passportValue(passport, 'device', 'device_verification', 'hardware')
         ?? deviceCheckFromPassport(passport);
 
+    const structureLabel = uiText('结构检查', 'Structure');
+    const environmentLabel = uiText('环境就绪', 'Environment');
+    const compileLabel = uiText('本机可编译', 'Local Compile');
+
     let structure: PassportStageView;
     const structureOverride = statusFrom(structureRaw);
     if (structureOverride) {
         structure = stage(
             'structure',
-            '结构检查',
+            structureLabel,
             structureOverride,
-            messageFrom(structureRaw) || (structureOverride === 'passed' ? '目录与清单结构有效' : '查看结构检查报告'),
+            messageFrom(structureRaw) || (structureOverride === 'passed' ? uiText('目录与清单结构有效', 'Directory and manifest structure valid') : uiText('查看结构检查报告', 'Review structure check report')),
         );
     } else if (!board.is_custom) {
-        structure = stage('structure', '结构检查', 'passed', 'CK 内置板卡目录');
+        structure = stage('structure', structureLabel, 'passed', uiText('CK 内置板卡目录', 'Built-in CK board catalog'));
     } else if (board.quality_report?.status === 'passed' || board.quality_report?.status === 'passed_with_warnings') {
         const warnings = board.quality_report.warning_count || 0;
         structure = stage(
             'structure',
-            '结构检查',
+            structureLabel,
             warnings > 0 ? 'warning' : 'passed',
-            warnings > 0 ? `结构通过，${warnings} 项提示` : '结构检查通过',
+            warnings > 0 ? uiText(`结构通过，${warnings} 项提示`, `Structure passed (${warnings} warnings)`) : uiText('结构检查通过', 'Structure check passed'),
         );
     } else if (board.quality_report?.status === 'failed') {
-        structure = stage('structure', '结构检查', 'failed', '包结构检查失败');
+        structure = stage('structure', structureLabel, 'failed', uiText('包结构检查失败', 'Package structure check failed'));
     } else {
-        structure = stage('structure', '结构检查', 'pending', '尚无结构检查报告');
+        structure = stage('structure', structureLabel, 'pending', uiText('尚无结构检查报告', 'No structure report yet'));
     }
 
     const core = board.arduino_core;
@@ -426,88 +437,88 @@ export const resolveBoardPassport = (
     const environmentMessage = messageFrom(board.core_status) ?? messageFrom(environmentRaw);
 
     if (!fqbnLooksUsable(board.fqbn_base || board.fqbn)) {
-        environment = stage('environment', '环境就绪', 'failed', '缺少真实 FQBN');
+        environment = stage('environment', environmentLabel, 'failed', uiText('缺少真实 FQBN', 'Missing valid FQBN'));
     } else if (!coreId) {
         environment = board.is_custom
-            ? stage('environment', '环境就绪', 'failed', '板卡包未声明 Arduino 核心')
-            : stage('environment', '环境就绪', 'pending', '等待识别核心依赖');
+            ? stage('environment', environmentLabel, 'failed', uiText('板卡包未声明 Arduino 核心', 'Board package does not declare an Arduino core'))
+            : stage('environment', environmentLabel, 'pending', uiText('等待识别核心依赖', 'Waiting to identify core dependency'));
     } else if (options.coreListLoading) {
-        environment = stage('environment', '环境就绪', 'pending', '正在检查核心环境');
+        environment = stage('environment', environmentLabel, 'pending', uiText('正在检查核心环境', 'Checking core environment'));
     } else if (!installedVersion) {
-        environment = stage('environment', '环境就绪', 'failed', `缺少核心 ${coreId}`);
+        environment = stage('environment', environmentLabel, 'failed', uiText(`缺少核心 ${coreId}`, `Missing core ${coreId}`));
     } else if (coreEnvironmentBlocksUse(board.core_status ?? environmentRaw)) {
-        environment = stage('environment', '环境就绪', 'failed', environmentMessage || '当前核心明确不兼容');
+        environment = stage('environment', environmentLabel, 'failed', environmentMessage || uiText('当前核心明确不兼容', 'Installed core is incompatible'));
     } else if (incompatibilityReason) {
-        environment = stage('environment', '环境就绪', 'failed', incompatibilityReason);
+        environment = stage('environment', environmentLabel, 'failed', incompatibilityReason);
     } else if (policy.minimum && compareCoreVersions(installedVersion, policy.minimum) === -1) {
-        environment = stage('environment', '环境就绪', 'failed', `核心 ${installedVersion} 低于最低 ${policy.minimum}`);
+        environment = stage('environment', environmentLabel, 'failed', uiText(`核心 ${installedVersion} 低于最低 ${policy.minimum}`, `Core ${installedVersion} is below minimum ${policy.minimum}`));
     } else if (environmentOverride === 'failed') {
-        environment = stage('environment', '环境就绪', 'warning', environmentMessage || `核心 ${installedVersion} 需要自动复验`);
+        environment = stage('environment', environmentLabel, 'warning', environmentMessage || uiText(`核心 ${installedVersion} 需要自动复验`, `Core ${installedVersion} needs automatic revalidation`));
     } else if (environmentOverride === 'warning') {
-        environment = stage('environment', '环境就绪', 'warning', environmentMessage || `核心 ${installedVersion} 需复验`);
+        environment = stage('environment', environmentLabel, 'warning', environmentMessage || uiText(`核心 ${installedVersion} 需复验`, `Core ${installedVersion} needs revalidation`));
     } else if (environmentOverride === 'passed') {
         if (board.is_custom && policy.recommended && !recommendedMatches) {
             environment = stage(
                 'environment',
-                '环境就绪',
+                environmentLabel,
                 'warning',
-                `核心 ${installedVersion} 可用但不是推荐版本，需自动复验`,
-                `推荐版本 ${policy.recommended}`,
+                uiText(`核心 ${installedVersion} 可用但不是推荐版本，需自动复验`, `Core ${installedVersion} works but is not the recommended version; revalidation needed`),
+                uiText(`推荐版本 ${policy.recommended}`, `Recommended ${policy.recommended}`),
             );
         } else if (board.is_custom && !policy.recommended && environmentToken !== 'tested_compatible' && !testedMatches) {
             environment = stage(
                 'environment',
-                '环境就绪',
+                environmentLabel,
                 'warning',
-                `核心 ${installedVersion} 可用性尚未由推荐或实测声明确认，需自动复验`,
+                uiText(`核心 ${installedVersion} 可用性尚未由推荐或实测声明确认，需自动复验`, `Core ${installedVersion} is not yet declared recommended or tested; revalidation needed`),
                 environmentMessage,
             );
         } else {
-            environment = stage('environment', '环境就绪', 'passed', environmentMessage || `核心 ${installedVersion} 可用`);
+            environment = stage('environment', environmentLabel, 'passed', environmentMessage || uiText(`核心 ${installedVersion} 可用`, `Core ${installedVersion} ready`));
         }
     } else if (recommendedMatches) {
-        environment = stage('environment', '环境就绪', 'passed', `推荐核心 ${installedVersion}`);
+        environment = stage('environment', environmentLabel, 'passed', uiText(`推荐核心 ${installedVersion}`, `Recommended core ${installedVersion}`));
     } else if (testedMatches) {
         environment = policy.recommended
             ? stage(
                 'environment',
-                '环境就绪',
+                environmentLabel,
                 'warning',
-                `已测试核心 ${installedVersion} 不是推荐版本，需自动复验`,
-                `推荐版本 ${policy.recommended}`,
+                uiText(`已测试核心 ${installedVersion} 不是推荐版本，需自动复验`, `Tested core ${installedVersion} is not the recommended version; revalidation needed`),
+                uiText(`推荐版本 ${policy.recommended}`, `Recommended ${policy.recommended}`),
             )
-            : stage('environment', '环境就绪', 'passed', `已测试兼容核心 ${installedVersion}`);
+            : stage('environment', environmentLabel, 'passed', uiText(`已测试兼容核心 ${installedVersion}`, `Tested compatible core ${installedVersion}`));
     } else if (policy.compatible.includes(installedVersion)) {
-        environment = stage('environment', '环境就绪', 'warning', `声明兼容核心 ${installedVersion}，仍需自动复验`);
+        environment = stage('environment', environmentLabel, 'warning', uiText(`声明兼容核心 ${installedVersion}，仍需自动复验`, `Declared compatible core ${installedVersion}; revalidation needed`));
     } else if (policy.maximumExclusive && compareCoreVersions(installedVersion, policy.maximumExclusive) !== -1) {
         environment = stage(
             'environment',
-            '环境就绪',
+            environmentLabel,
             'warning',
-            `核心 ${installedVersion} 超出已测试上界，需自动复验`,
-            `已测试版本应低于 ${policy.maximumExclusive}；不会强制降级`,
+            uiText(`核心 ${installedVersion} 超出已测试上界，需自动复验`, `Core ${installedVersion} is newer than tested range; revalidation needed`),
+            uiText(`已测试版本应低于 ${policy.maximumExclusive}；不会强制降级`, `Tested below ${policy.maximumExclusive}; downgrade is not forced`),
         );
     } else if (policy.hasVersionRange && versionInsideRange(
         installedVersion,
         policy.minimum,
         policy.maximumExclusive,
     )) {
-        environment = stage('environment', '环境就绪', 'warning', `兼容范围内核心 ${installedVersion} 尚未实测，需自动复验`);
+        environment = stage('environment', environmentLabel, 'warning', uiText(`兼容范围内核心 ${installedVersion} 尚未实测，需自动复验`, `Core ${installedVersion} is within range but untested; revalidation needed`));
     } else if (policy.recommended) {
         const relation = compareCoreVersions(installedVersion, policy.recommended);
         environment = stage(
             'environment',
-            '环境就绪',
+            environmentLabel,
             'warning',
             relation === 1
-                ? `较新核心 ${installedVersion}，需自动复验`
-                : `核心 ${installedVersion} 尚未验证`,
-            `推荐版本 ${policy.recommended}`,
+                ? uiText(`较新核心 ${installedVersion}，需自动复验`, `Newer core ${installedVersion}; revalidation needed`)
+                : uiText(`核心 ${installedVersion} 尚未验证`, `Core ${installedVersion} not yet verified`),
+            uiText(`推荐版本 ${policy.recommended}`, `Recommended ${policy.recommended}`),
         );
     } else {
         environment = board.is_custom
-            ? stage('environment', '环境就绪', 'warning', `核心 ${installedVersion} 尚无推荐或实测声明，需自动复验`)
-            : stage('environment', '环境就绪', 'passed', `核心 ${installedVersion} 已安装`);
+            ? stage('environment', environmentLabel, 'warning', uiText(`核心 ${installedVersion} 尚无推荐或实测声明，需自动复验`, `Core ${installedVersion} has no tested declaration; revalidation needed`))
+            : stage('environment', environmentLabel, 'passed', uiText(`核心 ${installedVersion} 已安装`, `Core ${installedVersion} installed`));
     }
 
     const compileStatus = statusFrom(compileRaw);
@@ -515,22 +526,22 @@ export const resolveBoardPassport = (
     if (compileStatus) {
         compile = stage(
             'compile',
-            '本机可编译',
+            compileLabel,
             compileStatus,
-            messageFrom(compileRaw) || (compileStatus === 'passed' ? '自动编译认证通过' : '自动编译认证待处理'),
+            messageFrom(compileRaw) || (compileStatus === 'passed' ? uiText('自动编译认证通过', 'Auto compile verification passed') : uiText('自动编译认证待处理', 'Auto compile verification pending')),
         );
     } else {
-        compile = stage('compile', '本机可编译', 'pending', '待本机自动编译认证');
+        compile = stage('compile', compileLabel, 'pending', uiText('待本机自动编译认证', 'Pending local auto compile verification'));
     }
 
     const deviceStatus = statusFrom(deviceRaw);
     const device = deviceStatus === 'passed'
-        ? stage('device', '真机已验', 'passed', messageFrom(deviceRaw) || '真机样板验证通过')
+        ? stage('device', uiText('真机已验', 'Hardware Verified'), 'passed', messageFrom(deviceRaw) || uiText('真机样板验证通过', 'Physical board verification passed'))
         : stage(
             'device',
-            '真机待验证',
+            uiText('真机待验证', 'Hardware Pending'),
             deviceStatus === 'failed' ? 'failed' : deviceStatus === 'warning' ? 'warning' : 'pending',
-            messageFrom(deviceRaw) || '不影响离线编译认证',
+            messageFrom(deviceRaw) || uiText('不影响离线编译认证', 'Does not block offline compile verification'),
         );
 
     const lock = lockFrom(board);
@@ -556,11 +567,11 @@ export const resolveBoardPassport = (
     );
     let lockSummary: string | undefined;
     if (lockStatus === 'passed') {
-        lockSummary = `ck.lock 有效${lockVersion ? ` · 已验核心 ${lockVersion}` : ''}`;
+        lockSummary = uiText(`ck.lock 有效${lockVersion ? ` · 已验核心 ${lockVersion}` : ''}`, `ck.lock valid${lockVersion ? ` · Verified core ${lockVersion}` : ''}`);
     } else if (lockStatus === 'warning' || lockStatus === 'failed') {
-        lockSummary = `ck.lock 已过期${lockVersion ? ` · 上次验证核心 ${lockVersion}` : ''}`;
+        lockSummary = uiText(`ck.lock 已过期${lockVersion ? ` · 上次验证核心 ${lockVersion}` : ''}`, `ck.lock expired${lockVersion ? ` · Last verified core ${lockVersion}` : ''}`);
     } else if (lock || passport) {
-        lockSummary = `ck.lock 待认证${lockVersion ? ` · 当前核心 ${lockVersion}` : ''}`;
+        lockSummary = uiText(`ck.lock 待认证${lockVersion ? ` · 当前核心 ${lockVersion}` : ''}`, `ck.lock pending${lockVersion ? ` · Current core ${lockVersion}` : ''}`);
     }
 
     const explicitUsable = board.usable ?? passport?.usable ?? passport?.can_create_project;
@@ -592,10 +603,10 @@ export const resolveBoardPassport = (
         : explicitReason
             || blockedStage?.summary
             || (missingStructureGate
-                ? '第三方板卡必须先完成结构检查'
+                ? uiText('第三方板卡必须先完成结构检查', 'Third-party boards must pass structure checks first')
                 : environmentLoadingGate
-                    ? '正在检查核心环境，请稍候'
-                    : '当前板卡暂不可用');
+                    ? uiText('正在检查核心环境，请稍候', 'Checking core environment, please wait')
+                    : uiText('当前板卡暂不可用', 'This board is currently unavailable'));
 
     return {
         stages: [structure, environment, compile, device],

@@ -36,5 +36,14 @@ export function appendSourceLog(previous: string, next: string): string {
     const value = previous + next;
     if (value.length <= 160000) return value;
     const start = value.indexOf('\n', value.length - 140000);
-    return '[信息] 较早的输出已折叠，保留最近的编译诊断。\n' + value.slice(start < 0 ? -140000 : start + 1);
+    let isEn = false;
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        isEn = /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { /* ignore */ }
+    const notice = isEn
+        ? '[INFO] Earlier output collapsed; retaining recent build diagnostics.\n'
+        : '[信息] 较早的输出已折叠，保留最近的编译诊断。\n';
+    return notice + value.slice(start < 0 ? -140000 : start + 1);
 }

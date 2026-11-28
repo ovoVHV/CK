@@ -1,4 +1,12 @@
 import type { ProjectBuildTarget } from './project_build_target';
+const isEnglishLocale = (): boolean => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { return false; }
+};
+const uiText = (zh: string, en: string): string => (isEnglishLocale() ? en : zh);
 import type { CompileDoctorReport } from './compile_doctor';
 import type { CompileResourceReport } from './compile_resources';
 import type { DeviceHealthReport } from './device_health';
@@ -266,20 +274,20 @@ export const createBoardPassportHealthCheck = (
     const pending = (detail: string): ProjectHealthCheck => ({
         id: 'board-passport',
         state: 'info',
-        title: '板卡护照待验证',
+        title: uiText('板卡护照待验证', 'Board passport pending verification'),
         detail,
         evidence: null,
         stages: [
-            projectHealthStage('structure', 'info', '结构待检查', detail),
-            projectHealthStage('environment', 'info', '当前环境待确认', '没有可绑定到当前包与 Core 的环境证据。'),
-            projectHealthStage('compile', 'info', '本机编译待验证', '没有当前完整 FQBN 的护照编译档案。'),
-            projectHealthStage('device', 'info', '真板待验证', '未验证不等于失败；也不代表积木或外设已经真机验证。'),
+            projectHealthStage('structure', 'info', uiText('结构待检查', 'Structure pending'), detail),
+            projectHealthStage('environment', 'info', uiText('当前环境待确认', 'Environment pending'), uiText('没有可绑定到当前包与 Core 的环境证据。', 'No environment evidence bound to the current package and Core.')),
+            projectHealthStage('compile', 'info', uiText('本机编译待验证', 'Local build pending'), uiText('没有当前完整 FQBN 的护照编译档案。', 'No passport compile profile for the current complete FQBN.')),
+            projectHealthStage('device', 'info', uiText('真板待验证', 'Hardware pending'), uiText('未验证不等于失败；也不代表积木或外设已经真机验证。', 'Unverified does not mean failed, nor does it certify individual blocks or peripherals.')),
         ].filter(stage => stage.id !== 'device' || projectHealthCapabilities(input.fqbn).deviceHealth),
     });
     if (!selected || !passport) {
         return pending(selected
-            ? '当前板卡包没有机器可读护照；四级状态保持待验证。'
-            : '无法取得当前精确板卡包；不会借用同 FQBN 的其他包证据。');
+            ? uiText('当前板卡包没有机器可读护照；四级状态保持待验证。', 'This board package has no machine-readable passport; all four stages remain pending.')
+            : uiText('无法取得当前精确板卡包；不会借用同 FQBN 的其他包证据。', 'Could not resolve the exact board package; evidence from other packages with the same FQBN is never reused.'));
     }
 
     const board = asRecord(passport.board);
@@ -316,15 +324,15 @@ export const createBoardPassportHealthCheck = (
     );
     const identityMatches = packageMatches && fqbnBaseMatches && corePackageMatches && coreVersionMatches;
     const identityProblems = [
-        !packageMatches ? '板卡包 ID 不一致' : '',
-        !fqbnBaseMatches ? '基础 FQBN 不一致' : '',
-        !corePackageMatches ? 'Core 包不一致' : '',
-        !coreVersionMatches ? 'Core 版本不一致或未记录' : '',
-        !profile ? '没有当前完整 FQBN 档案' : '',
+        !packageMatches ? uiText('板卡包 ID 不一致', 'board package ID mismatch') : '',
+        !fqbnBaseMatches ? uiText('基础 FQBN 不一致', 'base FQBN mismatch') : '',
+        !corePackageMatches ? uiText('Core 包不一致', 'Core package mismatch') : '',
+        !coreVersionMatches ? uiText('Core 版本不一致或未记录', 'Core version mismatch or unrecorded') : '',
+        !profile ? uiText('没有当前完整 FQBN 档案', 'no profile for current complete FQBN') : '',
     ].filter(Boolean);
     const staleDetail = expired
-        ? `认证已失效${invalidatedReasons.length ? `：${invalidatedReasons.join('、')}` : explicitExpiry ? `：有效期至 ${explicitExpiry}` : ''}。`
-        : identityProblems.length ? `证据未绑定当前目标：${identityProblems.join('、')}。` : '';
+        ? uiText(`认证已失效${invalidatedReasons.length ? `：${invalidatedReasons.join('、')}` : explicitExpiry ? `：有效期至 ${explicitExpiry}` : ''}。`, `Certification expired${invalidatedReasons.length ? `: ${invalidatedReasons.join(', ')}` : explicitExpiry ? `: valid until ${explicitExpiry}` : ''}.`)
+        : identityProblems.length ? uiText(`证据未绑定当前目标：${identityProblems.join('、')}。`, `Evidence does not match current target: ${identityProblems.join(', ')}.`) : '';
 
     const hashesComplete = [
         passport.source_package_sha256,
@@ -380,37 +388,37 @@ export const createBoardPassportHealthCheck = (
         projectHealthStage(
             'structure',
             structurePass ? 'pass' : structureFailed ? 'error' : expired || identityProblems.length ? 'warning' : 'info',
-            structurePass ? '结构已检查' : structureFailed ? '结构检查失败' : '结构待检查',
+            structurePass ? uiText('结构已检查', 'Structure checked') : structureFailed ? uiText('结构检查失败', 'Structure check failed') : uiText('结构待检查', 'Structure pending'),
             structurePass
-                ? '目录、清单和内容身份已由当前板卡包护照绑定。'
-                : staleDetail || '缺少完整结构哈希或当前配置档案。',
+                ? uiText('目录、清单和内容身份已由当前板卡包护照绑定。', 'Directory, manifest, and content hashes are bound by the board package passport.')
+                : staleDetail || uiText('缺少完整结构哈希或当前配置档案。', 'Missing complete structure hashes or profile for the current configuration.'),
             validDate(passport.generated_at),
         ),
         projectHealthStage(
             'environment',
             environmentPass ? 'pass' : environmentFailed ? 'error' : identityProblems.length || expired ? 'warning' : 'info',
-            environmentPass ? '当前环境已就绪' : environmentFailed ? '当前环境不可用' : '当前环境待确认',
+            environmentPass ? uiText('当前环境已就绪', 'Environment ready') : environmentFailed ? uiText('当前环境不可用', 'Environment unavailable') : uiText('当前环境待确认', 'Environment pending'),
             environmentPass
-                ? `${currentCoreId}@${currentCoreVersion} 与护照精确一致。`
-                : staleDetail || '护照没有确认当前 Core 环境。',
+                ? uiText(`${currentCoreId}@${currentCoreVersion} 与护照精确一致。`, `${currentCoreId}@${currentCoreVersion} matches the passport exactly.`)
+                : staleDetail || uiText('护照没有确认当前 Core 环境。', 'Passport has not verified the current Core environment.'),
             checkedAt,
         ),
         projectHealthStage(
             'compile',
             compilePass ? 'pass' : profileFailed ? 'error' : identityProblems.length || expired ? 'warning' : 'info',
-            compilePass ? '本机编译已验证' : profileFailed ? '本机编译验证失败' : '本机编译待验证',
+            compilePass ? uiText('本机编译已验证', 'Local build verified') : profileFailed ? uiText('本机编译验证失败', 'Local build verification failed') : uiText('本机编译待验证', 'Local build pending'),
             compilePass
-                ? `护照档案已绑定当前完整 FQBN：${currentFqbn}。`
-                : staleDetail || '普通工程编译结果不会自动升级为板卡护照认证。',
+                ? uiText(`护照档案已绑定当前完整 FQBN：${currentFqbn}。`, `Passport profile is bound to complete FQBN: ${currentFqbn}.`)
+                : staleDetail || uiText('普通工程编译结果不会自动升级为板卡护照认证。', 'Regular project builds do not automatically upgrade board passport certification.'),
             compilePass ? checkedAt : null,
         ),
         projectHealthStage(
             'device',
             devicePass ? 'pass' : profileFailed ? 'error' : identityProblems.length || expired ? 'warning' : 'info',
-            devicePass ? '真板已验证' : '真板待验证',
+            devicePass ? uiText('真板已验证', 'Hardware verified') : uiText('真板待验证', 'Hardware pending'),
             devicePass
-                ? '当前配置档案含专用 device-result 证据；该结论不扩展为积木或外设逐项真机验证。'
-                : staleDetail || '真机体检或普通上传不会自动冒充板卡护照的真板认证。',
+                ? uiText('当前配置档案含专用 device-result 证据；该结论不扩展为积木或外设逐项真机验证。', 'Profile includes dedicated device-result evidence; this does not certify every block or peripheral.')
+                : staleDetail || uiText('真机体检或普通上传不会自动冒充板卡护照的真板认证。', 'Device health checks or regular uploads do not substitute for board passport hardware certification.'),
             devicePass ? checkedAt : null,
         ),
     ];
@@ -430,13 +438,13 @@ export const createBoardPassportHealthCheck = (
         id: 'board-passport',
         state: overall,
         title: overall === 'pass'
-            ? '板卡护照四级证据完整'
+            ? uiText('板卡护照四级证据完整', 'Board passport complete (4/4)')
             : overall === 'error'
-                ? '板卡护照存在阻止项'
+                ? uiText('板卡护照存在阻止项', 'Board passport has blocking issues')
                 : overall === 'warning'
-                    ? '板卡护照证据已过期或与当前配置不匹配'
-                    : '板卡护照待补齐',
-        detail: `${passedCount}/4 级已验证；证据严格绑定当前包、完整 FQBN、Core 与有效状态。`,
+                    ? uiText('板卡护照证据已过期或与当前配置不匹配', 'Board passport expired or mismatched')
+                    : uiText('板卡护照待补齐', 'Board passport incomplete'),
+        detail: uiText(`${passedCount}/4 级已验证；证据严格绑定当前包、完整 FQBN、Core 与有效状态。`, `${passedCount}/4 stages verified; evidence is strictly bound to package, complete FQBN, Core, and validity.`),
         evidence: structurePass ? text(passport.installed_content_sha256) : null,
         stages,
     };
@@ -612,10 +620,10 @@ const resourceState = (
         return {
             id: 'resource-budget',
             state: 'info',
-            title: report ? '已有资源结果不属于当前工程快照' : '资源预算尚未生成',
+            title: report ? uiText('已有资源结果不属于当前工程快照', 'Existing resource result does not match current snapshot') : uiText('资源预算尚未生成', 'Resource budget not yet generated'),
             detail: report
-                ? `资源证据未同时绑定当前积木、源码、板卡包、完整 FQBN、Core 与构建 run，不会混用。`
-                : '成功编译后显示程序空间和内部 RAM 上限。',
+                ? uiText(`资源证据未同时绑定当前积木、源码、板卡包、完整 FQBN、Core 与构建 run，不会混用。`, 'Resource evidence is not bound to the current blocks, source, board package, complete FQBN, Core, and build run.')
+                : uiText('成功编译后显示程序空间和内部 RAM 上限。', 'Program space and internal RAM limits appear after a successful build.'),
             evidence: null,
         };
     }
@@ -623,8 +631,8 @@ const resourceState = (
     if (!levels.includes('critical') && (!report.flash || !report.ram
         || report.flash.capacityKnown === false || report.ram.capacityKnown === false)) {
         return {
-            id: 'resource-budget', state: 'info', title: '资源上限未报告',
-            detail: '本次编译没有完整的容量上限，不能判断资源预算是否安全。',
+            id: 'resource-budget', state: 'info', title: uiText('资源上限未报告', 'Resource limits not reported'),
+            detail: uiText('本次编译没有完整的容量上限，不能判断资源预算是否安全。', 'This build did not report complete capacity limits, so budget safety cannot be determined.'),
             evidence: report.recordedAt || null,
         };
     }
@@ -636,8 +644,8 @@ const resourceState = (
     return {
         id: 'resource-budget',
         state,
-        title: state === 'pass' ? '资源预算在安全范围内' : state === 'error' ? '资源预算接近或超过上限' : '资源预算余量偏低',
-        detail: '阈值按编译器报告的 APP 程序空间和内部静态 RAM 计算，不把实体 Flash 或 PSRAM 混入。',
+        title: state === 'pass' ? uiText('资源预算在安全范围内', 'Resource budget is within safe limits') : state === 'error' ? uiText('资源预算接近或超过上限', 'Resource budget near or above limit') : uiText('资源预算余量偏低', 'Resource budget headroom is low'),
+        detail: uiText('阈值按编译器报告的 APP 程序空间和内部静态 RAM 计算，不把实体 Flash 或 PSRAM 混入。', 'Thresholds are calculated from compiler-reported APP program space and internal static RAM, excluding physical Flash or PSRAM.'),
         evidence: report.recordedAt || null,
     };
 };
@@ -654,8 +662,8 @@ export const createProjectHealthChecklist = (
     checks.push({
         id: 'board-target',
         state: isStandardFqbn(input.fqbn) ? 'pass' : 'error',
-        title: isStandardFqbn(input.fqbn) ? '板卡编译目标已明确' : '板卡编译目标不完整',
-        detail: input.fqbn || '尚未选择可编译板卡。',
+        title: isStandardFqbn(input.fqbn) ? uiText('板卡编译目标已明确', 'Board build target resolved') : uiText('板卡编译目标不完整', 'Board build target incomplete'),
+        detail: input.fqbn || uiText('尚未选择可编译板卡。', 'No buildable board selected yet.'),
         evidence: input.boardPackageId || null,
     });
     checks.push(createBoardPassportHealthCheck(input, input.evidenceNow));
@@ -664,8 +672,8 @@ export const createProjectHealthChecklist = (
     checks.push({
         id: 'core-environment',
         state: coreReady ? 'pass' : 'error',
-        title: coreReady ? 'Core 环境已就绪' : 'Core 环境尚未就绪',
-        detail: coreReady ? `${input.coreId}@${input.coreVersion}` : '缺少 Core 包或无法识别版本。',
+        title: coreReady ? uiText('Core 环境已就绪', 'Core environment ready') : uiText('Core 环境尚未就绪', 'Core environment not ready'),
+        detail: coreReady ? `${input.coreId}@${input.coreVersion}` : uiText('缺少 Core 包或无法识别版本。', 'Core package is missing or version could not be identified.'),
         evidence: coreReady ? `${input.coreId}@${input.coreVersion}` : null,
     });
 
@@ -681,14 +689,14 @@ export const createProjectHealthChecklist = (
         id: 'compile-result',
         state: !compile ? 'info' : !compileMatches ? 'warning' : compile.success ? 'pass' : 'error',
         title: !compile
-            ? '当前配置尚无编译证据'
+            ? uiText('当前配置尚无编译证据', 'No build evidence for current target')
             : !compileMatches
-                ? '已有编译结果不属于当前完整 FQBN'
-                : compile.success ? '当前配置最近一次编译通过' : '当前配置最近一次编译失败',
+                ? uiText('已有编译结果不属于当前完整 FQBN', 'Build result belongs to a different target')
+                : compile.success ? uiText('当前配置最近一次编译通过', 'Latest build passed for current target') : uiText('当前配置最近一次编译失败', 'Latest build failed for current target'),
         detail: !compile
-            ? '请在当前完整 FQBN 下成功编译一次。'
+            ? uiText('请在当前完整 FQBN 下成功编译一次。', 'Run one successful build under the current complete FQBN.')
             : !compileMatches
-                ? '记录没有同时绑定当前积木、源码、板卡包、完整 FQBN 与 Core。'
+                ? uiText('记录没有同时绑定当前积木、源码、板卡包、完整 FQBN 与 Core。', 'Record is not bound to the current blocks, source, board package, complete FQBN, and Core.')
                 : compile.summary,
         evidence: compileMatches && compile ? compile.recordedAt : null,
     });
@@ -719,16 +727,16 @@ export const createProjectHealthChecklist = (
     if (capabilities.lastWorkingVersion) checks.push({
         id: 'last-working-version',
         state: versionMatches ? 'pass' : version || baselineFailure ? 'warning' : 'info',
-        title: versionMatches ? '当前配置存在上一个可用版本' : version ? '可用版本属于其他配置' : '尚无可恢复的可用版本',
+        title: versionMatches ? uiText('当前配置存在上一个可用版本', 'Last Working Version available') : version ? uiText('可用版本属于其他配置', 'Last Working Version belongs to another target') : uiText('尚无可恢复的可用版本', 'No Last Working Version yet'),
         detail: versionMatches && version
-            ? `最近验证于 ${version.verifiedAt}`
+            ? uiText(`最近验证于 ${version.verifiedAt}`, `Last verified at ${version.verifiedAt}`)
             : baselineFailure
-                ? `上传已成功，但可用版本未保存：${baselineFailure}`
+                ? uiText(`上传已成功，但可用版本未保存：${baselineFailure}`, `Upload succeeded, but saving Last Working Version failed: ${baselineFailure}`)
             : version
-                ? `记录目标为 ${version.environment.fqbn}，不会冒充当前配置。`
+                ? uiText(`记录目标为 ${version.environment.fqbn}，不会冒充当前配置。`, `Recorded for ${version.environment.fqbn}; not applied to the current target.`)
                 : capabilities.deviceHealth
-                    ? '普通上传成功并通过产物、芯片和实体 Flash 核验后建立；仅编译不会建立可用版本。'
-                    : '普通上传成功并通过固件产物核验后建立；仅编译不会建立可用版本。',
+                    ? uiText('普通上传成功并通过产物、芯片和实体 Flash 核验后建立；仅编译不会建立可用版本。', 'Created after a normal upload passes artifact, chip, and physical Flash verification; compiling alone does not create one.')
+                    : uiText('普通上传成功并通过固件产物核验后建立；仅编译不会建立可用版本。', 'Created after a normal upload passes firmware artifact verification; compiling alone does not create one.'),
         evidence: versionMatches && version ? version.id : null,
     });
 
@@ -739,10 +747,10 @@ export const createProjectHealthChecklist = (
     if (capabilities.dependencyLock) checks.push({
         id: 'dependency-lock',
         state: lockAvailable && allVersioned ? 'pass' : lockAvailable ? 'warning' : 'info',
-        title: lockAvailable && allVersioned ? '依赖已锁定' : lockAvailable ? '依赖锁缺少可复核条目、版本或哈希' : '依赖尚未形成可信锁定',
+        title: lockAvailable && allVersioned ? uiText('依赖已锁定', 'Dependencies locked') : lockAvailable ? uiText('依赖锁缺少可复核条目、版本或哈希', 'Dependency lock incomplete') : uiText('依赖尚未形成可信锁定', 'No trusted dependency lock yet'),
         detail: lockAvailable
-            ? `${dependencies.length} 个依赖记录；${allVersioned ? '版本与内容哈希完整' : '存在不可精确复现项'}。`
-            : '建立上一个可用版本后，CK 才能保存 ck.lock 与依赖内容证据。',
+            ? uiText(`${dependencies.length} 个依赖记录；${allVersioned ? '版本与内容哈希完整' : '存在不可精确复现项'}。`, `${dependencies.length} locked dependencies; ${allVersioned ? 'versions and content hashes complete' : 'some entries cannot be reproduced exactly'}.`)
+            : uiText('建立上一个可用版本后，CK 才能保存 ck.lock 与依赖内容证据。', 'CK records ck.lock and dependency content evidence once a Last Working Version is created.'),
         evidence: lockAvailable && version ? version.lock.sha256 : null,
     });
 
@@ -766,19 +774,19 @@ export const createProjectHealthChecklist = (
         id: 'device-health',
         state: deviceState,
         title: rawDevice && !deviceTargetMatches
-            ? '已有真机体检属于其他完整 FQBN'
+            ? uiText('已有真机体检属于其他完整 FQBN', 'Device check belongs to a different target')
             : !device
-            ? '真机尚未体检'
+            ? uiText('真机尚未体检', 'Hardware not checked yet')
             : deviceState === 'pass'
-                ? '真机体检完成'
+                ? uiText('真机体检完成', 'Hardware check passed')
                 : deviceState === 'error'
-                    ? '真机证据与当前目标不一致或存在错误'
-                    : '真机体检只有部分结果',
+                    ? uiText('真机证据与当前目标不一致或存在错误', 'Hardware evidence mismatch or error')
+                    : uiText('真机体检只有部分结果', 'Partial hardware check result'),
         detail: rawDevice && !deviceTargetMatches
-            ? `记录目标为 ${rawDeviceTarget || '未绑定'}，当前目标为 ${input.fqbn}；该证据不会写入当前报告。`
+            ? uiText(`记录目标为 ${rawDeviceTarget || '未绑定'}，当前目标为 ${input.fqbn}；该证据不会写入当前报告。`, `Recorded for ${rawDeviceTarget || 'unbound'}, current target is ${input.fqbn}; omitted from this report.`)
             : device
-            ? `${device.device.chip || '芯片未识别'} · ${device.outcome}`
-            : '未验证不等于失败，也不能标记为真机通过。',
+            ? `${device.device.chip || uiText('芯片未识别', 'Unidentified chip')} · ${device.outcome}`
+            : uiText('未验证不等于失败，也不能标记为真机通过。', 'Unchecked does not mean failed, and is never marked as hardware-verified.'),
         evidence: device?.observedAt || null,
     });
 
@@ -791,31 +799,31 @@ export const createProjectHealthChecklist = (
                 ? 'warning'
                 : pins.canCompile ? (pins.warnings.length > 0 ? 'warning' : 'pass') : 'error',
         title: !pins
-            ? '引脚尚未检查'
+            ? uiText('引脚尚未检查', 'Pins not checked yet')
             : pins.boardFqbn.trim() !== input.fqbn.trim()
-                    ? '引脚检查属于其他完整 FQBN'
-                : pins.canCompile ? (pins.warnings.length ? '引脚检查存在提示' : '引脚检查通过') : '引脚检查存在阻止项',
+                    ? uiText('引脚检查属于其他完整 FQBN', 'Pin check belongs to a different target')
+                : pins.canCompile ? (pins.warnings.length ? uiText('引脚检查存在提示', 'Pin check has notices') : uiText('引脚检查通过', 'Pin check passed')) : uiText('引脚检查存在阻止项', 'Pin check has blocking issues'),
         detail: pins
-            ? `${pins.usages.length} 个占用，${pins.blockers.length} 个阻止项，${pins.warnings.length} 个警告。`
-            : '编译前会按当前板卡和积木资源声明检查。',
+            ? uiText(`${pins.usages.length} 个占用，${pins.blockers.length} 个阻止项，${pins.warnings.length} 个警告。`, `${pins.usages.length} usages, ${pins.blockers.length} blockers, ${pins.warnings.length} warnings.`)
+            : uiText('编译前会按当前板卡和积木资源声明检查。', 'Checked against board and block declarations before compiling.'),
         evidence: pins?.boardFqbn || null,
     });
 
     checks.push({
         id: 'project-checkpoints',
         state: input.checkpoints.length > 0 ? 'pass' : 'info',
-        title: input.checkpoints.length > 0 ? '存在工程检查点' : '尚无工程检查点',
-        detail: `${input.checkpoints.length} 个本地检查点；检查点数量不是修改次数。`,
+        title: input.checkpoints.length > 0 ? uiText('存在工程检查点', 'Project checkpoints available') : uiText('尚无工程检查点', 'No project checkpoints yet'),
+        detail: uiText(`${input.checkpoints.length} 个本地检查点；检查点数量不是修改次数。`, `${input.checkpoints.length} local checkpoints; checkpoint count is not an edit count.`),
         evidence: input.checkpoints[0]?.createdAt || null,
     });
 
     const counts: Record<ProjectHealthState, number> = { pass: 0, warning: 0, error: 0, info: 0 };
     checks.forEach(check => { counts[check.state] += 1; });
     const summary = counts.error > 0
-        ? `${counts.error} 个确定问题，${counts.warning} 个警告`
+        ? uiText(`${counts.error} 个确定问题，${counts.warning} 个警告`, `${counts.error} confirmed issues, ${counts.warning} warnings`)
         : counts.warning > 0
-            ? `无确定错误，${counts.warning} 个警告`
-            : '当前检查项未发现确定问题';
+            ? uiText(`无确定错误，${counts.warning} 个警告`, `No confirmed errors, ${counts.warning} warnings`)
+            : uiText('当前检查项未发现确定问题', 'No confirmed issues found in current checks');
     return { checks, counts, summary };
 };
 
@@ -948,7 +956,7 @@ export const createProjectAcceptanceReport = async (
             checkpointCount: checkpoints.length,
             latestCheckpointAt: checkpoints[0]?.createdAt || null,
             modificationCount: null,
-            note: 'CK 1.0 未启用逐操作审计历史；检查点数量不能解释为修改次数。',
+            note: uiText('CK 1.0 未启用逐操作审计历史；检查点数量不能解释为修改次数。', 'Per-action audit history is disabled; checkpoint count does not represent edit count.'),
         },
         notes: {
             circuitDescription: sanitizeNote(input.notes?.circuitDescription),
@@ -956,13 +964,13 @@ export const createProjectAcceptanceReport = async (
         },
         health,
         limitations: [
-            '编译通过不等同于物理外设功能已经验证。',
-            ...(capabilities.deviceHealth ? ['真机未体检时保持“未检查”，不会推断为通过或失败。'] : []),
-            '资源来源只有在 linker/section 证据与总量完全一致时才会展示。',
-            '报告默认不包含工程路径、源码、完整 MAC 或串口内容。',
-            '修改次数未启用审计事件历史，因此保持未知。',
+            uiText('编译通过不等同于物理外设功能已经验证。', 'A passing build does not verify physical peripheral behavior.'),
+            ...(capabilities.deviceHealth ? [uiText('真机未体检时保持“未检查”，不会推断为通过或失败。', 'Hardware remains "not-checked" until inspected; it is never inferred as passed or failed.')] : []),
+            uiText('资源来源只有在 linker/section 证据与总量完全一致时才会展示。', 'Resource attribution is shown only when linker/section evidence reconciles exactly with compiler totals.'),
+            uiText('报告默认不包含工程路径、源码、完整 MAC 或串口内容。', 'Project paths, source code, full MAC addresses, and serial logs are excluded by default.'),
+            uiText('修改次数未启用审计事件历史，因此保持未知。', 'Edit count remains unknown because per-action audit logging is not enabled.'),
             ...(capabilities.deviceHealth && rawDevice && !device
-                ? [`已有真机体检属于其他完整 FQBN（${rawDeviceTarget || '未绑定'}），未纳入当前目标报告。`]
+                ? [uiText(`已有真机体检属于其他完整 FQBN（${rawDeviceTarget || '未绑定'}），未纳入当前目标报告。`, `Existing hardware check belongs to another complete FQBN (${rawDeviceTarget || 'unbound'}) and was excluded.`)]
                 : []),
         ],
     };
@@ -976,62 +984,69 @@ const escapeHtml = (value: unknown): string => String(value ?? '')
     .split("'").join('&#39;');
 
 const bytes = (value: number | null): string => {
-    if (value == null || !Number.isFinite(value)) return '未报告';
+    if (value == null || !Number.isFinite(value)) return uiText('未报告', 'Not reported');
     if (value < 1024) return `${value} B`;
     if (value < 1024 ** 2) return `${(value / 1024).toFixed(1)} KiB`;
     return `${(value / 1024 ** 2).toFixed(2)} MiB`;
 };
 
-const stateLabel: Record<ProjectHealthState, string> = {
-    pass: '通过', warning: '警告', error: '问题', info: '未检查/提示',
+const stateLabelFor = (state: ProjectHealthState): string => {
+    if (state === 'pass') return uiText('通过', 'Pass');
+    if (state === 'warning') return uiText('警告', 'Warning');
+    if (state === 'error') return uiText('问题', 'Issue');
+    return uiText('未检查/提示', 'Info');
 };
 
 /** Standalone, printable and script-free HTML for local review or PDF printing. */
 export const projectAcceptanceReportToHtml = (report: ProjectAcceptanceReport): string => {
+    const en = isEnglishLocale();
     const checks = report.health.checks.map(check => {
         const stages = check.stages?.length
-            ? `<div class="passport-stages">${check.stages.map(stage => `<div class="passport-stage"><span class="state ${escapeHtml(stage.state)}">${stateLabel[stage.state]}</span> <strong>${escapeHtml(stage.title)}</strong><br><small>${escapeHtml(stage.detail)}</small></div>`).join('')}</div>`
+            ? `<div class="passport-stages">${check.stages.map(stage => `<div class="passport-stage"><span class="state ${escapeHtml(stage.state)}">${stateLabelFor(stage.state)}</span> <strong>${escapeHtml(stage.title)}</strong><br><small>${escapeHtml(stage.detail)}</small></div>`).join('')}</div>`
             : '';
         return `
-        <tr><td><span class="state ${escapeHtml(check.state)}">${stateLabel[check.state]}</span></td><td><strong>${escapeHtml(check.title)}</strong><br><small>${escapeHtml(check.detail)}</small>${stages}</td><td><code>${escapeHtml(check.evidence || '—')}</code></td></tr>`;
+        <tr><td><span class="state ${escapeHtml(check.state)}">${stateLabelFor(check.state)}</span></td><td><strong>${escapeHtml(check.title)}</strong><br><small>${escapeHtml(check.detail)}</small>${stages}</td><td><code>${escapeHtml(check.evidence || '—')}</code></td></tr>`;
     }).join('');
     const dependencies = report.dependencies.entries.length
-        ? report.dependencies.entries.map(item => `<li>${escapeHtml(item.name)} @ ${escapeHtml(item.version || '未标版本')} <code>${escapeHtml(item.contentSha256.slice(0, 12))}…</code></li>`).join('')
-        : '<li>无已记录的第三方依赖</li>';
+        ? report.dependencies.entries.map(item => `<li>${escapeHtml(item.name)} @ ${escapeHtml(item.version || uiText('未标版本', 'Unversioned'))} <code>${escapeHtml(item.contentSha256.slice(0, 12))}…</code></li>`).join('')
+        : `<li>${uiText('无已记录的第三方依赖', 'No recorded third-party dependencies')}</li>`;
     const limitations = report.limitations.map(item => `<li>${escapeHtml(item)}</li>`).join('');
     const structure = report.project.structure.available
-        ? `${report.project.structure.topLevelFlowCount} 条顶层流程；${report.project.structure.blockTypes.map(item => `${escapeHtml(item.type)} × ${item.count}`).join('、') || '未识别积木类型'}`
-        : '工作区结构不可解析，未生成软件结构摘要';
+        ? uiText(
+            `${report.project.structure.topLevelFlowCount} 条顶层流程；${report.project.structure.blockTypes.map(item => `${escapeHtml(item.type)} × ${item.count}`).join('、') || '未识别积木类型'}`,
+            `${report.project.structure.topLevelFlowCount} top-level flows; ${report.project.structure.blockTypes.map(item => `${escapeHtml(item.type)} × ${item.count}`).join(', ') || 'No recognized block types'}`,
+        )
+        : uiText('工作区结构不可解析，未生成软件结构摘要', 'Workspace structure could not be parsed; summary omitted');
     const projectNotes = report.notes.circuitDescription || report.notes.testRecords
-        ? `<h2>项目说明与测试记录</h2>
-<div class="grid"><div class="card"><div class="label">电路说明</div><div>${escapeHtml(report.notes.circuitDescription || '未填写').replace(/\r?\n/g, '<br>')}</div></div><div class="card"><div class="label">测试记录</div><div>${escapeHtml(report.notes.testRecords || '未填写').replace(/\r?\n/g, '<br>')}</div></div></div>`
+        ? `<h2>${uiText('项目说明与测试记录', 'Project Notes & Test Records')}</h2>
+<div class="grid"><div class="card"><div class="label">${uiText('电路说明', 'Circuit Notes')}</div><div>${escapeHtml(report.notes.circuitDescription || uiText('未填写', 'Not provided')).replace(/\r?\n/g, '<br>')}</div></div><div class="card"><div class="label">${uiText('测试记录', 'Test Records')}</div><div>${escapeHtml(report.notes.testRecords || uiText('未填写', 'Not provided')).replace(/\r?\n/g, '<br>')}</div></div></div>`
         : '';
     return `<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHtml(report.project.name)} - CK 项目验收报告</title>
+<html lang="${en ? 'en-US' : 'zh-CN'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(report.project.name)} - ${uiText('CK 项目验收报告', 'CK Project Acceptance Report')}</title>
 <style>
 body{font:14px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;max-width:980px;margin:32px auto;padding:0 24px;background:#fff}h1{margin-bottom:4px}h2{margin-top:28px;border-bottom:1px solid #dbe3ec;padding-bottom:6px}.meta{color:#64748b}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{border:1px solid #dbe3ec;border-radius:10px;padding:12px;overflow-wrap:anywhere}.label{font-size:11px;color:#64748b;text-transform:uppercase}.value{font-weight:700;margin-top:3px}table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #e5eaf0;padding:9px 6px}code{font:12px ui-monospace,monospace;overflow-wrap:anywhere}.state{display:inline-block;border-radius:999px;padding:1px 7px;font-size:12px}.pass{background:#dcfce7;color:#166534}.warning{background:#fef3c7;color:#92400e}.error{background:#fee2e2;color:#991b1b}.info{background:#e2e8f0;color:#475569}.passport-stages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}.passport-stage{border:1px solid #e5eaf0;border-radius:8px;padding:7px;overflow-wrap:anywhere}small{color:#64748b}@media(max-width:640px){.grid,.passport-stages{grid-template-columns:1fr}}@media print{body{margin:0;max-width:none}.card,.passport-stage{break-inside:avoid}h2{break-after:avoid}}
 </style></head><body>
-<h1>CK 项目验收报告</h1><div class="meta">生成时间：${escapeHtml(report.generatedAt)} · Schema v${report.schemaVersion}</div>
-<p class="meta">这是可打印 HTML：请在浏览器中打开后选择“打印 / 另存为 PDF”。CK 当前没有声称直接生成 PDF。</p>
-<h2>工程与目标</h2><div class="grid">
-<div class="card"><div class="label">工程</div><div class="value">${escapeHtml(report.project.name)}</div><div>${report.project.blockCount} 个积木</div></div>
-<div class="card"><div class="label">板卡</div><div class="value">${escapeHtml(report.target.boardName)}</div><code>${escapeHtml(report.target.fqbn)}</code></div>
-<div class="card"><div class="label">Core</div><div class="value">${escapeHtml(report.target.coreId)} @ ${escapeHtml(report.target.coreVersion || '未识别')}</div></div>
-${report.target.savedConfiguration ? `<div class="card"><div class="label">工程保存的配置</div><div class="value">${escapeHtml(report.target.savedConfiguration.coreId)} @ ${escapeHtml(report.target.savedConfiguration.coreVersion || '未记录')}</div><code>${escapeHtml(report.target.savedConfiguration.fqbn)}</code><div>${report.target.savedConfiguration.optionsComplete ? '已记录全部有效选项（含默认值）' : '选项目录尚未完整记录'}</div><small>环境记录不等于依赖锁；导入不会自动安装 Core 或工具链。</small></div>` : ''}
-<div class="card"><div class="label">编译</div><div class="value">${escapeHtml(report.build.state)}</div><div>${escapeHtml(report.build.recordedAt || '尚无证据')}</div></div>
+<h1>${uiText('CK 项目验收报告', 'CK Project Acceptance Report')}</h1><div class="meta">${uiText('生成时间：', 'Generated: ')}${escapeHtml(report.generatedAt)} · Schema v${report.schemaVersion}</div>
+<p class="meta">${uiText('这是可打印 HTML：请在浏览器中打开后选择“打印 / 另存为 PDF”。CK 当前没有声称直接生成 PDF。', 'Printable HTML: open in a browser and choose Print / Save as PDF.')}</p>
+<h2>${uiText('工程与目标', 'Project & Target')}</h2><div class="grid">
+<div class="card"><div class="label">${uiText('工程', 'Project')}</div><div class="value">${escapeHtml(report.project.name)}</div><div>${uiText(`${report.project.blockCount} 个积木`, `${report.project.blockCount} blocks`)}</div></div>
+<div class="card"><div class="label">${uiText('板卡', 'Board')}</div><div class="value">${escapeHtml(report.target.boardName)}</div><code>${escapeHtml(report.target.fqbn)}</code></div>
+<div class="card"><div class="label">Core</div><div class="value">${escapeHtml(report.target.coreId)} @ ${escapeHtml(report.target.coreVersion || uiText('未识别', 'Unknown'))}</div></div>
+${report.target.savedConfiguration ? `<div class="card"><div class="label">${uiText('工程保存的配置', 'Saved Project Configuration')}</div><div class="value">${escapeHtml(report.target.savedConfiguration.coreId)} @ ${escapeHtml(report.target.savedConfiguration.coreVersion || uiText('未记录', 'Not recorded'))}</div><code>${escapeHtml(report.target.savedConfiguration.fqbn)}</code><div>${report.target.savedConfiguration.optionsComplete ? uiText('已记录全部有效选项（含默认值）', 'All effective options recorded (including defaults)') : uiText('选项目录尚未完整记录', 'Option list not completely recorded')}</div><small>${uiText('环境记录不等于依赖锁；导入不会自动安装 Core 或工具链。', 'Recorded target is not a dependency lock; opening does not auto-install Cores or toolchains.')}</small></div>` : ''}
+<div class="card"><div class="label">${uiText('编译', 'Build')}</div><div class="value">${escapeHtml(report.build.state)}</div><div>${escapeHtml(report.build.recordedAt || uiText('尚无证据', 'No evidence yet'))}</div></div>
 </div>
-<h2>软件结构摘要</h2><p>${structure}</p><p class="meta">积木截图未自动生成，避免依赖不稳定的 Blockly 私有接口。</p>
-<h2>资源证据</h2><div class="grid">
-<div class="card"><div class="label">程序空间</div><div class="value">${bytes(report.build.flashUsedBytes)} / ${bytes(report.build.flashTotalBytes)}</div></div>
-<div class="card"><div class="label">内部 RAM</div><div class="value">${bytes(report.build.ramUsedBytes)} / ${bytes(report.build.ramTotalBytes)}</div></div>
-<div class="card"><div class="label">增长解释</div><div class="value">${escapeHtml(report.build.resourceGrowth.summary)}</div><small>${escapeHtml(report.build.resourceGrowth.detail)}</small></div>
-${report.hardware.state !== 'unsupported' ? `<div class="card"><div class="label">真机</div><div class="value">${escapeHtml(report.hardware.state)}</div><div>${escapeHtml(report.hardware.chip || '未识别')} · Flash ${bytes(report.hardware.flashBytes)}${report.hardware.psramBytes != null ? ` · PSRAM ${bytes(report.hardware.psramBytes)}` : ''}</div></div>` : ''}
+<h2>${uiText('软件结构摘要', 'Software Structure Summary')}</h2><p>${structure}</p><p class="meta">${uiText('积木截图未自动生成，避免依赖不稳定的 Blockly 私有接口。', 'Block screenshots are not auto-generated.')}</p>
+<h2>${uiText('资源证据', 'Resource Evidence')}</h2><div class="grid">
+<div class="card"><div class="label">${uiText('程序空间', 'Program Space')}</div><div class="value">${bytes(report.build.flashUsedBytes)} / ${bytes(report.build.flashTotalBytes)}</div></div>
+<div class="card"><div class="label">${uiText('内部 RAM', 'Internal RAM')}</div><div class="value">${bytes(report.build.ramUsedBytes)} / ${bytes(report.build.ramTotalBytes)}</div></div>
+<div class="card"><div class="label">${uiText('增长解释', 'Resource Growth')}</div><div class="value">${escapeHtml(report.build.resourceGrowth.summary)}</div><small>${escapeHtml(report.build.resourceGrowth.detail)}</small></div>
+${report.hardware.state !== 'unsupported' ? `<div class="card"><div class="label">${uiText('真机', 'Hardware')}</div><div class="value">${escapeHtml(report.hardware.state)}</div><div>${escapeHtml(report.hardware.chip || uiText('未识别', 'Unknown'))} · Flash ${bytes(report.hardware.flashBytes)}${report.hardware.psramBytes != null ? ` · PSRAM ${bytes(report.hardware.psramBytes)}` : ''}</div></div>` : ''}
 </div>
-<h2>工程健康检查</h2><p>${escapeHtml(report.health.summary)}。本报告不计算综合分数。</p><table><thead><tr><th>状态</th><th>检查项</th><th>证据</th></tr></thead><tbody>${checks}</tbody></table>
-${projectHealthCapabilities(report.target.fqbn).dependencyLock ? `<h2>依赖锁</h2><p>${report.dependencies.lockAvailable ? '已找到内容哈希绑定的 ck.lock。' : '尚无可信 ck.lock。'}</p><ul>${dependencies}</ul>` : ''}
+<h2>${uiText('工程健康检查', 'Project Health Checks')}</h2><p>${escapeHtml(report.health.summary)}${uiText('。本报告不计算综合分数。', '. No composite score is computed.')}</p><table><thead><tr><th>${uiText('状态', 'Status')}</th><th>${uiText('检查项', 'Check')}</th><th>${uiText('证据', 'Evidence')}</th></tr></thead><tbody>${checks}</tbody></table>
+${projectHealthCapabilities(report.target.fqbn).dependencyLock ? `<h2>${uiText('依赖锁', 'Dependency Lock')}</h2><p>${report.dependencies.lockAvailable ? uiText('已找到内容哈希绑定的 ck.lock。', 'Found content-hashed ck.lock.') : uiText('尚无可信 ck.lock。', 'No trusted ck.lock yet.')}</p><ul>${dependencies}</ul>` : ''}
 ${projectNotes}
-<h2>历史与边界</h2><p>本地工程检查点：${report.history.checkpointCount}；修改次数：未启用审计，不能推断。</p><ul>${limitations}</ul>
+<h2>${uiText('历史与边界', 'History & Scope')}</h2><p>${uiText(`本地工程检查点：${report.history.checkpointCount}；修改次数：未启用审计，不能推断。`, `Local checkpoints: ${report.history.checkpointCount}; edit count: audit logging disabled.`)}</p><ul>${limitations}</ul>
 <hr><div class="meta">workspace SHA-256: <code>${report.project.workspaceSha256}</code><br>generated code SHA-256: <code>${report.project.generatedCodeSha256}</code></div>
 </body></html>`;
 };

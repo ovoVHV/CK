@@ -1,3 +1,11 @@
+const isEnUi = (): boolean => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { return false; }
+};
+const uiText = (zh: string, en: string): string => (isEnUi() ? en : zh);
 import type {
     CompileResourceReport,
     LinkerMapResourceGroup,
@@ -137,7 +145,7 @@ export const createResourceGrowthEvidenceFromLinkerMaps = (
     if (residualFlash !== 0 || residualRam !== 0) {
         contributions.push({
             id: 'linker-overhead-unassigned',
-            label: '链接布局、对齐及未分组段',
+            label: uiText('链接布局、对齐及未分组段', 'Link layout, alignment, and ungrouped sections'),
             kind: 'linker-overhead',
             flashDeltaBytes: residualFlash,
             ramDeltaBytes: residualRam,
@@ -165,7 +173,7 @@ const growthSummary = (flashDelta: number | null, ramDelta: number | null): stri
     const parts: string[] = [];
     if (flashDelta != null) parts.push(`Flash ${flashDelta >= 0 ? '+' : ''}${flashDelta} B`);
     if (ramDelta != null) parts.push(`RAM ${ramDelta >= 0 ? '+' : ''}${ramDelta} B`);
-    return parts.length > 0 ? parts.join('，') : '暂无可比较的资源变化';
+    return parts.length > 0 ? parts.join(uiText('，', ', ')) : uiText('暂无可比较的资源变化', 'No comparable resource change');
 };
 
 /**
@@ -188,8 +196,8 @@ export const explainResourceGrowth = (
             status: 'incomparable',
             flashDeltaBytes: null,
             ramDeltaBytes: null,
-            summary: '容量配置已变化，不能比较增长',
-            detail: 'APP 分区或 RAM 上限发生变化，CK 已重建基线，不会把容量变化误报成代码增长。',
+            summary: uiText('容量配置已变化，不能比较增长', 'Capacity configuration changed; growth cannot be compared'),
+            detail: uiText('APP 分区或 RAM 上限发生变化，CK 已重建基线，不会把容量变化误报成代码增长。', 'The APP partition or RAM limit changed. CK rebuilt the baseline instead of misreporting a capacity change as code growth.'),
             contributions: [],
             evidenceKind: null,
         };
@@ -200,8 +208,8 @@ export const explainResourceGrowth = (
             status: 'no-baseline',
             flashDeltaBytes: null,
             ramDeltaBytes: null,
-            summary: '暂无资源对比基线',
-            detail: '同一工程和完整 FQBN 再成功编译一次后，CK 才能比较总 Flash/RAM 变化。',
+            summary: uiText('暂无资源对比基线', 'No resource comparison baseline yet'),
+            detail: uiText('同一工程和完整 FQBN 再成功编译一次后，CK 才能比较总 Flash/RAM 变化。', 'Build this project with the same complete FQBN once more to compare total Flash/RAM changes.'),
             contributions: [],
             evidenceKind: null,
         };
@@ -213,24 +221,24 @@ export const explainResourceGrowth = (
             flashDeltaBytes: flashDelta,
             ramDeltaBytes: ramDelta,
             summary: growthSummary(flashDelta, ramDelta),
-            detail: '当前构建没有可校验的 linker map 或 section 报告，只能确认总量变化，不能精确归因到某个库、字体或积木。',
+            detail: uiText('当前构建没有可校验的 linker map 或 section 报告，只能确认总量变化，不能精确归因到某个库、字体或积木。', 'This build has no verifiable linker map or section report. Only total deltas are confirmed; growth cannot be attributed to a specific library, font, or block.'),
             contributions: [],
             evidenceKind: null,
         };
     }
 
     const invalidReason = evidence.schemaVersion !== 1
-        ? '归因证据版本不受支持'
+        ? uiText('归因证据版本不受支持', 'Unsupported attribution evidence version')
         : !validSha256(evidence.currentMapSha256) || !validSha256(evidence.baselineMapSha256)
-            ? '归因证据缺少当前或基线 map 哈希'
+            ? uiText('归因证据缺少当前或基线 map 哈希', 'Attribution evidence is missing current or baseline map hashes')
         : evidence.fqbn.trim() !== String(report?.fqbn || '').trim()
-            ? '归因证据与本次完整 FQBN 不一致'
+            ? uiText('归因证据与本次完整 FQBN 不一致', 'Attribution evidence does not match the current complete FQBN')
             : !Number.isFinite(Date.parse(evidence.recordedAt))
-                ? '归因证据时间无效'
+                ? uiText('归因证据时间无效', 'Attribution evidence timestamp is invalid')
                 : evidence.contributions.length === 0
-                    ? '归因证据没有贡献项'
+                    ? uiText('归因证据没有贡献项', 'Attribution evidence contains no contributions')
                     : evidence.contributions.some(item => !validContribution(item))
-                        ? '归因证据缺少有效哈希、定位信息或字节数'
+                        ? uiText('归因证据缺少有效哈希、定位信息或字节数', 'Attribution evidence is missing valid hashes, locators, or byte counts')
                         : null;
     if (invalidReason) {
         return {
@@ -238,7 +246,7 @@ export const explainResourceGrowth = (
             flashDeltaBytes: flashDelta,
             ramDeltaBytes: ramDelta,
             summary: growthSummary(flashDelta, ramDelta),
-            detail: `${invalidReason}，已拒绝展示来源分摊；总量变化仍采用编译器报告。`,
+            detail: uiText(`${invalidReason}，已拒绝展示来源分摊；总量变化仍采用编译器报告。`, `${invalidReason}; source breakdown was rejected while compiler totals remain shown.`),
             contributions: [],
             evidenceKind: null,
         };
@@ -258,7 +266,7 @@ export const explainResourceGrowth = (
             flashDeltaBytes: flashDelta,
             ramDeltaBytes: ramDelta,
             summary: growthSummary(flashDelta, ramDelta),
-            detail: '来源分摊之和与编译器总量不一致，已拒绝归因；不会用近似数字冒充精确解释。',
+            detail: uiText('来源分摊之和与编译器总量不一致，已拒绝归因；不会用近似数字冒充精确解释。', 'The sum of attributed sources does not match the compiler total; attribution was rejected.'),
             contributions: [],
             evidenceKind: null,
         };
@@ -270,7 +278,7 @@ export const explainResourceGrowth = (
         flashDeltaBytes: flashDelta,
         ramDeltaBytes: ramDelta,
         summary: growthSummary(flashDelta, ramDelta),
-        detail: '以下来源均由内容哈希绑定的 linker/section 证据复核，分摊之和与编译器总量完全一致。',
+        detail: uiText('以下来源均由内容哈希绑定的 linker/section 证据复核，分摊之和与编译器总量完全一致。', 'All sources below were verified against content-hashed linker/section evidence and reconcile exactly with the compiler total.'),
         contributions: [...evidence.contributions].sort((left, right) => (
             Math.abs(right.flashDeltaBytes) - Math.abs(left.flashDeltaBytes)
         )),

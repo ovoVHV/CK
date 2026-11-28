@@ -29,7 +29,15 @@ export function createBuildReports({buildEvidence, compileEnvironment, compileEn
     const noteStaleEvidence = () => {
         if (staleEvidenceNoticeWritten) return;
         staleEvidenceNoticeWritten = true;
-        appendCompileLog('[信息] 编译期间工程已编辑；本次日志与产物保留，但不会覆盖当前工程的体检、资源或错误定位证据。\n');
+        let isEn = false;
+        try {
+            const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+            const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+            isEn = /^en(?:-|$)/i.test(String(lang || stored || ''));
+        } catch { /* ignore */ }
+        appendCompileLog(isEn
+            ? '[INFO] Project was edited during compilation; this log and artifact are kept, but will not overwrite current health, resource, or error location evidence.\n'
+            : '[信息] 编译期间工程已编辑；本次日志与产物保留，但不会覆盖当前工程的体检、资源或错误定位证据。\n');
     };
 
     const publishCompileDoctor = (

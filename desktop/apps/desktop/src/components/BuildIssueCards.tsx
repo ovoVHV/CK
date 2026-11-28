@@ -14,6 +14,7 @@ import type {
     CompileIssueCard,
 } from '../services/compile_issue_cards';
 import { useTranslation } from 'react-i18next';
+import { useUiText } from '../i18n/uiText';
 
 interface BuildIssueCardsProps {
     issues: CompileIssueCard[];
@@ -68,6 +69,8 @@ export function BuildIssueCards({
     onAskAi,
 }: BuildIssueCardsProps) {
     const { t: translate } = useTranslation('build');
+    const { isEn, tr } = useUiText();
+    const colon = isEn ? ': ' : '：';
     const t = translate as unknown as (key: string, options?: Record<string, unknown>) => string;
     if (issues.length === 0) return null;
 
@@ -126,25 +129,25 @@ export function BuildIssueCards({
                         {issue.blockContext && (
                             <div className="mt-2 rounded border border-white/90 bg-white/80 px-2.5 py-2 text-[10px] leading-4 text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
                                 <div className="break-words">
-                                    <span className="font-bold text-slate-500 dark:text-slate-400">{t('issue.block')}：</span>
+                                    <span className="font-bold text-slate-500 dark:text-slate-400">{t('issue.block')}{colon}</span>
                                     {issue.blockContext.label}
                                 </div>
                                 <div className="mt-0.5 break-words">
-                                    <span className="font-bold text-slate-500 dark:text-slate-400">{t('issue.location')}：</span>
+                                    <span className="font-bold text-slate-500 dark:text-slate-400">{t('issue.location')}{colon}</span>
                                     {issue.blockContext.flowLocation}
                                 </div>
                             </div>
                         )}
 
                         <div className="mt-2 text-[11px] leading-4 text-slate-700 dark:text-slate-200">
-                            <span className="font-bold text-slate-500 dark:text-slate-400">{t('issue.reason')}：</span>
+                            <span className="font-bold text-slate-500 dark:text-slate-400">{t('issue.reason')}{colon}</span>
                             {issue.blockContext && <span className="font-semibold">{title}. </span>}
                             <span className={compact ? 'text-[10px]' : ''}>{summary}</span>
                         </div>
 
                         {suggestion && (
                             <div className="mt-1.5 text-[11px] leading-4 text-slate-700 dark:text-slate-200">
-                                <span className="font-bold text-slate-500 dark:text-slate-400">{t('issue.suggestion')}：</span>
+                                <span className="font-bold text-slate-500 dark:text-slate-400">{t('issue.suggestion')}{colon}</span>
                                 <span className={compact ? 'text-[10px]' : ''}>{suggestion}</span>
                             </div>
                         )}
@@ -169,7 +172,7 @@ export function BuildIssueCards({
                                 )}
                                 {onAskAi && <button type="button" onClick={() => onAskAi(issue)}
                                     className="inline-flex min-h-8 items-center gap-1 rounded border border-brand-200 bg-white px-2 text-[10px] font-bold text-brand-700 hover:bg-brand-50 dark:border-brand-800 dark:bg-slate-900 dark:text-brand-300"
-                                    aria-label="让 AI 分析这条错误"><Sparkles size={12} />AI 分析</button>}
+                                    aria-label={tr('让 AI 分析这条错误', 'Ask AI to analyze this error')}><Sparkles size={12} />{tr('AI 分析', 'Ask AI')}</button>}
                                 {issue.action && ActionIcon && (
                                     <button
                                         type="button"

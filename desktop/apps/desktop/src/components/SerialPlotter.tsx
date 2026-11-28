@@ -44,6 +44,7 @@ import {
 } from '../services/serial_csv';
 import { useDialog } from '../contexts/DialogContext';
 import { useTranslation } from 'react-i18next';
+import { uiText } from '../i18n/uiText';
 
 ChartJS.register(
     CategoryScale,
@@ -809,7 +810,9 @@ export const SerialPlotter: React.FC<SerialPlotterProps> = ({
         if (csvHeaderMode === 'localized') {
             return trigger ? `CK-${t('export.triggerFileName')}` : `CK-${t('export.fileName')}`;
         }
-        return trigger ? 'CK-串口触发录制' : 'CK-串口数据';
+        return trigger
+            ? uiText('CK-串口触发录制', 'CK-serial-trigger')
+            : uiText('CK-串口数据', 'CK-serial-data');
     };
 
     const exportData = async () => {

@@ -32,6 +32,7 @@ import {
     type DiagnosticContentLevel,
     type DiagnosticPrivacyOptions,
 } from '../services/diagnostic_bundle';
+import { uiText, useUiText } from '../i18n/uiText';
 
 export type DiagnosticBundleExportDataProvider =
     | DiagnosticBundleExportData
@@ -63,51 +64,51 @@ interface ContentLevelOption {
     Icon: typeof FolderArchive;
 }
 
-const CONTENT_LEVELS: ContentLevelOption[] = [
+const getContentLevels = (tr: (zh: string, en: string) => string): ContentLevelOption[] => [
     {
         value: 'full_project',
-        title: '包含完整工程',
-        description: '积木工程、生成源码、环境、清单与日志。适合完整复现。',
+        title: tr('包含完整工程', 'Full project'),
+        description: tr('积木工程、生成源码、环境、清单与日志。适合完整复现。', 'Blocks project, generated source, environment, manifest, and logs. Best for full reproduction.'),
         Icon: FolderArchive,
     },
     {
         value: 'generated_source_only',
-        title: '仅包含生成源码',
-        description: '不包含积木工程，只保留生成源码、环境、清单与日志。',
+        title: tr('仅包含生成源码', 'Generated source only'),
+        description: tr('不包含积木工程，只保留生成源码、环境、清单与日志。', 'Excludes the blocks file; keeps generated source, environment, manifest, and logs.'),
         Icon: FileCode2,
     },
     {
         value: 'no_source',
-        title: '不包含源码',
-        description: '仅包含环境、板卡、构建/上传清单和日志证据。',
+        title: tr('不包含源码', 'No source code'),
+        description: tr('仅包含环境、板卡、构建/上传清单和日志证据。', 'Includes only environment, board, build/upload manifest, and log evidence.'),
         Icon: LockKeyhole,
     },
 ];
 
-const PRIVACY_OPTIONS: Array<{
+const getPrivacyOptions = (tr: (zh: string, en: string) => string): Array<{
     key: keyof DiagnosticPrivacyOptions;
     title: string;
     description: string;
-}> = [
+}> => [
     {
         key: 'redactWifi',
-        title: '隐去 Wi-Fi 信息',
-        description: '隐藏源码和日志中可识别的 SSID、密码与口令。',
+        title: tr('隐去 Wi-Fi 信息', 'Redact Wi-Fi credentials'),
+        description: tr('隐藏源码和日志中可识别的 SSID、密码与口令。', 'Masks detectable SSIDs, passwords, and secrets in source and logs.'),
     },
     {
         key: 'redactUsername',
-        title: '隐去用户名',
-        description: '替换本机用户目录和日志中的账户名。',
+        title: tr('隐去用户名', 'Redact username'),
+        description: tr('替换本机用户目录和日志中的账户名。', 'Replaces local account names in user directories and logs.'),
     },
     {
         key: 'redactPaths',
-        title: '隐去本机路径',
-        description: '清单不记录源路径，并替换文本中的绝对路径。',
+        title: tr('隐去本机路径', 'Redact local paths'),
+        description: tr('清单不记录源路径，并替换文本中的绝对路径。', 'Omits source paths from the manifest and masks absolute paths in text.'),
     },
     {
         key: 'redactSerialContent',
-        title: '不包含串口内容',
-        description: '直接排除串口日志，避免设备数据或口令被带入。',
+        title: tr('不包含串口内容', 'Exclude serial output'),
+        description: tr('直接排除串口日志，避免设备数据或口令被带入。', 'Excludes serial monitor logs so device data or tokens are not included.'),
     },
 ];
 
@@ -122,7 +123,7 @@ const onePath = (value: string | string[] | null): string | null => (
 const errorMessage = (cause: unknown): string => {
     if (cause instanceof Error && cause.message.trim()) return cause.message;
     const message = String(cause || '').trim();
-    return message || '发生未知错误';
+    return message || uiText('发生未知错误', 'Unknown error occurred');
 };
 
 const resolveExportData = async (
@@ -138,19 +139,20 @@ const SummaryGrid = ({
     inspection: DiagnosticBundleInspection;
     currentCoreVersions?: Readonly<Record<string, string>>;
 }) => {
+    const { tr } = useUiText();
     const { summary } = inspection;
     const coreAvailability = deriveDiagnosticCoreAvailability(summary, currentCoreVersions);
     const entries = [
-        { label: '板卡', value: summary.board, Icon: CircuitBoard },
+        { label: tr('板卡', 'Board'), value: summary.board, Icon: CircuitBoard },
         { label: 'Core', value: summary.core, Icon: Cpu },
-        { label: '完整 FQBN', value: summary.fqbn, Icon: Code2 },
+        { label: tr('完整 FQBN', 'Full FQBN'), value: summary.fqbn, Icon: Code2 },
         { label: 'Flash', value: summary.flash, Icon: HardDrive },
         {
-            label: 'Core 状态',
+            label: tr('Core 状态', 'Core Status'),
             value: coreAvailability.label,
             Icon: coreAvailability.state === 'ready' ? CheckCircle2 : TriangleAlert,
         },
-        { label: '失败阶段', value: summary.failureStage, Icon: ShieldCheck },
+        { label: tr('失败阶段', 'Failure Stage'), value: summary.failureStage, Icon: ShieldCheck },
     ];
     return (
         <div className="grid gap-2 sm:grid-cols-2">
@@ -180,6 +182,9 @@ export function DiagnosticBundleModal({
     onInspected,
     currentCoreVersions,
 }: DiagnosticBundleModalProps) {
+    const { tr } = useUiText();
+    const contentLevels = getContentLevels(tr);
+    const privacyOptions = getPrivacyOptions(tr);
     const [tab, setTab] = useState<ModalTab>('export');
     const [contentLevel, setContentLevel] = useState<DiagnosticContentLevel>('no_source');
     const [privacy, setPrivacy] = useState<DiagnosticPrivacyOptions>({
@@ -211,9 +216,9 @@ export function DiagnosticBundleModal({
         setOperation('export');
         try {
             const outputPath = await save({
-                title: '导出本地诊断包',
+                title: tr('导出本地诊断包', 'Export Local Diagnostic Bundle'),
                 defaultPath: suggestedFileName?.trim() || createDiagnosticBundleFileName(),
-                filters: [{ name: 'CK 诊断包', extensions: ['zip'] }],
+                filters: [{ name: tr('CK 诊断包', 'CK Diagnostic Bundle'), extensions: ['zip'] }],
             });
             if (!outputPath) return;
             const data = await resolveExportData(exportData);
@@ -228,7 +233,7 @@ export function DiagnosticBundleModal({
             onExported?.(result);
         } catch (cause) {
             console.error('[DiagnosticBundle] Export failed', cause);
-            setError(`导出失败：${errorMessage(cause)}`);
+            setError(tr(`导出失败：${errorMessage(cause)}`, `Export failed: ${errorMessage(cause)}`));
         } finally {
             setOperation(null);
         }
@@ -241,10 +246,10 @@ export function DiagnosticBundleModal({
         setOperation('inspect');
         try {
             const selected = onePath(await open({
-                title: '打开本地诊断包',
+                title: tr('打开本地诊断包', 'Open Local Diagnostic Bundle'),
                 multiple: false,
                 directory: false,
-                filters: [{ name: 'CK 诊断包', extensions: ['zip'] }],
+                filters: [{ name: tr('CK 诊断包', 'CK Diagnostic Bundle'), extensions: ['zip'] }],
             }));
             if (!selected) return;
             const result = await inspectDiagnosticBundle(selected);
@@ -253,7 +258,7 @@ export function DiagnosticBundleModal({
             onInspected?.(result, selected);
         } catch (cause) {
             console.error('[DiagnosticBundle] Inspection failed', cause);
-            setError(`无法打开诊断包：${errorMessage(cause)}`);
+            setError(tr(`无法打开诊断包：${errorMessage(cause)}`, `Unable to open diagnostic bundle: ${errorMessage(cause)}`));
         } finally {
             setOperation(null);
         }
@@ -280,10 +285,10 @@ export function DiagnosticBundleModal({
                         </span>
                         <div className="min-w-0">
                             <h2 id="diagnostic-bundle-title" className="text-base font-black text-slate-900 dark:text-slate-100">
-                                工程体检与诊断包
+                                {tr('工程体检与诊断包', 'Project Health & Diagnostic Bundle')}
                             </h2>
                             <p className="mt-0.5 text-[11px] leading-4 text-slate-500 dark:text-slate-400">
-                                汇总板卡、Core、FQBN、构建、上传和环境证据，方便可靠复现问题。
+                                {tr('汇总板卡、Core、FQBN、构建、上传和环境证据，方便可靠复现问题。', 'Bundles board, Core, FQBN, build, upload, and environment evidence for reliable troubleshooting.')}
                             </p>
                         </div>
                     </div>
@@ -292,7 +297,7 @@ export function DiagnosticBundleModal({
                         onClick={onClose}
                         disabled={!closeAllowed}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                        aria-label="关闭诊断包"
+                        aria-label={tr('关闭诊断包', 'Close diagnostic bundle')}
                     >
                         <X size={18} />
                     </button>
@@ -300,13 +305,13 @@ export function DiagnosticBundleModal({
 
                 <div className="shrink-0 border-b border-brand-200 bg-brand-50/80 px-5 py-2.5 dark:border-brand-900 dark:bg-brand-950/35">
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-brand-800 dark:text-brand-200">
-                        <span className="inline-flex items-center gap-1.5"><HardDrive size={13} /> 只在本机处理</span>
-                        <span className="inline-flex items-center gap-1.5"><WifiOff size={13} /> 不联网</span>
-                        <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} /> 不自动上传</span>
+                        <span className="inline-flex items-center gap-1.5"><HardDrive size={13} /> {tr('只在本机处理', 'Processed locally only')}</span>
+                        <span className="inline-flex items-center gap-1.5"><WifiOff size={13} /> {tr('不联网', 'Offline')}</span>
+                        <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} /> {tr('不自动上传', 'No auto-upload')}</span>
                     </div>
                 </div>
 
-                <nav className="grid shrink-0 grid-cols-2 gap-1 border-b border-slate-200 bg-white px-5 pt-3 dark:border-slate-800 dark:bg-slate-900" aria-label="诊断包操作">
+                <nav className="grid shrink-0 grid-cols-2 gap-1 border-b border-slate-200 bg-white px-5 pt-3 dark:border-slate-800 dark:bg-slate-900" aria-label={tr('诊断包操作', 'Diagnostic bundle actions')}>
                     <button
                         type="button"
                         onClick={() => { setTab('export'); setError(null); }}
@@ -314,7 +319,7 @@ export function DiagnosticBundleModal({
                             ? 'border-brand-600 bg-brand-50/60 text-brand-700 dark:border-brand-400 dark:bg-brand-950/35 dark:text-brand-300'
                             : 'border-transparent text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/70'}`}
                     >
-                        <FileDown size={15} /> 导出诊断包
+                        <FileDown size={15} /> {tr('导出诊断包', 'Export Bundle')}
                     </button>
                     <button
                         type="button"
@@ -323,14 +328,14 @@ export function DiagnosticBundleModal({
                             ? 'border-violet-600 bg-violet-50/60 text-violet-700 dark:border-violet-400 dark:bg-violet-950/35 dark:text-violet-300'
                             : 'border-transparent text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/70'}`}
                     >
-                        <FileUp size={15} /> 本地打开诊断包
+                        <FileUp size={15} /> {tr('本地打开诊断包', 'Inspect Local Bundle')}
                     </button>
                 </nav>
 
                 <div className="min-h-0 flex-1 overflow-y-auto p-5">
                     {!nativeAvailable && (
                         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                            诊断包只在 CK 桌面软件中可用；网页预览不会读取或写入本机文件。
+                            {tr('诊断包只在 CK 桌面软件中可用；网页预览不会读取或写入本机文件。', 'Diagnostic bundles are only available in the CK desktop app; web preview does not read or write local files.')}
                         </div>
                     )}
 
@@ -339,15 +344,15 @@ export function DiagnosticBundleModal({
                             <section>
                                 <div className="mb-2.5 flex items-center justify-between gap-3">
                                     <div>
-                                        <h3 className="text-xs font-black text-slate-800 dark:text-slate-100">选择包含范围</h3>
-                                        <p className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500">默认不带源码，可按排查需要明确放宽。</p>
+                                        <h3 className="text-xs font-black text-slate-800 dark:text-slate-100">{tr('选择包含范围', 'Included Content')}</h3>
+                                        <p className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500">{tr('默认不带源码，可按排查需要明确放宽。', 'Source code is excluded by default; expand only when needed for troubleshooting.')}</p>
                                     </div>
                                     <span className="rounded-full border border-slate-200 bg-white px-2 py-1 text-[9px] font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-                                        由你决定内容
+                                        {tr('由你决定内容', 'You choose what to share')}
                                     </span>
                                 </div>
                                 <div className="grid gap-2 md:grid-cols-3">
-                                    {CONTENT_LEVELS.map(({ value, title, description, Icon }) => {
+                                    {contentLevels.map(({ value, title, description, Icon }) => {
                                         const selected = contentLevel === value;
                                         return (
                                             <button
@@ -375,10 +380,10 @@ export function DiagnosticBundleModal({
                             </section>
 
                             <section>
-                                <h3 className="text-xs font-black text-slate-800 dark:text-slate-100">隐私处理</h3>
-                                <p className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500">导出前在本机完成；无法可靠脱敏的二进制文件会被排除。</p>
+                                <h3 className="text-xs font-black text-slate-800 dark:text-slate-100">{tr('隐私处理', 'Privacy Redaction')}</h3>
+                                <p className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500">{tr('导出前在本机完成；无法可靠脱敏的二进制文件会被排除。', 'Applied locally before export; binary files that cannot be safely redacted are excluded.')}</p>
                                 <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
-                                    {PRIVACY_OPTIONS.map(option => (
+                                    {privacyOptions.map(option => (
                                         <label
                                             key={option.key}
                                             className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-slate-900/70"
@@ -404,18 +409,18 @@ export function DiagnosticBundleModal({
 
                             {!exportData && (
                                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[10px] leading-4 text-amber-800 dark:border-amber-900 dark:bg-amber-950/35 dark:text-amber-200">
-                                    当前页面还没有提供工程证据；仍可切换到“本地打开诊断包”查看已有文件。
+                                    {tr('当前页面还没有提供工程证据；仍可切换到“本地打开诊断包”查看已有文件。', 'No project evidence is available on this screen yet; you can still switch to "Inspect Local Bundle" to open an existing ZIP.')}
                                 </div>
                             )}
 
                             {exportResult && (
                                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3 dark:border-emerald-900 dark:bg-emerald-950/35">
                                     <div className="flex items-center gap-2 text-xs font-black text-emerald-800 dark:text-emerald-200">
-                                        <CheckCircle2 size={15} /> 诊断包已保存到本机
+                                        <CheckCircle2 size={15} /> {tr('诊断包已保存到本机', 'Diagnostic bundle saved locally')}
                                     </div>
                                     <p className="mt-1 break-all text-[10px] leading-4 text-emerald-700/80 dark:text-emerald-300/80">{exportResult.outputPath}</p>
                                     <p className="mt-1 text-[10px] text-emerald-700/80 dark:text-emerald-300/80">
-                                        已包含 {exportResult.includedFiles} 个文件；缺失 {exportResult.missingItems} 项；按设置排除 {exportResult.omittedItems} 项。
+                                        {tr(`已包含 ${exportResult.includedFiles} 个文件；缺失 ${exportResult.missingItems} 项；按设置排除 ${exportResult.omittedItems} 项。`, `Included ${exportResult.includedFiles} files; ${exportResult.missingItems} missing; ${exportResult.omittedItems} omitted by settings.`)}
                                     </p>
                                 </div>
                             )}
@@ -427,7 +432,7 @@ export function DiagnosticBundleModal({
                                 className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 text-xs font-black text-white shadow-sm transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-500"
                             >
                                 {operation === 'export' ? <Loader2 size={16} className="animate-spin" /> : <Archive size={16} />}
-                                {operation === 'export' ? '正在本机整理并校验…' : '选择位置并导出 ZIP'}
+                                {operation === 'export' ? tr('正在本机整理并校验…', 'Packaging and verifying locally…') : tr('选择位置并导出 ZIP', 'Choose Location & Export ZIP')}
                             </button>
                         </div>
                     )}
@@ -440,9 +445,9 @@ export function DiagnosticBundleModal({
                                         <FileUp size={17} />
                                     </span>
                                     <div>
-                                        <h3 className="text-sm font-black text-slate-900 dark:text-slate-100">打开 ZIP，生成本地中文摘要</h3>
+                                        <h3 className="text-sm font-black text-slate-900 dark:text-slate-100">{tr('打开 ZIP，生成本地摘要', 'Open ZIP & Generate Local Summary')}</h3>
                                         <p className="mt-1 text-[11px] leading-5 text-slate-600 dark:text-slate-300">
-                                            只校验清单、文件大小、SHA-256 和安全路径并读取摘要，不解压到工程，也不会上传源码或日志。
+                                            {tr('只校验清单、文件大小、SHA-256 和安全路径并读取摘要，不解压到工程，也不会上传源码或日志。', 'Verifies manifest, sizes, SHA-256 hashes, and safe paths to read a summary without extracting into projects or uploading any data.')}
                                         </p>
                                     </div>
                                 </div>
@@ -453,7 +458,7 @@ export function DiagnosticBundleModal({
                                     className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-violet-700 px-4 text-xs font-black text-white transition-colors hover:bg-violet-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-violet-600 dark:hover:bg-violet-500"
                                 >
                                     {operation === 'inspect' ? <Loader2 size={15} className="animate-spin" /> : <FileArchive size={15} />}
-                                    {operation === 'inspect' ? '正在本机校验…' : '选择本地诊断包'}
+                                    {operation === 'inspect' ? tr('正在本机校验…', 'Verifying locally…') : tr('选择本地诊断包', 'Select Local Diagnostic Bundle')}
                                 </button>
                             </section>
 
@@ -463,14 +468,14 @@ export function DiagnosticBundleModal({
                                         <div>
                                             <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-slate-100">
                                                 <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
-                                                本地校验通过
+                                                {tr('本地校验通过', 'Local Verification Passed')}
                                             </div>
                                             <p className="mt-1 max-w-xl break-all text-[9px] leading-4 text-slate-400 dark:text-slate-500" title={inspectedPath}>
                                                 {inspectedPath}
                                             </p>
                                         </div>
                                         <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[9px] font-bold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                            Schema v{inspection.schemaVersion} · {inspection.includedFiles} 个文件
+                                            Schema v{inspection.schemaVersion} · {tr(`${inspection.includedFiles} 个文件`, `${inspection.includedFiles} files`)}
                                         </span>
                                     </div>
 
@@ -481,23 +486,23 @@ export function DiagnosticBundleModal({
                                             ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/35 dark:text-amber-200'
                                             : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/35 dark:text-emerald-200'}`}
                                         >
-                                            <div className="text-[10px] font-bold">源码</div>
+                                            <div className="text-[10px] font-bold">{tr('源码', 'Source Code')}</div>
                                             <div className="mt-0.5 text-xs font-black">
-                                                {inspection.summary.sourceIncluded ? '诊断包包含源码' : '诊断包不包含源码'}
+                                                {inspection.summary.sourceIncluded ? tr('诊断包包含源码', 'Source code included') : tr('诊断包不包含源码', 'No source code included')}
                                             </div>
-                                            <div className="mt-0.5 text-[9px] opacity-75">内容档位：{inspection.summary.contentLevel}</div>
+                                            <div className="mt-0.5 text-[9px] opacity-75">{tr('内容档位：', 'Content level: ')}{inspection.summary.contentLevel}</div>
                                         </div>
                                         <div className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2.5 text-brand-800 dark:border-brand-900 dark:bg-brand-950/35 dark:text-brand-200">
-                                            <div className="text-[10px] font-bold">数据处理</div>
-                                            <div className="mt-0.5 text-xs font-black">未联网 · 未自动上传</div>
-                                            <div className="mt-0.5 text-[9px] opacity-75">本次仅在本机读取经过校验的摘要。</div>
+                                            <div className="text-[10px] font-bold">{tr('数据处理', 'Data Handling')}</div>
+                                            <div className="mt-0.5 text-xs font-black">{tr('未联网 · 未自动上传', 'Offline · Not uploaded')}</div>
+                                            <div className="mt-0.5 text-[9px] opacity-75">{tr('本次仅在本机读取经过校验的摘要。', 'Only a locally verified summary was read on this device.')}</div>
                                         </div>
                                     </div>
 
                                     {inspection.warnings.length > 0 && (
                                         <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-900 dark:bg-amber-950/35">
                                             <div className="flex items-center gap-1.5 text-[10px] font-black text-amber-800 dark:text-amber-200">
-                                                <TriangleAlert size={12} /> {inspection.warnings.length} 条打包提示
+                                                <TriangleAlert size={12} /> {tr(`${inspection.warnings.length} 条打包提示`, `${inspection.warnings.length} packaging warnings`)}
                                             </div>
                                             <ul className="mt-1.5 space-y-1 text-[9px] leading-4 text-amber-700 dark:text-amber-300">
                                                 {inspection.warnings.map((warning, index) => (

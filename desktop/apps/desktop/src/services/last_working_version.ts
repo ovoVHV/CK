@@ -1,4 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
+const isEnglishLocale = (): boolean => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { return false; }
+};
+const uiText = (zh: string, en: string): string => (isEnglishLocale() ? en : zh);
 import type { CompileResourceReport, LinkerMapResourceSummary } from './compile_resources';
 import type { DeviceHealthReport } from './device_health';
 
@@ -230,7 +238,7 @@ export const rebuildLastWorkingVersionLocked = async (
     const raw = await invoke<string>('rebuild_last_working_version_locked', { projectPath });
     const report = JSON.parse(raw) as LockedRebuildReport;
     if (report.status !== 'passed' || report.globalLibrariesUsed !== false) {
-        throw new Error('锁定依赖复编译没有返回可信的隔离证据');
+        throw new Error(uiText('锁定依赖复编译没有返回可信的隔离证据', 'Locked dependency rebuild did not return trusted isolation evidence'));
     }
     return report;
 };
@@ -246,7 +254,7 @@ const sha256 = async (value: string): Promise<string> => {
 const shortHash = (value: string): string => `${value.slice(0, 10)}…`;
 
 const bytesLabel = (value: number | null | undefined): string => {
-    if (value == null || !Number.isFinite(value)) return '未明确报告';
+    if (value == null || !Number.isFinite(value)) return uiText('未明确报告', 'Not reported');
     if (value < 1024) return `${value} B`;
     if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KiB`;
     return `${(value / 1024 / 1024).toFixed(2)} MiB`;
@@ -300,8 +308,8 @@ const collectBlocklyBlocks = (workspaceJson: string): Map<string, BlocklyBlockId
 
 const blockTypeSummary = (blocks: BlocklyBlockIdentity[]): string => {
     const types = [...new Set(blocks.map(block => block.type))];
-    const shown = types.slice(0, 3).map(type => `“${type}”`).join('、');
-    return shown + (types.length > 3 ? ` 等 ${types.length} 类` : '');
+    const shown = types.slice(0, 3).map(type => uiText(`“${type}”`, `"${type}"`)).join(uiText('、', ', '));
+    return shown + (types.length > 3 ? uiText(` 等 ${types.length} 类`, ` and ${types.length} types total`) : '');
 };
 
 const fqbnOptions = (fqbn: string): Record<string, string> => {
@@ -346,9 +354,9 @@ export const compareWithLastWorkingVersion = async (
         const changed = [...next.values()].filter(block => (
             previous.has(block.id) && previous.get(block.id)?.signature !== block.signature
         ));
-        if (changed.length) add('blocksChanged', 'workspace', 'warning', `修改了 ${changed.length} 个积木`, `${version.project.blockCount} 个积木`, `${current.blockCount} 个积木`, { count: changed.length });
-        if (added.length) add('blocksAdded', 'workspace', 'warning', `新增了 ${added.length} 个积木`, '无', blockTypeSummary(added), { count: added.length });
-        if (removed.length) add('blocksRemoved', 'workspace', 'warning', `删除了 ${removed.length} 个积木`, blockTypeSummary(removed), '无', { count: removed.length });
+        if (changed.length) add('blocksChanged', 'workspace', 'warning', `修改了 ${changed.length} 个积木`, uiText(`${version.project.blockCount} 个积木`, `${version.project.blockCount} blocks`), uiText(`${current.blockCount} 个积木`, `${current.blockCount} blocks`), { count: changed.length });
+        if (added.length) add('blocksAdded', 'workspace', 'warning', `新增了 ${added.length} 个积木`, uiText('无', 'None'), blockTypeSummary(added), { count: added.length });
+        if (removed.length) add('blocksRemoved', 'workspace', 'warning', `删除了 ${removed.length} 个积木`, blockTypeSummary(removed), uiText('无', 'None'), { count: removed.length });
         if (!added.length && !removed.length && !changed.length) {
             add('workspaceSerializationChanged', 'workspace', 'warning', '积木工程序列化内容已变化', shortHash(version.project.workspaceSha256), shortHash(workspaceHash));
         }
@@ -363,8 +371,8 @@ export const compareWithLastWorkingVersion = async (
             'environment',
             'important',
             'Core 发生变化',
-            `${version.environment.coreId}@${version.environment.coreVersion || '未识别'}`,
-            `${current.coreId}@${current.coreVersion || '未安装/未识别'}`,
+            `${version.environment.coreId}@${version.environment.coreVersion || uiText('未识别', 'Unknown')}`,
+            `${current.coreId}@${current.coreVersion || uiText('未安装/未识别', 'Not installed / unknown')}`,
         );
     }
     if (current.fqbn !== version.environment.fqbn) {
@@ -376,7 +384,7 @@ export const compareWithLastWorkingVersion = async (
         const keys = [...new Set([...Object.keys(beforeOptions), ...Object.keys(afterOptions)])].sort();
         keys.forEach(key => {
             if ((beforeOptions[key] || '') !== (afterOptions[key] || '')) {
-                add('boardOptionChanged', 'environment', 'warning', `${key} 配置发生变化`, beforeOptions[key] || '默认/未设置', afterOptions[key] || '默认/未设置', { option: key });
+                add('boardOptionChanged', 'environment', 'warning', `${key} 配置发生变化`, beforeOptions[key] || uiText('默认/未设置', 'Default / unset'), afterOptions[key] || uiText('默认/未设置', 'Default / unset'), { option: key });
             }
         });
     }
@@ -441,8 +449,8 @@ export const compareWithLastWorkingVersion = async (
             '当前尚无可比较的工具链证据',
             `${version.environment.arduinoCliVersion} · ${shortHash(version.environment.toolchainKey)}`,
             !buildEvidenceComparable
-                ? '现有证据早于可用版本，请在当前完整配置下重新编译一次'
-                : '请先在当前完整配置下成功编译一次',
+                ? uiText('现有证据早于可用版本，请在当前完整配置下重新编译一次', 'Existing evidence predates this version; build once under the current full configuration')
+                : uiText('请先在当前完整配置下成功编译一次', 'Run a successful build under the current full configuration first'),
         );
     }
     if (version.firmware.partition) {
@@ -452,7 +460,7 @@ export const compareWithLastWorkingVersion = async (
             'info',
             '可用版本保存了分区证据',
             `${version.firmware.partition.path} · ${shortHash(version.firmware.partition.sha256)}`,
-            '恢复固件前会重新校验',
+            uiText('恢复固件前会重新校验', 'Revalidated before restoring firmware'),
         );
     }
 
@@ -461,32 +469,32 @@ export const compareWithLastWorkingVersion = async (
         const after = new Map(current.dependencies.map(item => [item.name.toLowerCase(), item]));
         for (const [key, dependency] of before) {
             const now = after.get(key);
-            if (!now) add('dependencyMissing', 'dependencies', 'important', `缺少依赖 ${dependency.name}`, dependency.version || '未标版本', '未安装/未识别', { name: dependency.name });
+            if (!now) add('dependencyMissing', 'dependencies', 'important', `缺少依赖 ${dependency.name}`, dependency.version || uiText('未标版本', 'Unversioned'), uiText('未安装/未识别', 'Not installed / unknown'), { name: dependency.name });
             else if ((now.version || '') !== (dependency.version || '')) {
-                add('dependencyVersionChanged', 'dependencies', 'warning', `${dependency.name} 版本发生变化`, dependency.version || '未标版本', now.version || '未标版本', { name: dependency.name });
+                add('dependencyVersionChanged', 'dependencies', 'warning', `${dependency.name} 版本发生变化`, dependency.version || uiText('未标版本', 'Unversioned'), now.version || uiText('未标版本', 'Unversioned'), { name: dependency.name });
             }
         }
         for (const [key, dependency] of after) {
-            if (!before.has(key)) add('dependencyAdded', 'dependencies', 'info', `新增依赖 ${dependency.name}`, '无', dependency.version || '未标版本', { name: dependency.name });
+            if (!before.has(key)) add('dependencyAdded', 'dependencies', 'info', `新增依赖 ${dependency.name}`, uiText('无', 'None'), dependency.version || uiText('未标版本', 'Unversioned'), { name: dependency.name });
         }
     } else if (current.dependencyInventory) {
         const inventory = new Map(current.dependencyInventory.map(item => [item.name.toLowerCase(), item]));
         for (const dependency of version.lock.dependencies) {
             const installed = inventory.get(dependency.name.toLowerCase());
             if (!installed) {
-                add('dependencyMissing', 'dependencies', 'important', `当前环境缺少 ${dependency.name}`, dependency.version || '未标版本', '未安装/未识别', { name: dependency.name });
+                add('dependencyMissing', 'dependencies', 'important', `当前环境缺少 ${dependency.name}`, dependency.version || uiText('未标版本', 'Unversioned'), uiText('未安装/未识别', 'Not installed / unknown'), { name: dependency.name });
             } else if ((installed.version || '') !== (dependency.version || '')) {
-                add('dependencyVersionChanged', 'dependencies', 'warning', `${dependency.name} 版本发生变化`, dependency.version || '未标版本', installed.version || '未标版本', { name: dependency.name });
+                add('dependencyVersionChanged', 'dependencies', 'warning', `${dependency.name} 版本发生变化`, dependency.version || uiText('未标版本', 'Unversioned'), installed.version || uiText('未标版本', 'Unversioned'), { name: dependency.name });
             }
         }
     } else if (version.lock.dependencies.length > 0) {
-        add('dependencyResolutionPending', 'dependencies', 'info', `可用版本锁定了 ${version.lock.dependencies.length} 个外部库`, version.lock.dependencies.map(item => `${item.name}${item.version ? `@${item.version}` : ''}`).join('、'), '当前尚未重新解析依赖', { count: version.lock.dependencies.length });
+        add('dependencyResolutionPending', 'dependencies', 'info', `可用版本锁定了 ${version.lock.dependencies.length} 个外部库`, version.lock.dependencies.map(item => `${item.name}${item.version ? `@${item.version}` : ''}`).join(uiText('、', ', ')), uiText('当前尚未重新解析依赖', 'Dependencies have not been re-resolved yet'), { count: version.lock.dependencies.length });
     }
 
     if (current.deviceHealth) {
         const hardware = deviceEvidence(current.deviceHealth);
         if (hardware.chip !== version.device.chip) {
-            add('deviceChipChanged', 'device', 'important', '真机芯片证据发生变化', version.device.chip || '未明确报告', hardware.chip || '当前体检未明确报告');
+            add('deviceChipChanged', 'device', 'important', '真机芯片证据发生变化', version.device.chip || uiText('未明确报告', 'Not reported'), hardware.chip || uiText('当前体检未明确报告', 'Not reported by current check'));
         }
         if (hardware.flashBytes !== version.device.flashBytes) {
             add('flashChanged', 'device', 'important', '实体 Flash 证据发生变化', bytesLabel(version.device.flashBytes), bytesLabel(hardware.flashBytes));
@@ -500,8 +508,8 @@ export const compareWithLastWorkingVersion = async (
             'device',
             'info',
             '当前端口尚未完成真机体检',
-            `${version.device.chip || '芯片未明确'} · Flash ${bytesLabel(version.device.flashBytes)}`,
-            '恢复固件前仍会重新执行芯片族与实体 Flash 门禁',
+            `${version.device.chip || uiText('芯片未明确', 'Chip not reported')} · Flash ${bytesLabel(version.device.flashBytes)}`,
+            uiText('恢复固件前仍会重新执行芯片族与实体 Flash 门禁', 'Chip family and physical Flash checks will still run before restoring firmware'),
         );
     }
 
@@ -539,7 +547,7 @@ export const compareWithLastWorkingVersion = async (
 export const formatLastWorkingTime = (value: string): string => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
-    return new Intl.DateTimeFormat('zh-CN', {
+    return new Intl.DateTimeFormat(isEnglishLocale() ? 'en-US' : 'zh-CN', {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',

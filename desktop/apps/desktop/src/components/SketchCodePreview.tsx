@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers } from '@codemirror/view';
 import { arduinoCpp, codeTheme, cppConstants } from './arduinoHighlight';
+import { uiText } from '../i18n/uiText';
 
 // CodeMirror virtualizes the viewport even for large generated sketches.
 export function SketchCodePreview({code,dark}:{code:string;dark:boolean}) {
@@ -10,7 +11,7 @@ export function SketchCodePreview({code,dark}:{code:string;dark:boolean}) {
         const editor=new EditorView({parent:mount.current!, doc:code, extensions:[
             arduinoCpp,cppConstants,theme.current.of(codeTheme(dark)),lineNumbers(),
             EditorState.readOnly.of(true),EditorView.editable.of(false),
-            EditorView.contentAttributes.of({'aria-label':'积木生成的 C++ 源码',tabindex:'0'}),
+            EditorView.contentAttributes.of({'aria-label':uiText('积木生成的 C++ 源码', 'Generated C++ source from blocks'),tabindex:'0'}),
             EditorView.theme({'&':{height:'100%'},'.cm-scroller':{overflow:'auto',fontFamily:'Consolas, monospace',lineHeight:'1.65'},
                 '.cm-content':{padding:'12px 0'},'.cm-gutters':{background:'transparent',border:'none',color:'#788596'}}),
         ]});view.current=editor;return ()=>{view.current=null;editor.destroy();};

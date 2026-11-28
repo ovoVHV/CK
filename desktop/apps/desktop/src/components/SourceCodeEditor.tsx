@@ -7,6 +7,7 @@ import { arduinoCpp, codeTheme, cppConstants } from './arduinoHighlight';
 import { setDiagnostics } from '@codemirror/lint';
 import { openSearchPanel } from '@codemirror/search';
 import type { SourceDiagnostic } from '../services/source_project';
+import { uiText } from '../i18n/uiText';
 
 export function SourceCodeEditor({ code, documentKey, dark, readOnly, active = true, diagnostics, reveal, onChange, onSave, onBuild, onCursor, onRejectedEdit }: {
     code: string; documentKey: string; active?: boolean; dark: boolean; readOnly: boolean; diagnostics: SourceDiagnostic[];
@@ -29,12 +30,12 @@ export function SourceCodeEditor({ code, documentKey, dark, readOnly, active = t
                 if (!transaction.docChanged) return true;
                 const text = transaction.newDoc.toString();
                 if (text.includes('\0') || new TextEncoder().encode(text).length > 1024 * 1024) {
-                    queueMicrotask(() => config.current.onRejectedEdit('未插入该内容：源码限 1 MiB，且不能包含空字符。')); return false;
+                    queueMicrotask(() => config.current.onRejectedEdit(uiText('未插入该内容：源码限 1 MiB，且不能包含空字符。', 'Edit rejected: source files are limited to 1 MiB and cannot contain null bytes.'))); return false;
                 }
                 return true;
             }),
             editable.current.of(EditorState.readOnly.of(readOnly)),
-            EditorView.contentAttributes.of({ 'aria-label': 'C++ 源码编辑器', spellcheck: 'false' }),
+            EditorView.contentAttributes.of({ 'aria-label': uiText('C++ 源码编辑器', 'C++ source code editor'), spellcheck: 'false' }),
             EditorView.theme({ '&': { height: '100%', fontSize: '14px' }, '.cm-scroller': { overflow: 'auto', lineHeight: '1.75', fontFamily: 'Consolas, "Cascadia Code", monospace' },
                 '.cm-content': { padding: '16px 0', minHeight: '100%' }, '.cm-line': { padding: '0 20px 0 12px' },
                 '.cm-gutters': { border: 'none', backgroundColor: 'transparent', color: '#94a3b8', minWidth: '54px' }, '.cm-lineNumbers .cm-gutterElement': { minWidth: '34px', padding: '0 6px 0 12px' }, '.cm-activeLine': { backgroundColor: 'var(--ck-source-active-line)' }, '&.cm-focused': { outline: 'none' } }),

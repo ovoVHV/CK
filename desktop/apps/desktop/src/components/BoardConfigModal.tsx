@@ -5,6 +5,7 @@ import { getBoardDetailsCached } from '../services/board_details_cache';
 import { mergeBoardConfigOptions } from '../services/board_fqbn';
 import { BoardOption } from '../types/board';
 import type { WorkspaceViewMode } from '../services/workspace_view_mode';
+import { useUiText } from '../i18n/uiText';
 
 interface BoardConfigModalProps {
     isOpen: boolean;
@@ -37,6 +38,7 @@ export default function BoardConfigModal({
     onForceRebuild,
     onForceRebuildAndUpload,
 }: BoardConfigModalProps) {
+    const { tr } = useUiText();
     const {
         boardOptions,
         displayBoardOptions,
@@ -111,16 +113,16 @@ export default function BoardConfigModal({
                         : coreConfigs;
                     setConfigs(nextConfigs);
                     setSourceText(configOptions && configOptions.length > 0
-                        ? 'Arduino CLI + board.json 约束'
+                        ? tr('Arduino CLI + board.json 约束', 'Arduino CLI + board.json constraints')
                         : 'Arduino CLI');
                 } catch (cause: any) {
                     if (!active) return;
                     console.warn('Failed to fetch board details, falling back to static config', cause);
                     applyStaticFallback();
                     setSourceText(configOptions && configOptions.length > 0
-                        ? 'board.json（Core 未验证）'
-                        : 'Arduino CLI 不可用');
-                    setError(String(cause?.message || cause || '未知错误'));
+                        ? tr('board.json（Core 未验证）', 'board.json (Core unverified)')
+                        : tr('Arduino CLI 不可用', 'Arduino CLI unavailable'));
+                    setError(String(cause?.message || cause || tr('未知错误', 'Unknown error')));
                 } finally {
                     if (active) setLoading(false);
                 }
@@ -160,17 +162,17 @@ export default function BoardConfigModal({
                             <CircuitBoard size={18} />
                         </div>
                         <div className="flex flex-col min-w-0">
-                            <span id="ck-board-config-title" className="text-sm font-bold text-slate-900 dark:text-slate-100">编译目标设置</span>
+                            <span id="ck-board-config-title" className="text-sm font-bold text-slate-900 dark:text-slate-100">{tr('编译目标设置', 'Build Target Settings')}</span>
                             <span className="text-[10px] text-slate-400 font-mono truncate max-w-[560px] mt-0.5 dark:text-slate-500">
-                                当前工程的板卡与编译参数
+                                {tr('当前工程的板卡与编译参数', 'Board and build options for the current project')}
                             </span>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
                         className="w-8 h-8 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                        title="关闭"
-                        aria-label="关闭板卡设置"
+                        title={tr('关闭', 'Close')}
+                        aria-label={tr('关闭板卡设置', 'Close board settings')}
                     >
                         <X size={17} />
                     </button>
@@ -183,30 +185,30 @@ export default function BoardConfigModal({
                                 <CircuitBoard size={20} />
                             </div>
                             <div className="flex min-w-0 flex-1 flex-col">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase dark:text-slate-500">项目板卡</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase dark:text-slate-500">{tr('项目板卡', 'Project Board')}</span>
                                 <span className="text-sm font-bold text-slate-900 truncate mt-1 dark:text-slate-100" title={boardName}>{boardName}</span>
                                 {displayMode === 'engineering' ? (
                                     <>
-                                        <span className="mt-2 text-[9px] font-bold text-slate-400 dark:text-slate-500">完整编译目标</span>
+                                        <span className="mt-2 text-[9px] font-bold text-slate-400 dark:text-slate-500">{tr('完整编译目标', 'Effective FQBN')}</span>
                                         <code
                                             data-ck-role="board-config-effective-fqbn"
                                             className="mt-1 select-text whitespace-normal break-all [overflow-wrap:anywhere] font-mono text-[9px] leading-4 text-slate-500 dark:text-slate-400"
-                                            title={boardFqbn || '未记录 FQBN'}
+                                            title={boardFqbn || tr('未记录 FQBN', 'FQBN not recorded')}
                                         >
-                                            {boardFqbn || '未记录 FQBN'}
+                                            {boardFqbn || tr('未记录 FQBN', 'FQBN not recorded')}
                                         </code>
                                     </>
                                 ) : (
                                     <details data-ck-role="board-config-advanced-target" className="mt-2 text-[9px] text-slate-500 dark:text-slate-400">
                                         <summary className="cursor-pointer select-none font-bold text-brand-700 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200">
-                                            查看完整编译目标
+                                            {tr('查看完整编译目标', 'Show full build target')}
                                         </summary>
                                         <code
                                             data-ck-role="board-config-effective-fqbn"
                                             className="mt-1 block select-text whitespace-normal break-all [overflow-wrap:anywhere] font-mono text-[9px] leading-4"
-                                            title={boardFqbn || '未记录 FQBN'}
+                                            title={boardFqbn || tr('未记录 FQBN', 'FQBN not recorded')}
                                         >
-                                            {boardFqbn || '未记录 FQBN'}
+                                            {boardFqbn || tr('未记录 FQBN', 'FQBN not recorded')}
                                         </code>
                                     </details>
                                 )}
@@ -218,31 +220,31 @@ export default function BoardConfigModal({
                         <div className="h-12 px-5 border-b border-[#edf0f4] flex items-center justify-between shrink-0 dark:border-slate-800">
                             <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
                                 <SlidersHorizontal size={16} className="text-[var(--accent)] dark:text-brand-300" />
-                                <span className="text-xs font-bold">编译选项</span>
+                                <span className="text-xs font-bold">{tr('编译选项', 'Build Options')}</span>
                             </div>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500">来源：{sourceText}</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500">{tr('来源：', 'Source: ')}{sourceText}</span>
                         </div>
 
                         <div className="flex-1 overflow-y-auto">
                             {loading && (
                                 <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3 dark:text-slate-500">
                                     <Loader2 size={22} className="animate-spin text-[var(--accent)] dark:text-brand-300" />
-                                    <span className="text-xs">正在读取板卡定义</span>
+                                    <span className="text-xs">{tr('正在读取板卡定义', 'Loading board definition')}</span>
                                 </div>
                             )}
 
                             {!loading && error && (
                                 <div className="mx-5 mt-5 px-4 py-3 border-l-2 border-red-400 bg-red-50 text-red-700 text-xs dark:border-red-500 dark:bg-red-950/45 dark:text-red-300">
-                                    加载配置失败：{error}
+                                    {tr('加载配置失败：', 'Failed to load configuration: ')}{error}
                                 </div>
                             )}
 
                             {!loading && Object.keys(droppedBoardOptions).length > 0 && (
                                 <div className="mx-5 mt-5 px-4 py-3 border-l-2 border-red-400 bg-red-50 text-red-800 text-xs dark:border-red-500 dark:bg-red-950/45 dark:text-red-200">
                                     <div>
-                                        <strong>已阻止构建：</strong>当前板卡不支持旧配置：{Object.entries(droppedBoardOptions)
+                                        <strong>{tr('已阻止构建：', 'Build blocked: ')}</strong>{tr('当前板卡不支持旧配置：', 'This board does not support legacy options: ')}{Object.entries(droppedBoardOptions)
                                             .map(([key, value]) => `${key}=${value}`)
-                                            .join('、')}。CK 不会静默改用默认值。
+                                            .join(tr('、', ', '))}{tr('。CK 不会静默改用默认值。', '. CK will not silently fall back to defaults.')}
                                     </div>
                                     <button
                                         type="button"
@@ -250,7 +252,7 @@ export default function BoardConfigModal({
                                         disabled={configurationLocked}
                                         className="mt-2 h-8 px-3 rounded-md border border-red-300 bg-white text-red-700 font-bold hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/70"
                                     >
-                                        移除不兼容旧配置
+                                        {tr('移除不兼容旧配置', 'Remove incompatible options')}
                                     </button>
                                 </div>
                             )}
@@ -258,8 +260,8 @@ export default function BoardConfigModal({
                             {!loading && !error && configs.length === 0 && (
                                 <div className="h-full flex flex-col items-center justify-center text-center px-8 text-slate-400 dark:text-slate-500">
                                     <SlidersHorizontal size={24} className="mb-3 text-slate-300 dark:text-slate-600" />
-                                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">当前板卡无需额外配置</span>
-                                    <span className="text-xs mt-1">使用核心提供的默认编译参数</span>
+                                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{tr('当前板卡无需额外配置', 'No extra build options required')}</span>
+                                    <span className="text-xs mt-1">{tr('使用核心提供的默认编译参数', 'Uses the default build parameters provided by the core')}</span>
                                 </div>
                             )}
 
@@ -291,16 +293,16 @@ export default function BoardConfigModal({
                 <div className="min-h-14 px-5 py-2 bg-[#fbfcfe] border-t border-[#e1e7ef] flex items-center justify-between gap-3 shrink-0 dark:border-slate-700 dark:bg-slate-900">
                     <div className="flex items-center gap-2 min-w-0">
                         <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                            {isBusy ? '编译或上传期间配置已锁定' : loading ? '正在同步 Arduino CLI' : `已加载 ${configs.length} 个编译选项`}
+                            {isBusy ? tr('编译或上传期间配置已锁定', 'Options locked while building or uploading') : loading ? tr('正在同步 Arduino CLI', 'Syncing with Arduino CLI') : tr(`已加载 ${configs.length} 个编译选项`, `Loaded ${configs.length} build options`)}
                         </span>
                         <button
                             data-ck-role="deep-compile-cache-refresh"
                             onClick={() => void runCacheAction('deep')}
                             disabled={isBusy || !!cacheAction || !onDeepClearCache}
                             className="text-[10px] font-semibold text-slate-400 hover:text-amber-700 underline underline-offset-2 disabled:opacity-40 whitespace-nowrap dark:text-slate-500 dark:hover:text-amber-300"
-                            title="忽略编译器内容缓存并彻底重建；仅在怀疑缓存损坏时使用，ESP32 可能需要数分钟"
+                            title={tr('忽略编译器内容缓存并彻底重建；仅在怀疑缓存损坏时使用，ESP32 可能需要数分钟', 'Ignore compiler content cache and rebuild from scratch; use only if cache corruption is suspected (ESP32 may take several minutes)')}
                         >
-                            {cacheAction === 'deep' ? '正在彻底刷新…' : '彻底刷新'}
+                            {cacheAction === 'deep' ? tr('正在彻底刷新…', 'Deep refreshing…') : tr('彻底刷新', 'Deep refresh')}
                         </button>
                     </div>
                     <div className="flex items-center justify-end gap-2 min-w-0">
@@ -308,10 +310,10 @@ export default function BoardConfigModal({
                             onClick={() => void runCacheAction('clear')}
                             disabled={isBusy || !!cacheAction || !onClearCache}
                             className="h-8 px-3 border border-[#d7dee8] bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-md transition-colors disabled:opacity-50 inline-flex items-center gap-1.5 whitespace-nowrap dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                            title="重建当前板卡配置的产物，保留按源码内容校验的编译器缓存"
+                            title={tr('重建当前板卡配置的产物，保留按源码内容校验的编译器缓存', 'Rebuild artifacts for the current board configuration while keeping content-hashed compiler cache')}
                         >
                             {cacheAction === 'clear' ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
-                            重建缓存
+                            {tr('重建缓存', 'Rebuild cache')}
                         </button>
                         <button
                             onClick={() => void runCacheAction('compile')}
@@ -319,23 +321,23 @@ export default function BoardConfigModal({
                             className="h-8 px-3 border border-[#9fc7c2] bg-white hover:bg-[#f1f9f8] text-[var(--accent)] text-xs font-bold rounded-md transition-colors disabled:opacity-50 inline-flex items-center gap-1.5 whitespace-nowrap dark:border-brand-700 dark:bg-slate-800 dark:text-brand-300 dark:hover:bg-brand-950/45"
                         >
                             {cacheAction === 'compile' ? <Loader2 size={14} className="animate-spin" /> : <Hammer size={14} />}
-                            重新编译
+                            {tr('重新编译', 'Rebuild')}
                         </button>
                         <button
                             onClick={() => void runCacheAction('upload')}
                             disabled={isBusy || !!cacheAction || !onForceRebuildAndUpload || !canUpload}
                             className="h-8 px-3 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-md transition-colors disabled:opacity-50 inline-flex items-center gap-1.5 whitespace-nowrap"
-                            title={canUpload ? '重建当前配置后重新编译并烧录' : '请先选择串口'}
+                            title={canUpload ? tr('重建当前配置后重新编译并烧录', 'Rebuild and upload with the current configuration') : tr('请先选择串口', 'Select a serial port first')}
                         >
                             {cacheAction === 'upload' ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                            重新烧录
+                            {tr('重新烧录', 'Rebuild & Upload')}
                         </button>
                         <button
                             onClick={onClose}
                             disabled={!!cacheAction}
                             className="h-8 px-4 border border-[#d7dee8] bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-md transition-colors disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                         >
-                            完成
+                            {tr('完成', 'Done')}
                         </button>
                     </div>
                 </div>

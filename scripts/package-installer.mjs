@@ -1,4 +1,4 @@
-import {storageIncludes,storageInit,storagePage,storageFunctions,storageInstall} from './storage-installer.mjs';
+import {storageIncludes,storageLangStrings,storageInit,storagePage,storageFunctions,storageInstall} from './storage-installer.mjs';
 import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import {spawnSync} from 'node:child_process';import {createHash} from 'node:crypto';import {ENGINE_VERSION} from '../src/version.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const [previewArg,outArg,makensisArg]=process.argv.slice(2);if(!previewArg||!outArg||!makensisArg)throw Error('Usage: package-installer PREVIEW OUTPUT MAKENSIS');
@@ -91,6 +91,7 @@ fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(pat
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/alpha.57-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,'docs/1.0.59-release-notes.txt'),'utf8').replace(/\r?\n/g,'\r\n'));
 fs.appendFileSync(path.join(stage,'使用说明.txt'),'\r\n'+fs.readFileSync(path.join(root,`docs/${ENGINE_VERSION}-release-notes.txt`),'utf8').replace(/\r?\n/g,'\r\n'));
+fs.writeFileSync(path.join(stage,'README.txt'),`CK LAB V${ENGINE_VERSION}\r\n\r\n1. Launch "CK LAB" from the Desktop or Start Menu. Multiple windows and opening multiple .ck projects simultaneously are supported.\r\n2. Board cores, toolchains, caches, and user projects are stored in your chosen CKData folder and preserved across upgrades and uninstalls.\r\n3. Bundled Node.js, Ninja, Arduino CLI, and native helpers require no PATH setup or administrator privileges.\r\n4. For Chinese release notes, see 使用说明.txt.\r\n`);
 const files=[];function scan(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const f=path.join(dir,e.name);if(f===path.join(stage,'files.sha256.json'))continue;if(e.isDirectory())scan(f);else files.push({path:path.relative(stage,f),bytes:fs.statSync(f).size,sha256:hash(f)});}}scan(stage);
 fs.writeFileSync(path.join(stage,'files.sha256.json'),JSON.stringify(files,null,2));files.push({path:'files.sha256.json'});
 const escape=s=>s.replaceAll('$','$$').replaceAll('"','$\\"');
@@ -108,6 +109,10 @@ RequestExecutionLevel user
 Icon "${escape(path.join(root,'desktop/apps/desktop/src-tauri/icons/icon.ico'))}"
 !define MUI_ICON "${escape(path.join(root,'desktop/apps/desktop/src-tauri/icons/icon.ico'))}"
 !define MUI_UNICON "${escape(path.join(root,'desktop/apps/desktop/src-tauri/icons/icon.ico'))}"
+!define MUI_LANGDLL_ALLLANGUAGES
+!define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
+!define MUI_LANGDLL_REGISTRY_KEY "Software\\CKBuildEngineV91Alpha"
+!define MUI_LANGDLL_REGISTRY_VALUENAME "InstallerLanguage"
 SetCompressor /SOLID lzma
 VIProductVersion "${ENGINE_VERSION}.0"
 VIAddVersionKey "ProductVersion" "${ENGINE_VERSION}"
@@ -123,29 +128,64 @@ ${storagePage}
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
-!insertmacro MUI_LANGUAGE "SimpChinese"
 !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "SimpChinese"
+${storageLangStrings}
+LangString CK_MSG_CLOSE_INSTALL \${LANG_SIMPCHINESE} "请先关闭所有 CK LAB 窗口或等待测试结束，再安装。"
+LangString CK_MSG_CLOSE_INSTALL \${LANG_ENGLISH} "Please close all CK LAB windows (or wait for running checks to finish) before installing."
+LangString CK_MSG_CLOSE_UNINSTALL \${LANG_SIMPCHINESE} "请先关闭所有 CK LAB 窗口或等待测试结束，再卸载。"
+LangString CK_MSG_CLOSE_UNINSTALL \${LANG_ENGLISH} "Please close all CK LAB windows (or wait for running checks to finish) before uninstalling."
+LangString CK_MSG_UNINSTALL_MISMATCH \${LANG_SIMPCHINESE} "卸载位置不匹配，请从已安装版本运行卸载。"
+LangString CK_MSG_UNINSTALL_MISMATCH \${LANG_ENGLISH} "Uninstall location mismatch. Please run the uninstaller from the installed directory."
+LangString CK_MSG_UNINSTALL_NO_MARKER \${LANG_SIMPCHINESE} "缺少安装标识，保留文件并停止卸载。"
+LangString CK_MSG_UNINSTALL_NO_MARKER \${LANG_ENGLISH} "Installation marker is missing. Files were kept and uninstall was aborted."
+LangString CK_SC_COMPAT \${LANG_SIMPCHINESE} "兼容编译模式"
+LangString CK_SC_COMPAT \${LANG_ENGLISH} "Compatibility Build Mode"
+LangString CK_SC_PREPARE \${LANG_SIMPCHINESE} "准备工具链"
+LangString CK_SC_PREPARE \${LANG_ENGLISH} "Prepare Toolchain"
+LangString CK_SC_QUALIFY \${LANG_SIMPCHINESE} "第二台资格测试"
+LangString CK_SC_QUALIFY \${LANG_ENGLISH} "Qualification Check"
+LangString CK_SC_CONFIG \${LANG_SIMPCHINESE} "板卡配置回归测试"
+LangString CK_SC_CONFIG \${LANG_ENGLISH} "Board Config Check"
+LangString CK_SC_WIFI \${LANG_SIMPCHINESE} "WiFi 增量检查"
+LangString CK_SC_WIFI \${LANG_ENGLISH} "WiFi Incremental Check"
+LangString CK_SC_WIFI_WAIT \${LANG_SIMPCHINESE} "WiFi 等待积木 A-B 检查"
+LangString CK_SC_WIFI_WAIT \${LANG_ENGLISH} "WiFi Wait-Block Check"
+LangString CK_SC_DOCTOR \${LANG_SIMPCHINESE} "环境检查"
+LangString CK_SC_DOCTOR \${LANG_ENGLISH} "Environment Check"
+LangString CK_SC_WEBVIEW2 \${LANG_SIMPCHINESE} "修复 WebView2 运行时"
+LangString CK_SC_WEBVIEW2 \${LANG_ENGLISH} "Repair WebView2 Runtime"
+LangString CK_SC_README \${LANG_SIMPCHINESE} "使用说明"
+LangString CK_SC_README \${LANG_ENGLISH} "Read Me"
+LangString CK_SC_README_FILE \${LANG_SIMPCHINESE} "使用说明.txt"
+LangString CK_SC_README_FILE \${LANG_ENGLISH} "README.txt"
+LangString CK_SC_DATA \${LANG_SIMPCHINESE} "数据目录"
+LangString CK_SC_DATA \${LANG_ENGLISH} "Open Data Folder"
+LangString CK_SC_UNINSTALL \${LANG_SIMPCHINESE} "卸载"
+LangString CK_SC_UNINSTALL \${LANG_ENGLISH} "Uninstall"
 ${storageFunctions}
 Function .onInit
   SetShellVarContext current
+  !insertmacro MUI_LANGDLL_DISPLAY
 ${storageInit}
   System::Call 'kernel32::OpenMutexW(i 0x100000, i 0, w "Local\\CK-V91-Product-Launcher") p.r0'
   IntCmp $0 0 checkReady
     System::Call 'kernel32::CloseHandle(p r0)'
-    MessageBox MB_OK "请先关闭 CK V9.1 或等待资格测试结束，再安装。"
+    MessageBox MB_OK "$(CK_MSG_CLOSE_INSTALL)"
     Abort
   checkReady:
 FunctionEnd
 Function un.onInit
   SetShellVarContext current
+  !insertmacro MUI_UNGETLANGUAGE
   System::Call 'kernel32::OpenMutexW(i 0x100000, i 0, w "Local\\CK-V91-Product-Launcher") p.r0'
   IntCmp $0 0 checkReady
     System::Call 'kernel32::CloseHandle(p r0)'
-    MessageBox MB_OK "请先关闭 CK V9.1 或等待资格测试结束，再卸载。"
+    MessageBox MB_OK "$(CK_MSG_CLOSE_UNINSTALL)"
     Abort
   checkReady:
 FunctionEnd
-Section "CK V9.1"
+Section "CK LAB"
   SetShellVarContext current
   SetOutPath "$INSTDIR"
   File /r "${escape(stage)}\\*"
@@ -159,48 +199,42 @@ ${storageInstall}
   WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha" "InstallLocation" "$INSTDIR"
   WriteRegDWORD HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha" "NoModify" 1
   WriteRegDWORD HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha" "NoRepair" 1
-  CreateDirectory "$SMPROGRAMS\\CK V9.1 测试版"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\CK V9.1 测试版.lnk" "$INSTDIR\\CK-V9.1.exe"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\兼容编译模式.lnk" "$INSTDIR\\CK-V9.1.exe" "--compat"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\准备工具链.lnk" "$INSTDIR\\CK-V9.1.exe" "--install-assets"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\第二台资格测试.lnk" "$INSTDIR\\CK-V9.1.exe" "--qualify"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\板卡配置回归测试.lnk" "$INSTDIR\\CK-V9.1.exe" "--configuration-check"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\WiFi 增量检查.lnk" "$INSTDIR\\CK-V9.1.exe" "--wifi-check"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\WiFi 等待积木 A-B 检查.lnk" "$INSTDIR\\CK-V9.1.exe" "--wifi-wait-check"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\环境检查.lnk" "$INSTDIR\\CK-V9.1.exe" "--doctor"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\修复 WebView2 运行时.lnk" "$INSTDIR\\MicrosoftEdgeWebview2Setup.exe"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\使用说明.lnk" "$INSTDIR\\使用说明.txt"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\测试结果.lnk" "$INSTDIR\\CK-V9.1.exe" "--open-data"
-  CreateShortcut "$SMPROGRAMS\\CK V9.1 测试版\\卸载.lnk" "$INSTDIR\\Uninstall.exe"
-  CreateShortcut "$DESKTOP\\CK V9.1 测试版.lnk" "$INSTDIR\\CK-V9.1.exe"
+  ; Clean up legacy Chinese-only shortcut folder/desktop icon when upgrading
+  Delete "$DESKTOP\\CK V9.1 测试版.lnk"
+  RMDir /r "$SMPROGRAMS\\CK V9.1 测试版"
+  RMDir /r "$SMPROGRAMS\\CK LAB"
+  CreateDirectory "$SMPROGRAMS\\CK LAB"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\CK LAB.lnk" "$INSTDIR\\CK-V9.1.exe"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_COMPAT).lnk" "$INSTDIR\\CK-V9.1.exe" "--compat"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_PREPARE).lnk" "$INSTDIR\\CK-V9.1.exe" "--install-assets"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_QUALIFY).lnk" "$INSTDIR\\CK-V9.1.exe" "--qualify"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_CONFIG).lnk" "$INSTDIR\\CK-V9.1.exe" "--configuration-check"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_WIFI).lnk" "$INSTDIR\\CK-V9.1.exe" "--wifi-check"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_WIFI_WAIT).lnk" "$INSTDIR\\CK-V9.1.exe" "--wifi-wait-check"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_DOCTOR).lnk" "$INSTDIR\\CK-V9.1.exe" "--doctor"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_WEBVIEW2).lnk" "$INSTDIR\\MicrosoftEdgeWebview2Setup.exe"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_README).lnk" "$INSTDIR\\$(CK_SC_README_FILE)"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_DATA).lnk" "$INSTDIR\\CK-V9.1.exe" "--open-data"
+  CreateShortcut "$SMPROGRAMS\\CK LAB\\$(CK_SC_UNINSTALL).lnk" "$INSTDIR\\Uninstall.exe"
+  CreateShortcut "$DESKTOP\\CK LAB.lnk" "$INSTDIR\\CK-V9.1.exe"
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 SectionEnd
 Section "Uninstall"
   SetShellVarContext current
   ReadRegStr $0 HKCU "Software\\CKBuildEngineV91Alpha" "InstallDir"
   StrCmp $0 $INSTDIR +3
-    MessageBox MB_OK "卸载位置不匹配，请从已安装版本运行卸载。"
+    MessageBox MB_OK "$(CK_MSG_UNINSTALL_MISMATCH)"
     Abort
   IfFileExists "$INSTDIR\\package-id.txt" +3
-    MessageBox MB_OK "缺少安装标识，保留文件并停止卸载。"
+    MessageBox MB_OK "$(CK_MSG_UNINSTALL_NO_MARKER)"
     Abort
 ${uninstall}
   Delete "$INSTDIR\\Uninstall.exe"
   RMDir "$INSTDIR"
+  Delete "$DESKTOP\\CK LAB.lnk"
   Delete "$DESKTOP\\CK V9.1 测试版.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\CK V9.1 测试版.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\兼容编译模式.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\准备工具链.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\第二台资格测试.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\板卡配置回归测试.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\WiFi 增量检查.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\WiFi 等待积木 A-B 检查.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\环境检查.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\修复 WebView2 运行时.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\使用说明.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\测试结果.lnk"
-  Delete "$SMPROGRAMS\\CK V9.1 测试版\\卸载.lnk"
-  RMDir "$SMPROGRAMS\\CK V9.1 测试版"
+  RMDir /r "$SMPROGRAMS\\CK LAB"
+  RMDir /r "$SMPROGRAMS\\CK V9.1 测试版"
   DeleteRegKey HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\CKBuildEngineV91Alpha"
   DeleteRegKey HKCU "Software\\CKBuildEngineV91Alpha"
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'

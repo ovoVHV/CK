@@ -10,6 +10,7 @@ import {
     TriangleAlert,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useUiText } from '../i18n/uiText';
 import type {
     PinCatalogEntry,
     PinCatalogFilter,
@@ -51,7 +52,83 @@ const issueTheme = (issue: PinPreflightIssue) => {
     };
 };
 
-const usageText = (usage: PinUsage): string => `${usage.blockLabel} · ${usage.roleLabel}`;
+const PIN_LABEL_EN: Record<string, string> = {
+    '设置管脚模式': 'Set pin mode',
+    '数字输出': 'Digital output',
+    '数字输入': 'Digital input',
+    '模拟输出': 'Analog output',
+    '模拟输入': 'Analog input',
+    '软件模拟输出': 'Software PWM output',
+    '停止软件模拟输出': 'Stop software PWM',
+    '多功能按键': 'Multi-button',
+    '硬件中断': 'Hardware interrupt',
+    '取消硬件中断': 'Detach hardware interrupt',
+    '软件中断': 'Software interrupt',
+    '取消软件中断': 'Cancel software interrupt',
+    '读取脉冲长度': 'Read pulse length',
+    '限时读取脉冲': 'Read pulse with timeout',
+    '读取长脉冲': 'Read long pulse',
+    '舵机': 'Servo',
+    '按引脚初始化串口': 'Init UART with pins',
+    '管脚': 'Pin',
+    '输出管脚': 'Output pin',
+    '输入管脚': 'Input pin',
+    'PWM 管脚': 'PWM pin',
+    '模拟管脚': 'Analog pin',
+    '按键管脚': 'Button pin',
+    '中断管脚': 'Interrupt pin',
+    '信号管脚': 'Signal pin',
+    '数据管脚': 'Data pin',
+    '时钟管脚': 'Clock pin',
+};
+
+const BOARD_PIN_RISK_EN: Record<string, { title: string; detail: string }> = {
+    'UART0/USB 串口复用，可能影响上传': {
+        title: 'Shared with UART0/USB serial; may affect upload',
+        detail: 'This pin shares the default UART0/USB-serial upload channel. External drivers or pull-ups may interfere with bootloader handshake or serial output. Disconnect peripherals before uploading or use another pin.',
+    },
+    '启动绑带脚：上电电平可能影响启动/下载': {
+        title: 'Strapping pin: boot-time level may affect startup/download',
+        detail: 'External logic levels during reset or power-up participate in boot mode selection. Ensure external circuitry meets datasheet requirements so boot or flashing is not disrupted.',
+    },
+    'WiFi 启用时 ADC2 不能稳定采样': {
+        title: 'ADC2 cannot sample reliably while Wi-Fi is active',
+        detail: 'Classic ESP32 shares ADC2 with the Wi-Fi driver. Digital I/O still works, but use ADC1 pins (GPIO32–39) for analog reads when Wi-Fi is enabled.',
+    },
+    '启用 PSRAM 时可能与存储总线复用': {
+        title: 'May share memory bus when PSRAM is enabled',
+        detail: 'Classic ESP32 WROVER/PSRAM configurations may use this pin. Verify against your module schematic and Core settings when PSRAM is enabled.',
+    },
+    'USB CDC/JTAG 复用，可能占用连接/上传端口': {
+        title: 'Shared with USB CDC/JTAG; may occupy upload/debug port',
+        detail: 'When board options enable this USB feature, using this pin as a general GPIO may disconnect USB serial, JTAG, or upload ports. Choose another pin or disable the option first.',
+    },
+    'OPI Flash 模式下可能复用存储总线': {
+        title: 'May share storage bus in OPI Flash mode',
+        detail: 'ESP32-S3 OPI Flash configurations may use these GPIOs. Check your module schematic when FlashMode=opi; external loads may cause boot or runtime instability.',
+    },
+    'OPI PSRAM 模式下可能复用存储总线': {
+        title: 'May share storage bus in OPI PSRAM mode',
+        detail: 'ESP32-S3 OPI PSRAM configurations may use these GPIOs. Check your module schematic when PSRAM=opi; external loads may cause boot or runtime instability.',
+    },
+    'SDIO/存储接口复用，使用时需核对板卡连接': {
+        title: 'Shared with SDIO/storage interface; verify board wiring',
+        detail: 'This GPIO is multiplexed with SDIO/storage signals. It can usually be used as GPIO when storage is unused, but may cause bus conflicts if onboard storage or SDIO modules are active.',
+    },
+};
+
+const localizePinRisk = (risk: PinCatalogEntry['activeRisks'][number], isEn: boolean) => {
+    if (!isEn) return { title: risk.title, detail: risk.detail || risk.title };
+    const mapped = BOARD_PIN_RISK_EN[risk.title];
+    if (mapped) return mapped;
+    return { title: risk.title, detail: risk.detail || risk.title };
+};
+
+const usageText = (usage: PinUsage, isEn: boolean): string => {
+    const blockLabel = isEn ? (PIN_LABEL_EN[usage.blockLabel] || usage.blockLabel) : usage.blockLabel;
+    const roleLabel = isEn ? (PIN_LABEL_EN[usage.roleLabel] || usage.roleLabel) : usage.roleLabel;
+    return `${blockLabel} · ${roleLabel}`;
+};
 const CONNECTOR_SIDE_LABEL_KEYS: Record<'left' | 'right' | 'top' | 'bottom', string> = {
     left: 'pin.connector.left',
     right: 'pin.connector.right',
@@ -94,6 +171,7 @@ export function PinPreflightPanel({
     displayMode = 'engineering',
 }: PinPreflightPanelProps) {
     const { t: translate } = useTranslation('health');
+    const { isEn } = useUiText();
     const t = translate as unknown as (key: string, options?: Record<string, unknown>) => string;
     const connectorSideLabel = (side: 'left' | 'right' | 'top' | 'bottom' | undefined): string => (
         side ? t(CONNECTOR_SIDE_LABEL_KEYS[side]) : ''
@@ -324,7 +402,9 @@ export function PinPreflightPanel({
                                             })}
                                         </div>
                                     )}
-                                    {pin.activeRisks.map(risk => (
+                                    {pin.activeRisks.map(risk => {
+                                        const riskText = localizePinRisk(risk, isEn);
+                                        return (
                                         <div key={risk.code} className={`mt-1 break-words rounded px-1.5 py-1 text-[9px] ${pin.usages.length === 0
                                             ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                                             : effectiveRiskSeverity(pin, risk) === 'blocker'
@@ -332,13 +412,14 @@ export function PinPreflightPanel({
                                             : effectiveRiskSeverity(pin, risk) === 'warning'
                                                 ? 'bg-amber-100/80 text-amber-700 dark:bg-amber-950/55 dark:text-amber-300'
                                                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}
-                                            title={risk.detail || risk.title}
+                                            title={riskText.detail}
                                         >
-                                            {risk.title}
+                                            {riskText.title}
                                             {pin.usages.length === 0 ? t('pin.boardNoticeSuffix') : ''}
                                             {risk.severity === 'blocker' && pin.evidenceLevel !== 'verified' ? t('pin.publisherWarningSuffix') : ''}
                                         </div>
-                                    ))}
+                                        );
+                                    })}
 
                                     {pin.usages.length > 0 && (
                                         <div className="mt-1">
@@ -356,11 +437,11 @@ export function PinPreflightPanel({
                                                     type="button"
                                                     onClick={() => onLocateBlock(usage.blockId)}
                                                     className="inline-flex max-w-full items-center gap-1 break-words rounded border border-sky-200 bg-white px-1.5 py-1 text-[8px] font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-900 dark:bg-slate-900 dark:text-sky-300 dark:hover:bg-sky-950/40"
-                                                    title={t('pin.locateTitle', { usage: usageText(usage) })}
+                                                    title={t('pin.locateTitle', { usage: usageText(usage, isEn) })}
                                                 >
                                                     <LocateFixed size={8} />
                                                     <span className="font-black">{t('pin.locate')}</span>
-                                                    <span className="truncate">{usageText(usage)}</span>
+                                                    <span className="truncate">{usageText(usage, isEn)}</span>
                                                 </button>
                                             ))}
                                             </div>

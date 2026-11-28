@@ -1,5 +1,13 @@
 import { sha256Hex } from './compile_source_map';
 import { normalizeProjectIdentityPath } from './project_identity';
+const isEnUi = (): boolean => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { return false; }
+};
+const uiText = (zh: string, en: string): string => (isEnUi() ? en : zh);
 import {
     forgeReasonLabel,
     resolveForgeCoreSupport,
@@ -213,33 +221,34 @@ const missReasonsFromLog = (log: string): string[] => {
     return match[1].split(',').map(value => value.trim()).filter(Boolean);
 };
 
-const REASON_LABELS: Record<string, string> = {
-    code_changed: '代码发生变化',
-    include_headers_changed: '头文件集合发生变化',
-    workspace_fingerprint_changed: '积木工作区发生变化',
-    build_signature_changed: '核心、工具链或依赖发生变化',
-    fqbn_changed: '板卡或编译选项发生变化',
-    build_path_missing: '上次构建目录不存在',
-    metadata_missing: '缺少缓存元数据',
-    artifact_missing: '固件产物不存在',
+const REASON_LABELS: Record<string, [string, string]> = {
+    code_changed: ['代码发生变化', 'Source code changed'],
+    include_headers_changed: ['头文件集合发生变化', 'Included headers changed'],
+    workspace_fingerprint_changed: ['积木工作区发生变化', 'Block workspace changed'],
+    build_signature_changed: ['核心、工具链或依赖发生变化', 'Core, toolchain, or dependencies changed'],
+    fqbn_changed: ['板卡或编译选项发生变化', 'Board or build options changed'],
+    build_path_missing: ['上次构建目录不存在', 'Previous build directory is missing'],
+    metadata_missing: ['缺少缓存元数据', 'Cache metadata is missing'],
+    artifact_missing: ['固件产物不存在', 'Firmware artifact is missing'],
 };
 
 export const compileMissReasonLabel = (reason: string): string => {
     const normalized = reason.trim().toLowerCase();
-    return REASON_LABELS[normalized] || reason.split('_').join(' ');
+    const pair = REASON_LABELS[normalized];
+    return pair ? uiText(pair[0], pair[1]) : reason.split('_').join(' ');
 };
 
 export const compileBuildModeLabel = (mode: CompileBuildMode): string => {
-    if (mode === 'exact-match') return '完整缓存命中';
-    if (mode === 'fast-relink') return '重链接构建';
-    if (mode === 'native-relink-compile-only') return 'NativeRelink 局部构建';
-    if (mode === 'native-relink-graph-transition') return 'NativeRelink 依赖图重构';
-    if (mode === 'arduino-cli-core-seeded') return 'Arduino CLI Core 复用构建';
-    if (mode === 'full-build') return '完整构建';
-    if (mode === 'arduino-cli-incremental') return 'Arduino CLI 增量构建';
-    if (mode === 'arduino-cli-incremental-fallback') return 'Arduino CLI 增量回退';
-    if (mode === 'arduino-cli-full-fallback') return 'Arduino CLI 完整回退';
-    return '常规编译';
+    if (mode === 'exact-match') return uiText('完整缓存命中', 'Exact cache hit');
+    if (mode === 'fast-relink') return uiText('重链接构建', 'Fast relink build');
+    if (mode === 'native-relink-compile-only') return uiText('NativeRelink 局部构建', 'NativeRelink partial build');
+    if (mode === 'native-relink-graph-transition') return uiText('NativeRelink 依赖图重构', 'NativeRelink graph rebuild');
+    if (mode === 'arduino-cli-core-seeded') return uiText('Arduino CLI Core 复用构建', 'Arduino CLI core-seeded build');
+    if (mode === 'full-build') return uiText('完整构建', 'Full build');
+    if (mode === 'arduino-cli-incremental') return uiText('Arduino CLI 增量构建', 'Arduino CLI incremental build');
+    if (mode === 'arduino-cli-incremental-fallback') return uiText('Arduino CLI 增量回退', 'Arduino CLI incremental fallback');
+    if (mode === 'arduino-cli-full-fallback') return uiText('Arduino CLI 完整回退', 'Arduino CLI full fallback');
+    return uiText('常规编译', 'Standard build');
 };
 
 export const formatCompileDuration = (milliseconds: number): string => {
@@ -254,12 +263,12 @@ export const compareCompileEnvironment = (
 ): string[] => {
     if (!previous) return [];
     const changes: string[] = [];
-    if (previous.fqbn !== current.fqbn) changes.push('板卡或编译选项已变化');
+    if (previous.fqbn !== current.fqbn) changes.push(uiText('板卡或编译选项已变化', 'Board or build options changed'));
     if (previous.coreVersion && current.coreVersion && previous.coreVersion !== current.coreVersion) {
-        changes.push(`核心版本由 ${previous.coreVersion} 变为 ${current.coreVersion}`);
+        changes.push(uiText(`核心版本由 ${previous.coreVersion} 变为 ${current.coreVersion}`, `Core version changed from ${previous.coreVersion} to ${current.coreVersion}`));
     }
     if (previous.includeHeaders.join('|') !== current.includeHeaders.join('|')) {
-        changes.push('使用的头文件集合已变化');
+        changes.push(uiText('使用的头文件集合已变化', 'Included header set changed'));
     }
     return changes;
 };
@@ -325,16 +334,28 @@ export const diagnoseCompile = ({
         ? {
             ...bundledCoreSupport,
             status: 'certified-evidence-available' as const,
-            label: `FLFE Core ${currentCoreVersion || '当前版本'} · 已认证`,
-            detail: `当前 Core ${currentCoreVersion || '版本'}、完整 FQBN、工具链和构建合同的资格证据已经匹配。`,
+            label: uiText(
+                `FLFE Core ${currentCoreVersion || '当前版本'} · 已认证`,
+                `FLFE Core ${currentCoreVersion || 'current'} · Certified`,
+            ),
+            detail: uiText(
+                `当前 Core ${currentCoreVersion || '版本'}、完整 FQBN、工具链和构建合同的资格证据已经匹配。`,
+                `Qualification evidence matches Core ${currentCoreVersion || 'current'}, full FQBN, toolchain, and build contract.`,
+            ),
         }
         : reportedForgeDecision === 'force-platform'
             && bundledCoreSupport.status === 'certified-evidence-available'
             ? {
                 ...bundledCoreSupport,
                 status: 'safe-fallback' as const,
-                label: `FLFE Core ${currentCoreVersion || '当前版本'} · 安全回退`,
-                detail: `当前 Core ${currentCoreVersion || '版本'} 有随包版本证据，但当前完整 FQBN、工具链或 A/B 资格尚未全部匹配，因此本次使用原生安全构建。`,
+                label: uiText(
+                    `FLFE Core ${currentCoreVersion || '当前版本'} · 安全回退`,
+                    `FLFE Core ${currentCoreVersion || 'current'} · Safe fallback`,
+                ),
+                detail: uiText(
+                    `当前 Core ${currentCoreVersion || '版本'} 有随包版本证据，但当前完整 FQBN、工具链或 A/B 资格尚未全部匹配，因此本次使用原生安全构建。`,
+                    `Core ${currentCoreVersion || 'current'} has bundled version evidence, but full FQBN, toolchain, or A/B qualification did not fully match, so the native safe build route was used.`,
+                ),
             }
             : bundledCoreSupport;
     const exactMatch = Boolean(cache.exactMatch ?? buildMode === 'exact-match');
@@ -348,100 +369,202 @@ export const diagnoseCompile = ({
     const environmentChanges = compareCompileEnvironment(previousSnapshot, currentEnvironment);
 
     let status: CompileDoctorStatus = success ? 'healthy' : 'problem';
-    let summary = success ? '编译链路正常' : '编译失败';
+    let summary = success ? uiText('编译链路正常', 'Build pipeline healthy') : uiText('编译失败', 'Compilation failed');
     let explanation = success
-        ? `${compileBuildModeLabel(buildMode)}，实际编译 ${formatCompileDuration(cliCompileMs || totalMs)}。`
-        : '编译器返回错误，请查看下方第一条红色日志。';
-    let recommendation = success ? '当前无需处理。' : '先按错误位置修复代码或依赖，再重新编译。';
+        ? uiText(
+            `${compileBuildModeLabel(buildMode)}，实际编译 ${formatCompileDuration(cliCompileMs || totalMs)}。`,
+            `${compileBuildModeLabel(buildMode)}, compile time ${formatCompileDuration(cliCompileMs || totalMs)}.`,
+        )
+        : uiText(
+            '编译器返回错误，请查看下方第一条红色日志。',
+            'The compiler returned an error. Inspect the first red error entry below.',
+        );
+    let recommendation = success
+        ? uiText('当前无需处理。', 'No action needed.')
+        : uiText('先按错误位置修复代码或依赖，再重新编译。', 'Fix the reported code or dependency error and compile again.');
 
     if (success && lockWaitMs >= 5000) {
         status = 'problem';
-        summary = '后台任务严重阻塞前台编译';
-        explanation = `真正编译只用了 ${formatCompileDuration(cliCompileMs)}，但等待编译锁用了 ${formatCompileDuration(lockWaitMs)}。`;
-        recommendation = '应取消或让路同板卡后台预热；无需清空代码缓存。';
+        summary = uiText('后台任务严重阻塞前台编译', 'Background task heavily delayed foreground build');
+        explanation = uiText(
+            `真正编译只用了 ${formatCompileDuration(cliCompileMs)}，但等待编译锁用了 ${formatCompileDuration(lockWaitMs)}。`,
+            `Actual compilation took ${formatCompileDuration(cliCompileMs)}, while waiting for the compile lock took ${formatCompileDuration(lockWaitMs)}.`,
+        );
+        recommendation = uiText(
+            '应取消或让路同板卡后台预热；无需清空代码缓存。',
+            'Cancel or yield same-board background warmup; clearing the code cache is unnecessary.',
+        );
     } else if (success && lockWaitMs >= 1000) {
         status = 'attention';
-        summary = '编译锁等待偏长';
-        explanation = `等待后台编译任务释放锁用了 ${formatCompileDuration(lockWaitMs)}。`;
-        recommendation = '再次出现时使用“重建当前配置”前先确认没有后台预热。';
+        summary = uiText('编译锁等待偏长', 'Long compile lock wait');
+        explanation = uiText(
+            `等待后台编译任务释放锁用了 ${formatCompileDuration(lockWaitMs)}。`,
+            `Waited ${formatCompileDuration(lockWaitMs)} for a background compile task to release the lock.`,
+        );
+        recommendation = uiText(
+            '再次出现时使用“重建当前配置”前先确认没有后台预热。',
+            'Check that no background warmup is running before triggering a rebuild.',
+        );
     } else if (success && FAST_BUILD_MODES.has(buildMode)) {
         if (forgeFastAuthorized) {
-            summary = 'CK Forge · 热构建';
-            explanation = `当前 CK Forge 引擎证据与完整目标身份匹配；本次复用了核心与依赖，只重新编译变化部分并链接，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`;
+            summary = uiText('CK Forge · 热构建', 'CK Forge · Hot build');
+            explanation = uiText(
+                `当前 CK Forge 引擎证据与完整目标身份匹配；本次复用了核心与依赖，只重新编译变化部分并链接，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`,
+                `CK Forge engine evidence matched the full target identity; core and dependencies were reused and only changed units were recompiled and linked in ${formatCompileDuration(cliCompileMs || totalMs)}.`,
+            );
         } else {
             status = 'attention';
             summary = reportedForgeDecision === 'allow-fast'
-                ? 'CK Forge · 快速资格证据不完整'
+                ? uiText('CK Forge · 快速资格证据不完整', 'CK Forge · Incomplete fast-route evidence')
                 : reportedForgeDecision === 'force-platform'
-                    ? 'CK Forge · 构建路由证据不一致'
-                    : 'CK Forge · 快速资格待验证';
+                    ? uiText('CK Forge · 构建路由证据不一致', 'CK Forge · Inconsistent build route evidence')
+                    : uiText('CK Forge · 快速资格待验证', 'CK Forge · Fast route unverified');
             explanation = reportedForgeDecision === 'force-platform'
-                ? '结构化 CK Forge 决策要求使用原生构建，但本次记录同时出现了重链接路径；为避免误报，本次不会标记为 Fast。'
-                : '本次记录出现了重链接路径，但没有同时提供与当前 EXE、合同、Core、工具链和完整 FQBN 一致的 CK Forge 授权证据，因此不能说明快速编译已经生效。';
-            recommendation = '保持原生 Arduino CLI 安全路径；完成当前完整身份的四阶段 A/B 并取得有效证书后，界面才会显示已认证热构建。';
+                ? uiText(
+                    '结构化 CK Forge 决策要求使用原生构建，但本次记录同时出现了重链接路径；为避免误报，本次不会标记为 Fast。',
+                    'Structured CK Forge routing requested a native build, while a relink marker also appeared; to prevent false claims, this build is not marked as Fast.',
+                )
+                : uiText(
+                    '本次记录出现了重链接路径，但没有同时提供与当前 EXE、合同、Core、工具链和完整 FQBN 一致的 CK Forge 授权证据，因此不能说明快速编译已经生效。',
+                    'A relink path appeared without matching CK Forge authorization evidence for the current binary, contract, Core, toolchain, and full FQBN, so fast compilation cannot be claimed.',
+                );
+            recommendation = uiText(
+                '保持原生 Arduino CLI 安全路径；完成当前完整身份的四阶段 A/B 并取得有效证书后，界面才会显示已认证热构建。',
+                'Keep the native Arduino CLI safe route; certified hot build appears only after four-stage A/B qualification completes for this full identity.',
+            );
         }
     } else if (success && forgeDecision === 'force-platform' && forgeFastAuthorized && nativeRelinkCertificateMatched) {
         if (esp32LibraryBaselineCommitted) {
-            summary = 'CK Forge · 已认证依赖基线';
-            explanation = `本次由平台原生构建确认并封存了当前 ESP32 Core 内置库的真实依赖图，用时 ${formatCompileDuration(cliCompileMs || totalMs)}；后续只修改源码且库依赖不变时可进入 NativeRelink。`;
-            recommendation = '无需重复重建；下一次保持相同库依赖修改代码，即可验证局部构建路径。';
+            summary = uiText('CK Forge · 已认证依赖基线', 'CK Forge · Certified dependency baseline');
+            explanation = uiText(
+                `本次由平台原生构建确认并封存了当前 ESP32 Core 内置库的真实依赖图，用时 ${formatCompileDuration(cliCompileMs || totalMs)}；后续只修改源码且库依赖不变时可进入 NativeRelink。`,
+                `Platform-native build verified and sealed the ESP32 Core built-in library dependency graph in ${formatCompileDuration(cliCompileMs || totalMs)}; subsequent source-only edits with unchanged libraries can use NativeRelink.`,
+            );
+            recommendation = uiText(
+                '无需重复重建；下一次保持相同库依赖修改代码，即可验证局部构建路径。',
+                'No rebuild needed; edit your sketch with the same libraries next time to verify the partial build path.',
+            );
         } else if (buildMode === 'exact-match') {
-            summary = 'CK Forge · 已认证产物复用';
-            explanation = '当前目标的 NativeRelink 资格证书与完整身份匹配；本次代码和编译环境未变化，直接复用了已认证基线产物。';
-            recommendation = '当前无需处理；修改代码后，符合门禁的编辑会进入 NativeRelink 快速路径。';
+            summary = uiText('CK Forge · 已认证产物复用', 'CK Forge · Certified artifact reuse');
+            explanation = uiText(
+                '当前目标的 NativeRelink 资格证书与完整身份匹配；本次代码和编译环境未变化，直接复用了已认证基线产物。',
+                'The NativeRelink certificate matched this full target identity; code and environment were unchanged, so the certified baseline artifact was reused.',
+            );
+            recommendation = uiText(
+                '当前无需处理；修改代码后，符合门禁的编辑会进入 NativeRelink 快速路径。',
+                'No action needed; qualifying code edits will enter the NativeRelink fast path.',
+            );
         } else if (buildMode === 'full-build') {
             summary = forcedRebuild
-                ? 'CK Forge · 已认证 · 重建基线'
-                : 'CK Forge · 已认证 · 首次建立基线';
-            explanation = `当前目标已通过 NativeRelink 资格认证；本次先执行完整 Release 构建以建立安全基线，用时 ${formatCompileDuration(cliCompileMs || totalMs)}，后续符合门禁的编辑将进入快速路径。`;
-            recommendation = '这是认证目标首次建立或主动重建基线的正常过程，不代表快速资格缺失。';
+                ? uiText('CK Forge · 已认证 · 重建基线', 'CK Forge · Certified · Rebuilding baseline')
+                : uiText('CK Forge · 已认证 · 首次建立基线', 'CK Forge · Certified · Initial baseline');
+            explanation = uiText(
+                `当前目标已通过 NativeRelink 资格认证；本次先执行完整 Release 构建以建立安全基线，用时 ${formatCompileDuration(cliCompileMs || totalMs)}，后续符合门禁的编辑将进入快速路径。`,
+                `This target is certified for NativeRelink; a full Release build established the safe baseline in ${formatCompileDuration(cliCompileMs || totalMs)}, and subsequent qualifying edits will use the fast path.`,
+            );
+            recommendation = uiText(
+                '这是认证目标首次建立或主动重建基线的正常过程，不代表快速资格缺失。',
+                'This is normal for establishing or rebuilding a certified target baseline and does not indicate missing fast qualification.',
+            );
         } else {
             status = 'attention';
-            summary = 'CK Forge · 已认证安全构建';
+            summary = uiText('CK Forge · 已认证安全构建', 'CK Forge · Certified safe build');
             explanation = esp32LibraryBaselineSkipped
-                ? `当前目标资格证书有效，但本次 ESP32 库依赖基线未能安全封存，因此继续使用平台原生路径，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`
-                : `当前目标资格证书有效，但当前构建输入还没有匹配的依赖基线，因此本次使用平台原生路径，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`;
+                ? uiText(
+                    `当前目标资格证书有效，但本次 ESP32 库依赖基线未能安全封存，因此继续使用平台原生路径，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`,
+                    `Target qualification is valid, but the ESP32 library dependency baseline could not be safely sealed, so the platform-native route was used (${formatCompileDuration(cliCompileMs || totalMs)}).`,
+                )
+                : uiText(
+                    `当前目标资格证书有效，但当前构建输入还没有匹配的依赖基线，因此本次使用平台原生路径，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`,
+                    `Target qualification is valid, but no matching dependency baseline exists for these build inputs yet, so the platform-native route was used (${formatCompileDuration(cliCompileMs || totalMs)}).`,
+                );
             recommendation = esp32LibraryBaselineSkipped
-                ? '展开技术日志查看“baseline commit skipped”的明确原因；未通过门禁前不会冒充为热构建。'
-                : '资格只证明当前目标可使用快速路线，不代表任意依赖图已自动授权；CK 会在可安全封存依赖基线后启用局部构建。';
+                ? uiText(
+                    '展开技术日志查看“baseline commit skipped”的明确原因；未通过门禁前不会冒充为热构建。',
+                    'Expand the technical log for the exact "baseline commit skipped" reason; hot build is not claimed until all gates pass.',
+                )
+                : uiText(
+                    '资格只证明当前目标可使用快速路线，不代表任意依赖图已自动授权；CK 会在可安全封存依赖基线后启用局部构建。',
+                    'Qualification certifies the target for the fast route once a dependency baseline is safely sealed.',
+                );
         }
     } else if (success && forgeDecision === 'force-platform') {
         status = 'attention';
         summary = buildMode === 'exact-match'
-            ? 'CK Forge · 原生产物复用'
-            : 'CK Forge · 原生安全构建';
+            ? uiText('CK Forge · 原生产物复用', 'CK Forge · Native artifact reuse')
+            : uiText('CK Forge · 原生安全构建', 'CK Forge · Native safe build');
         explanation = buildMode === 'exact-match'
-            ? `${forgeCoreSupport.detail} 本次复用了既有原生产物，但不会标记为 Fast。`
-            : `${forgeCoreSupport.detail} 本次平台原生构建用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`;
+            ? uiText(
+                `${forgeCoreSupport.detail} 本次复用了既有原生产物，但不会标记为 Fast。`,
+                `${forgeCoreSupport.detail} Existing native artifacts were reused without claiming Fast mode.`,
+            )
+            : uiText(
+                `${forgeCoreSupport.detail} 本次平台原生构建用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`,
+                `${forgeCoreSupport.detail} Platform-native build completed in ${formatCompileDuration(cliCompileMs || totalMs)}.`,
+            );
         recommendation = forgeCoreSupport.status === 'local-certification-required'
-            ? `当前版本仍可正常使用，不要求降级。随安装包已有资格证据的 Core：${forgeCoreSupport.certifiedCoreVersions.join('、') || '暂无'}；当前完整身份通过本机 A/B 后会自动启用快速路径。`
-            : '当前版本仍可正常使用；这是防止第三方或新版 Core 被优化得更慢的安全路径，当前完整身份通过性能资格后才会启用快速路径。';
+            ? uiText(
+                `当前版本仍可正常使用，不要求降级。随安装包已有资格证据的 Core：${forgeCoreSupport.certifiedCoreVersions.join('、') || '暂无'}；当前完整身份通过本机 A/B 后会自动启用快速路径。`,
+                `This Core works normally with no downgrade required. Bundled qualification evidence covers Core: ${forgeCoreSupport.certifiedCoreVersions.join(', ') || 'none'}; the fast route enables automatically after local A/B qualification.`,
+            )
+            : uiText(
+                '当前版本仍可正常使用；这是防止第三方或新版 Core 被优化得更慢的安全路径，当前完整身份通过性能资格后才会启用快速路径。',
+                'This Core works normally; the safe route prevents regressions on third-party or newer Cores until performance qualification passes.',
+            );
     } else if (success && buildMode === 'full-build' && !forcedRebuild) {
         status = 'attention';
-        summary = forgeDecision === 'allow-fast' ? 'CK Forge · 首次构建' : '本次执行了完整构建';
-        explanation = '没有可安全复用的完整缓存，核心和依赖可能被重新编译。';
-        recommendation = '首次构建属于正常情况；若连续发生，请查看下方缓存失效原因。';
+        summary = forgeDecision === 'allow-fast'
+            ? uiText('CK Forge · 首次构建', 'CK Forge · Initial build')
+            : uiText('本次执行了完整构建', 'Full build performed');
+        explanation = uiText(
+            '没有可安全复用的完整缓存，核心和依赖可能被重新编译。',
+            'No reusable complete cache was available, so core and dependencies may have been recompiled.',
+        );
+        recommendation = uiText(
+            '首次构建属于正常情况；若连续发生，请查看下方缓存失效原因。',
+            'Normal for a first build; if this happens repeatedly, inspect the cache miss reasons below.',
+        );
     } else if (success && buildMode === 'exact-match') {
-        summary = forgeDecision === 'allow-fast' ? 'CK Forge · 产物直达' : '完整缓存命中';
-        explanation = '代码和编译环境均未变化，直接复用了上次固件产物。';
+        summary = forgeDecision === 'allow-fast'
+            ? uiText('CK Forge · 产物直达', 'CK Forge · Direct artifact hit')
+            : uiText('完整缓存命中', 'Exact cache hit');
+        explanation = uiText(
+            '代码和编译环境均未变化，直接复用了上次固件产物。',
+            'Source code and build environment were unchanged, so the previous firmware artifact was reused.',
+        );
     } else if (success && buildMode === 'arduino-cli-incremental') {
         status = 'attention';
-        summary = 'Arduino CLI 执行了增量构建';
-        explanation = `缓存目录可用，但本次由 Arduino CLI 按当前输入重新确认依赖并构建，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`;
-        recommendation = '这是依赖变化时的安全路径；若没有修改依赖却频繁出现，可检查下方缓存未命中原因。';
+        summary = uiText('Arduino CLI 执行了增量构建', 'Arduino CLI incremental build');
+        explanation = uiText(
+            `缓存目录可用，但本次由 Arduino CLI 按当前输入重新确认依赖并构建，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`,
+            `Build cache was available, and Arduino CLI re-verified dependencies and compiled changes in ${formatCompileDuration(cliCompileMs || totalMs)}.`,
+        );
+        recommendation = uiText(
+            '这是依赖变化时的安全路径；若没有修改依赖却频繁出现，可检查下方缓存未命中原因。',
+            'This is the safe route when dependencies change; if it happens without dependency edits, check the cache miss reasons below.',
+        );
     } else if (success && (
         buildMode === 'arduino-cli-incremental-fallback'
         || buildMode === 'arduino-cli-full-fallback'
     )) {
         status = 'attention';
-        summary = '快速路径已安全回退';
-        explanation = `快速重链接未通过安全门禁，已改由 Arduino CLI ${buildMode === 'arduino-cli-full-fallback' ? '完整' : '增量'}构建，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`;
-        recommendation = '产物以 Arduino CLI 当前依赖解析为准；若连续发生，可查看回退原因优化缓存。';
+        summary = uiText('快速路径已安全回退', 'Fast route safely fell back');
+        explanation = uiText(
+            `快速重链接未通过安全门禁，已改由 Arduino CLI ${buildMode === 'arduino-cli-full-fallback' ? '完整' : '增量'}构建，用时 ${formatCompileDuration(cliCompileMs || totalMs)}。`,
+            `Fast relink did not pass safety checks and fell back to an Arduino CLI ${buildMode === 'arduino-cli-full-fallback' ? 'full' : 'incremental'} build (${formatCompileDuration(cliCompileMs || totalMs)}).`,
+        );
+        recommendation = uiText(
+            '产物以 Arduino CLI 当前依赖解析为准；若连续发生，可查看回退原因优化缓存。',
+            'Output matches Arduino CLI dependency resolution; inspect the fallback reason if this happens repeatedly.',
+        );
     }
 
     if (success && environmentChanges.length > 0 && status === 'healthy') {
         status = 'attention';
-        recommendation = '环境变化会让旧缓存安全失效，这是正常保护，不建议强行复用。';
+        recommendation = uiText(
+            '环境变化会让旧缓存安全失效，这是正常保护，不建议强行复用。',
+            'Environment changes safely invalidate old caches; forcing reuse is not recommended.',
+        );
     }
 
     return {

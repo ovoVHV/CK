@@ -3,11 +3,28 @@ import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { FolderOpen, HardDrive, LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useUiText } from '../i18n/uiText';
 
 type Storage = { root: string; assets: string; temp: string; desktop: string; projects: string; externalAssets: boolean; previousRoots?: string[] };
 type Plan = { target: string; bytes: number; files: number; available: number; includeExternal: boolean };
+
+function formatStorageError(raw: string, isEn: boolean): string {
+    if (!isEn) return raw;
+    if (raw.includes('请从安装版 CK 启动器打开软件后管理数据目录')) {
+        return 'Open CK from the installed launcher to manage data storage directories.';
+    }
+    if (raw.includes('请等待编译、上传及核心包/库安装完成后迁移')) {
+        return 'Wait for active builds, uploads, and core/library installations to finish before migrating data.';
+    }
+    if (raw.includes('无法定位数据目录')) return 'Unable to locate the data storage directory.';
+    if (raw.includes('桌面数据目录无效')) return 'Invalid desktop data directory.';
+    if (raw.includes('缺少安装目录')) return 'Installation directory is missing.';
+    return raw;
+}
+
 export default function DataStorageSettings() {
     const { t } = useTranslation();
+    const { isEn } = useUiText();
     const [storage, setStorage] = useState<Storage | null>(null);
     const [target, setTarget] = useState('');
     const [includeExternal, setIncludeExternal] = useState(false);
@@ -42,9 +59,9 @@ export default function DataStorageSettings() {
             {storage.externalAssets && <label className="mt-3 flex items-start gap-2 text-xs"><input className="mt-0.5" type="checkbox" disabled={busy} checked={includeExternal} onChange={e => { setIncludeExternal(e.target.checked); setPlan(null); }} /><span>{t('storage.includeExternal')}<span className="mt-1 block text-slate-500">{t('storage.externalHint')}</span></span></label>}
             <p className="mt-3 text-xs leading-5 text-slate-500">{t('storage.migrationHint')}</p>
             {plan ? <div className="mt-3 rounded-lg bg-brand-50 p-3 dark:bg-brand-950"><p className="text-xs">{t('storage.plan', { files: plan.files, size: gb(plan.bytes), available: gb(plan.available) })}</p><button data-ck-role="data-storage-migrate" type="button" disabled={busy} onClick={() => void migrate()} className="mt-3 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{t('storage.restart')}</button></div> : <button data-ck-role="data-storage-plan" type="button" disabled={busy || !target.trim()} onClick={() => void inspect()} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{busy && <LoaderCircle size={14} className="animate-spin" />}{t('storage.inspect')}</button>}
-            {!!storage.previousRoots?.length && <p className="mt-3 break-all text-xs text-slate-500">{t('storage.previous')} {Array.from(new Set(storage.previousRoots)).join('；')}</p>}
+            {!!storage.previousRoots?.length && <p className="mt-3 break-all text-xs text-slate-500">{t('storage.previous')} {Array.from(new Set(storage.previousRoots)).join(isEn ? '; ' : '；')}</p>}
         </>}
-        {error && <p role="alert" className="mt-3 break-all text-xs text-red-600 dark:text-red-300">{error}</p>}
+        {error && <p role="alert" className="mt-3 break-all text-xs text-red-600 dark:text-red-300">{formatStorageError(error, isEn)}</p>}
         {restarting && <p role="status" className="mt-3 text-sm font-semibold">{t('storage.restarting')}</p>}
     </section>;
 }

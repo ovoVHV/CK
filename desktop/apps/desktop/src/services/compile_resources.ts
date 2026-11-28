@@ -685,15 +685,26 @@ export const formatResourceBytes = (bytes: number): string => {
     return `${value.toFixed(value >= 10 ? 1 : 2)} MB`;
 };
 
+const isEnResourceUi = (): boolean => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || ''));
+    } catch { return false; }
+};
+
 export const formatResourceDelta = (
     deltaBytes: number | null,
     deltaPercentagePoints: number | null,
     baselineCapacityChanged = false,
 ): string => {
-    if (baselineCapacityChanged) return '容量配置已变化，已重建基线';
-    if (deltaBytes == null || deltaPercentagePoints == null) return '暂无对比基线';
-    if (deltaBytes === 0 && Math.abs(deltaPercentagePoints) < 0.05) return '较上次无变化';
+    const en = isEnResourceUi();
+    if (baselineCapacityChanged) return en ? 'Capacity changed; baseline reset' : '容量配置已变化，已重建基线';
+    if (deltaBytes == null || deltaPercentagePoints == null) return en ? 'No comparison baseline yet' : '暂无对比基线';
+    if (deltaBytes === 0 && Math.abs(deltaPercentagePoints) < 0.05) return en ? 'No change from last build' : '较上次无变化';
     const sign = deltaBytes > 0 ? '+' : deltaBytes < 0 ? '−' : '';
     const percentSign = deltaPercentagePoints > 0 ? '+' : deltaPercentagePoints < 0 ? '−' : '';
-    return `较上次 ${sign}${formatResourceBytes(deltaBytes)}（${percentSign}${Math.abs(deltaPercentagePoints).toFixed(1)}%）`;
+    return en
+        ? `${sign}${formatResourceBytes(deltaBytes)} vs last (${percentSign}${Math.abs(deltaPercentagePoints).toFixed(1)}%)`
+        : `较上次 ${sign}${formatResourceBytes(deltaBytes)}（${percentSign}${Math.abs(deltaPercentagePoints).toFixed(1)}%）`;
 };

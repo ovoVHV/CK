@@ -1,3 +1,11 @@
+const uiText = (zh: string, en: string): string => {
+    try {
+        const lang = typeof document !== 'undefined' ? document.documentElement?.lang : '';
+        const stored = typeof window !== 'undefined' ? window.localStorage?.getItem('ck.i18n.uiLocale') : '';
+        return /^en(?:-|$)/i.test(String(lang || stored || '')) ? en : zh;
+    } catch { return zh; }
+};
+
 export type DeviceHealthOutcome = 'complete' | 'partial' | 'failed' | 'unsupported';
 export type DeviceHealthCheckState = 'pass' | 'warning' | 'error' | 'unknown';
 export type DeviceHealthCheckCertainty = 'certain' | 'hint';
@@ -347,14 +355,14 @@ export const createFailedDeviceHealthReport = (
         id: 'device-probe-failed',
         state: 'error',
         certainty: 'certain',
-        title: '未能完成真机握手',
-        evidence: boundedPrivacyString(error instanceof Error ? error.message : String(error || '未知错误')) || undefined,
+        title: uiText('未能完成真机握手', 'Failed to complete device handshake'),
+        evidence: boundedPrivacyString(error instanceof Error ? error.message : String(error || uiText('未知错误', 'Unknown error'))) || undefined,
         action: 'show_boot_help',
     }],
 });
 
 export const formatDeviceCapacity = (bytes: number | null): string => {
-    if (bytes == null || !Number.isFinite(bytes) || bytes <= 0) return '未明确报告';
+    if (bytes == null || !Number.isFinite(bytes) || bytes <= 0) return uiText('未明确报告', 'Not reported');
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(bytes >= 100 * 1024 ? 0 : 1)} KB`;
     const mib = bytes / (1024 * 1024);
     return `${mib.toFixed(Number.isInteger(mib) ? 0 : mib >= 10 ? 1 : 2)} MB`;
@@ -381,37 +389,37 @@ export const deriveDeviceHealthPresentation = (
                 ? 'attention'
                 : 'healthy';
     const title = status === 'healthy'
-        ? '真机体检通过'
+        ? uiText('真机体检通过', 'Device check passed')
         : status === 'attention'
-            ? '真机体检完成，有提示'
+            ? uiText('真机体检完成，有提示', 'Device check finished with notices')
             : status === 'unsupported'
-                ? '当前目标暂不支持真机体检'
-                : '真机体检未通过';
+                ? uiText('当前目标暂不支持真机体检', 'Device check not supported for this target')
+                : uiText('真机体检未通过', 'Device check failed');
     const explanation = status === 'healthy'
-        ? '开发板握手和已明确报告的硬件配置检查通过。'
+        ? uiText('开发板握手和已明确报告的硬件配置检查通过。', 'Board handshake and reported hardware configuration checks passed.')
         : status === 'attention'
-            ? '已完成真机握手；请核对下方提示。未报告的硬件不会被推断为不存在。'
+            ? uiText('已完成真机握手；请核对下方提示。未报告的硬件不会被推断为不存在。', 'Handshake succeeded; review notices below. Unreported hardware is not assumed absent.')
             : status === 'unsupported'
-                ? 'P0 版本只检查解析到 esp32:esp32:* 的目标。'
-                : '未完成可靠握手，或发现必须先修正的确定问题。';
+                ? uiText('P0 版本只检查解析到 esp32:esp32:* 的目标。', 'Device check currently supports esp32:esp32:* targets only.')
+                : uiText('未完成可靠握手，或发现必须先修正的确定问题。', 'Handshake did not complete reliably, or a blocking issue was detected.');
     const chipLabel = report.device.chip
         ? `${report.device.chip}${report.device.revision ? ` · ${report.device.revision}` : ''}`
-        : '未明确报告';
+        : uiText('未明确报告', 'Not reported');
     const identityLabel = report.device.mac
         ? `MAC ${report.device.mac}`
         : report.device.macSuffix
-            ? `MAC 尾号 ${report.device.macSuffix.toUpperCase()}`
+            ? uiText(`MAC 尾号 ${report.device.macSuffix.toUpperCase()}`, `MAC suffix ${report.device.macSuffix.toUpperCase()}`)
         : report.device.identitySource === 'usb-serial'
-            ? 'USB 序列身份'
+            ? uiText('USB 序列身份', 'USB serial identity')
             : report.device.identitySource === 'session-port'
-                ? '仅本次端口会话'
-                : '芯片身份已绑定';
+                ? uiText('仅本次端口会话', 'Current port session only')
+                : uiText('芯片身份已绑定', 'Chip identity bound');
     const targetParts = [
         report.target.buildMcu,
         report.target.configuredFlashBytes
-            ? `配置 Flash ${formatDeviceCapacity(report.target.configuredFlashBytes)}`
+            ? uiText(`配置 Flash ${formatDeviceCapacity(report.target.configuredFlashBytes)}`, `Configured Flash ${formatDeviceCapacity(report.target.configuredFlashBytes)}`)
             : null,
-        report.target.partitionScheme ? `分区 ${report.target.partitionScheme}` : null,
+        report.target.partitionScheme ? uiText(`分区 ${report.target.partitionScheme}`, `Partition ${report.target.partitionScheme}`) : null,
         report.target.psramMode ? `PSRAM ${report.target.psramMode}` : null,
     ].filter(Boolean);
 
